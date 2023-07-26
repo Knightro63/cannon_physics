@@ -31,37 +31,37 @@ class GSSolver extends Solver {
    * @return number of iterations performed
    */
   num solve(num dt, World world) {
-    let iter = 0
-    const maxIter = this.iterations
-    const tolSquared = this.tolerance * this.tolerance
-    const equations = this.equations
-    const Neq = equations.length
-    const bodies = world.bodies
-    const Nbodies = bodies.length
-    const h = dt
-    let q
-    let B
-    let invC
-    let deltalambda
-    let deltalambdaTot
-    let GWlambda
-    let lambdaj
+    int iter = 0;
+    const maxIter = this.iterations;
+    const tolSquared = this.tolerance * this.tolerance;
+    const equations = this.equations;
+    const Neq = equations.length;
+    const bodies = world.bodies;
+    const Nbodies = bodies.length;
+    const h = dt;
+    let q;
+    let B;
+    let invC;
+    let deltalambda;
+    let deltalambdaTot;
+    let GWlambda;
+    let lambdaj;
 
     // Update solve mass
-    if (Neq !== 0) {
-      for (let i = 0; i !== Nbodies; i++) {
-        bodies[i].updateSolveMassProperties()
+    if (Neq != 0) {
+      for (int i = 0; i != Nbodies; i++) {
+        bodies[i].updateSolveMassProperties();
       }
     }
 
     // Things that do not change during iteration can be computed once
-    const invCs = GSSolver_solve_invCs
+    const invCs = GSSolver_solve_invCs;
 
-    const Bs = GSSolver_solve_Bs
-    const lambda = GSSolver_solve_lambda
-    invCs.length = Neq
-    Bs.length = Neq
-    lambda.length = Neq
+    const Bs = GSSolver_solve_Bs;
+    const lambda = GSSolver_solve_lambda;
+    invCs.length = Neq;
+    Bs.length = Neq;
+    lambda.length = Neq;
     for (let i = 0; i !== Neq; i++) {
       const c = equations[i] as any
       lambda[i] = 0.0
@@ -127,14 +127,14 @@ class GSSolver extends Solver {
       }
 
       // Set the `.multiplier` property of each equation
-      let l = equations.length
-      const invDt = 1 / h
+      int l = equations.length;
+      double invDt = 1 / h;
       while (l--) {
-        equations[l].multiplier = lambda[l] * invDt
+        equations[l].multiplier = lambda[l] * invDt;
       }
     }
 
-    return iter
+    return iter;
   }
 }
 
