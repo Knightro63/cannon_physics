@@ -11,7 +11,7 @@ class Mat3 {
   /**
    * A vector of length 9, containing all matrix elements.
    */
-  List<num> elements;
+  List<double> elements;
 
   /**
    * Sets the matrix to identity
@@ -64,7 +64,7 @@ class Mat3 {
    */
   Vec3 getTrace([Vec3? target]) {
     target ??= Vec3();
-    final e = this.elements;
+    final e = elements;
     target.x = e[0];
     target.y = e[4];
     target.z = e[8];
@@ -76,7 +76,7 @@ class Mat3 {
    * @param v The vector to multiply with
    * @param target Optional, target to save the result in.
    */
-  Vec3 vmult(Vec3 v,Vec3? target){
+  Vec3 vmult(Vec3 v, Vec3? target){
     target ??= Vec3();
     final e = elements;
     final x = v.x;
@@ -92,7 +92,7 @@ class Mat3 {
   /**
    * Matrix-scalar multiplication
    */
-  void smult(num s) {
+  void smult(double s) {
     for (int i = 0; i < elements.length; i++) {
       elements[i] *= s;
     }
@@ -190,7 +190,7 @@ class Mat3 {
 
     final k = n;
     int np;
-    final kp = 4; // num rows
+    const kp = 4; // num rows
     int p;
     for(;n>0;n--) {
       i = k - n;
@@ -242,7 +242,7 @@ class Mat3 {
    * Get an element in the matrix by index. Index starts at 0, not 1!!!
    * @param value If provided, the matrix element will be set to this value.
    */
-  num? e(int row, int column, [num? value]){
+  double? e(int row, int column, [double? value]){
     if (value == null) {
       return elements[column + 3 * row];
     } else {
@@ -265,9 +265,10 @@ class Mat3 {
   /**
    * Returns a string representation of the matrix.
    */
+  @override
   String toString() {
     String r = '';
-    final sep = ',';
+    const sep = ',';
     for (int i = 0; i < 9; i++) {
       r += '${elements[i]}$sep';
     }
@@ -282,8 +283,8 @@ class Mat3 {
   Mat3 reverse([Mat3? target]) {
     target ??= Mat3();
     // finalruct equations
-    final nr = 3; // num rows
-    final nc = 6; // num cols
+    const nr = 3; // num rows
+    const nc = 6; // num cols
     List<num> eqns = reverse_eqns;
     int i;
     int j;
@@ -307,7 +308,7 @@ class Mat3 {
 
     final k = n;
     int np;
-    final kp = nc; // num rows
+    const kp = nc; // num rows
     num p;
     for (; n > 0; n--) {
       i = k - n;
@@ -362,7 +363,7 @@ class Mat3 {
         if (p.isNaN || p == double.infinity) {
           throw ('Could not reverse! A=[${this.toString()}]');
         }
-        target.e(i, j, p);
+        target.e(i, j, p.toDouble());
       } 
     } 
 
@@ -389,7 +390,7 @@ class Mat3 {
     final wx = w * x2;
     final wy = w * y2;
     final wz = w * z2;
-    final e = this.elements;
+    final e = elements;
 
     e[3 * 0 + 0] = 1 - (yy + zz);
     e[3 * 0 + 1] = xy - wz;
@@ -415,7 +416,7 @@ class Mat3 {
     target ??= Mat3();
     final M = elements;
     final T = target.elements;
-    num tmp;
+    double tmp;
 
     //Set diagonals
     T[0] = M[0];

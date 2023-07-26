@@ -14,12 +14,12 @@ class Material {
    * Friction for this material.
    * If non-negative, it will be used instead of the friction given by ContactMaterials. If there's no matching ContactMaterial, the value from `defaultContactMaterial` in the World will be used.
    */
-  num friction;
+  double friction;
   /**
    * Restitution for this material.
    * If non-negative, it will be used instead of the restitution given by ContactMaterials. If there's no matching ContactMaterial, the value from `defaultContactMaterial` in the World will be used.
    */
-  num restitution;
+  double restitution;
 
   static int idCounter = 0;
 
@@ -36,6 +36,6 @@ class Material {
     this.restitution = -1,
     this.name = ''
   }) {
-    this.id = Material.idCounter++;
+    id = Material.idCounter++;
   }
 }

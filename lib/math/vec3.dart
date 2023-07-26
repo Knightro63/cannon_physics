@@ -12,9 +12,9 @@ final antip_neg = new Vec3();
  *     console.log('x=' + v.x) // x=1
  */
 class Vec3 {
-  num x;
-  num y;
-  num z;
+  double x;
+  double y;
+  double z;
 
   static Vec3 zero = Vec3(0, 0, 0);
   static Vec3 unitX = Vec3(0, 0, 0);
@@ -46,7 +46,7 @@ class Vec3 {
   /**
    * Set the vectors' 3 elements
    */
-  Vec3 set(num x,num y,num z){
+  Vec3 set(double x,double y,double z){
     this.x = x;
     this.y = y;
     this.z = z;
@@ -103,7 +103,7 @@ class Vec3 {
 
    * @return Returns the norm of the vector
    */
-  num normalize() {
+  double normalize() {
     final x = this.x;
     final y = this.y;
     final z = this.z;
@@ -149,7 +149,7 @@ class Vec3 {
   /**
    * Get the length of the vector
    */
-  num length() {
+  double length() {
     final x = this.x;
     final y = this.y;
     final z = this.z;
@@ -159,14 +159,14 @@ class Vec3 {
   /**
    * Get the squared length of the vector.
    */
-  num lengthSquared() {
+  double lengthSquared() {
     return dot(this);
   }
 
   /**
    * Get distance from this point to another point
    */
-  num distanceTo(Vec3 p) {
+  double distanceTo(Vec3 p) {
     final x = this.x;
     final y = this.y;
     final z = this.z;
@@ -179,7 +179,7 @@ class Vec3 {
   /**
    * Get squared distance from this point to another point
    */
-  num distanceSquared(Vec3 p) {
+  double distanceSquared(Vec3 p) {
     final x = this.x;
     final y = this.y;
     final z = this.z;
@@ -193,7 +193,7 @@ class Vec3 {
    * Multiply all the components of the vector with a scalar.
    * @param target The vector to save the result in.
    */
-  Vec3 scale(num scalar, [Vec3? target]){
+  Vec3 scale(double scalar, [Vec3? target]){
     target ??= Vec3();
     final x = this.x;
     final y = this.y;
@@ -210,9 +210,9 @@ class Vec3 {
    */
   Vec3 vmul(Vec3 vector, [Vec3? target]){
     target ??= Vec3();
-    target.x = vector.x * this.x;
-    target.y = vector.y * this.y;
-    target.z = vector.z * this.z;
+    target.x = vector.x * x;
+    target.y = vector.y * y;
+    target.z = vector.z * z;
     return target;
   }
 
@@ -220,11 +220,11 @@ class Vec3 {
    * Scale a vector and add it to this vector. Save the result in "target". (target = this + vector * scalar)
    * @param target The vector to save the result in.
    */
-  Vec3 addScaledVector(num scalar, Vec3 vector, [Vec3? target]) {
+  Vec3 addScaledVector(double scalar, Vec3 vector, [Vec3? target]) {
     target ??= Vec3();
-    target.x = this.x + scalar * vector.x;
-    target.y = this.y + scalar * vector.y;
-    target.z = this.z + scalar * vector.z;
+    target.x = x + scalar * vector.x;
+    target.y = y + scalar * vector.y;
+    target.z = z + scalar * vector.z;
     return target;
   }
 
@@ -232,12 +232,12 @@ class Vec3 {
    * Calculate dot product
    * @param vector
    */
-  num dot(Vec3 vector) {
-    return this.x * vector.x + this.y * vector.y + this.z * vector.z;
+  double dot(Vec3 vector) {
+    return x * vector.x + y * vector.y + z * vector.z;
   }
 
   bool isZero() {
-    return this.x == 0 && this.y == 0 && this.z == 0;
+    return x == 0 && y == 0 && z == 0;
   }
 
   /**
@@ -246,9 +246,9 @@ class Vec3 {
    */
   Vec3 negate([Vec3? target]) {
     target ??= Vec3();
-    target.x = -this.x;
-    target.y = -this.y;
-    target.z = -this.z;
+    target.x = -x;
+    target.y = -y;
+    target.z = -z;
     return target;
   }
 
@@ -262,7 +262,7 @@ class Vec3 {
     if (norm > 0.0) {
       final n = Vec3_tangents_n;
       final inorm = 1 / norm;
-      n.set(this.x * inorm, this.y * inorm, this.z * inorm);
+      n.set(x * inorm, y * inorm, z * inorm);
       final randVec = Vec3_tangents_randVec;
       if (n.x.abs() < 0.9) {
         randVec.set(1, 0, 0);
@@ -289,7 +289,7 @@ class Vec3 {
   /**
    * Converts to an array
    */
-  List<num> toArray(){
+  List<double> toArray(){
     return [x, y, z];
   }
 
@@ -297,9 +297,9 @@ class Vec3 {
    * Copies value of source to this vector.
    */
   Vec3 copy(Vec3 vector) {
-    this.x = vector.x;
-    this.y = vector.y;
-    this.z = vector.z;
+    x = vector.x;
+    y = vector.y;
+    z = vector.z;
     return this;
   }
 
@@ -307,7 +307,7 @@ class Vec3 {
    * Do a linear interpolation between two vectors
    * @param t A number between 0 and 1. 0 will make this function return u, and 1 will make it return v. Numbers in between will generate a vector in between them.
    */
-  void lerp(Vec3 vector,num t, Vec3 target) {
+  void lerp(Vec3 vector,double t, Vec3 target) {
     final x = this.x;
     final y = this.y;
     final z = this.z;
@@ -319,12 +319,12 @@ class Vec3 {
   /**
    * Check if a vector equals is almost equal to another one.
    */
-  bool almostEquals(Vec3 vector,[num? precision]) {
+  bool almostEquals(Vec3 vector,[double? precision]) {
     precision ??= 1e-6;
     if (
-      (this.x - vector.x).abs() > precision ||
-      (this.y - vector.y).abs() > precision ||
-      (this.z - vector.z).abs() > precision
+      (x - vector.x).abs() > precision ||
+      (y - vector.y).abs() > precision ||
+      (z - vector.z).abs() > precision
     ) {
       return false;
     }
@@ -334,7 +334,7 @@ class Vec3 {
   /**
    * Check if a vector is almost zero
    */
-  bool almostZero([num precision = 1e-6]) {
+  bool almostZero([double precision = 1e-6]) {
     if (x.abs() > precision || y.abs() > precision || z.abs() > precision) {
       return false;
     }
@@ -345,7 +345,7 @@ class Vec3 {
    * Check if the vector is anti-parallel to another vector.
    * @param precision Set to zero for exact comparisons
    */
-  bool isAntiparallelTo(Vec3 vector, [num? precision]) {
+  bool isAntiparallelTo(Vec3 vector, [double? precision]) {
     negate(antip_neg);
     return antip_neg.almostEquals(vector, precision);
   }

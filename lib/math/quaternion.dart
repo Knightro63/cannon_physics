@@ -22,17 +22,17 @@ class AxisAngle{
  * @see http://en.wikipedia.org/wiki/Quaternion
  */
 class Quaternion {
-  num x;
-  num y;
-  num z;
-  num w;
+  double x;
+  double y;
+  double z;
+  double w;
 
   Quaternion([this.x = 0, this.y = 0, this.z = 0, this.w = 1]);
 
   /**
    * Set the value of the quaternion.
    */
-  Quaternion set(num x, num y, num z, num w){
+  Quaternion set(double x, double y, double z, double w){
     this.x = x;
     this.y = y;
     this.z = z;
@@ -52,19 +52,19 @@ class Quaternion {
    * Convert to an Array
    * @return [x, y, z, w]
    */
-  List<num> toArray(){
+  List<double> toArray(){
     return [x,y,z,w];
   }
 
   /**
    * Set the quaternion components given an axis and an angle in radians.
    */
-  Quaternion setFromAxisAngle(Vec3 vector, num angle){
+  Quaternion setFromAxisAngle(Vec3 vector, double angle){
     final s = math.sin(angle * 0.5);
-    this.x = vector.x * s;
-    this.y = vector.y * s;
-    this.z = vector.z * s;
-    this.w = math.cos(angle * 0.5);
+    x = vector.x * s;
+    y = vector.y * s;
+    z = vector.z * s;
+    w = math.cos(angle * 0.5);
     return this;
   }
 
@@ -252,9 +252,9 @@ class Quaternion {
    * @param order Three-character string, defaults to "YZX"
    */
   void toEuler(Vec3 target, [Order order = Order.xyz]) {
-    num? heading;
-    late num attitude;
-    late num bank;
+    double? heading;
+    late double attitude;
+    late double bank;
 
     final x = this.x;
     final y = this.y;
@@ -301,7 +301,7 @@ class Quaternion {
    *
    * See {@link https://www.mathworks.com/matlabcentral/fileexchange/20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors mathWorks} reference
    */
-  Quaternion setFromEuler(num x,num y,num z, [Order order = Order.xyz]){
+  Quaternion setFromEuler(double x,double y,double z, [Order order = Order.xyz]){
     final c1 = math.cos(x / 2);
     final c2 = math.cos(y / 2);
     final c3 = math.cos(z / 2);
@@ -356,22 +356,22 @@ class Quaternion {
    * @param target A quaternion to store the result in. If not provided, a new one will be created.
    * @returns {Quaternion} The "target" object
    */
-  Quaternion slerp(Quaternion toQuat,num t, [Quaternion? target]){
+  Quaternion slerp(Quaternion toQuat,double t, [Quaternion? target]){
     target ??= Quaternion();
     final ax = x;
     final ay = y;
     final az = z;
     final aw = w;
 
-    num bx = toQuat.x;
-    num by = toQuat.y;
-    num bz = toQuat.z;
-    num bw = toQuat.w;
+    double bx = toQuat.x;
+    double by = toQuat.y;
+    double bz = toQuat.z;
+    double bw = toQuat.w;
     double omega;
-    num cosom;
+    double cosom;
     double sinom;
     double scale0;
-    num scale1;
+    double scale1;
 
     // calc cosine
     cosom = ax * bx + ay * by + az * bz + aw * bw;
@@ -411,7 +411,7 @@ class Quaternion {
   /**
    * Rotate an absolute orientation quaternion given an angular velocity and a time step.
    */
-  Quaternion integrate(Vec3 angularVelocity,num dt,Vec3 angularFactor, [Quaternion? target]){
+  Quaternion integrate(Vec3 angularVelocity,double dt,Vec3 angularFactor, [Quaternion? target]){
     target ??= Quaternion();
     final ax = angularVelocity.x * angularFactor.x,
       ay = angularVelocity.y * angularFactor.y,
@@ -421,12 +421,12 @@ class Quaternion {
       bz = z,
       bw = w;
 
-    final half_dt = dt * 0.5;
+    final halfDt = dt * 0.5;
 
-    target.x += half_dt * (ax * bw + ay * bz - az * by);
-    target.y += half_dt * (ay * bw + az * bx - ax * bz);
-    target.z += half_dt * (az * bw + ax * by - ay * bx);
-    target.w += half_dt * (-ax * bx - ay * by - az * bz);
+    target.x += halfDt * (ax * bw + ay * bz - az * by);
+    target.y += halfDt * (ay * bw + az * bx - ax * bz);
+    target.z += halfDt * (az * bw + ax * by - ay * bx);
+    target.w += halfDt * (-ax * bx - ay * by - az * bz);
 
     return target;
   }

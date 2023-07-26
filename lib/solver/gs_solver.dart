@@ -16,7 +16,7 @@ class GSSolver extends Solver {
   /**
    * When tolerance is reached, the system is assumed to be converged.
    */
-  num tolerance;
+  double tolerance;
 
   /**
    * @todo remove useless constructor
@@ -30,107 +30,109 @@ class GSSolver extends Solver {
    * Solve
    * @return number of iterations performed
    */
-  num solve(num dt, World world) {
+  @override
+  int solve(double dt, World world) {
     int iter = 0;
-    const maxIter = this.iterations;
-    const tolSquared = this.tolerance * this.tolerance;
-    const equations = this.equations;
-    const Neq = equations.length;
-    const bodies = world.bodies;
-    const Nbodies = bodies.length;
-    const h = dt;
-    let q;
-    let B;
-    let invC;
-    let deltalambda;
-    let deltalambdaTot;
-    let GWlambda;
-    let lambdaj;
+    final int maxIter = iterations;
+    final double tolSquared = tolerance * tolerance;
+    final equations = this.equations;
+    final int nEq = equations.length;
+    final bodies = world.bodies;
+    final int nBodies = bodies.length;
+    final double h = dt;
+
+    double B;
+    double invC;
+    double deltalambda;
+    double deltalambdaTot;
+    double GWlambda;
+    double lambdaj;
 
     // Update solve mass
-    if (Neq != 0) {
-      for (int i = 0; i != Nbodies; i++) {
+    if (nEq != 0) {
+      for (int i = 0; i != nBodies; i++) {
         bodies[i].updateSolveMassProperties();
       }
     }
 
     // Things that do not change during iteration can be computed once
-    const invCs = GSSolver_solve_invCs;
+    final invCs = GSSolver_solve_invCs;
 
-    const Bs = GSSolver_solve_Bs;
-    const lambda = GSSolver_solve_lambda;
-    invCs.length = Neq;
-    Bs.length = Neq;
-    lambda.length = Neq;
-    for (let i = 0; i !== Neq; i++) {
-      const c = equations[i] as any
-      lambda[i] = 0.0
-      Bs[i] = c.computeB(h)
-      invCs[i] = 1.0 / c.computeC()
+    final Bs = GSSolver_solve_Bs;
+    final lambda = GSSolver_solve_lambda;
+    invCs.length = nEq;
+    Bs.length = nEq;
+    lambda.length = nEq;
+    for (int i = 0; i != nEq; i++) {
+      final c = equations[i];
+      lambda[i] = 0.0;
+      Bs[i] = c.computeB(h);
+      invCs[i] = 1.0 / c.computeC();
     }
 
-    if (Neq !== 0) {
+    if (nEq != 0) {
       // Reset vlambda
-      for (let i = 0; i !== Nbodies; i++) {
-        const b = bodies[i]
-        const vlambda = b.vlambda
-        const wlambda = b.wlambda
-        vlambda.set(0, 0, 0)
-        wlambda.set(0, 0, 0)
+      for (int i = 0; i != nBodies; i++) {
+        final b = bodies[i];
+        final vlambda = b.vlambda;
+        final wlambda = b.wlambda;
+        vlambda.set(0, 0, 0);
+        wlambda.set(0, 0, 0);
       }
 
       // Iterate over equations
-      for (iter = 0; iter !== maxIter; iter++) {
+      for (iter = 0; iter != maxIter; iter++) {
         // Accumulate the total error for each iteration.
-        deltalambdaTot = 0.0
+        deltalambdaTot = 0.0;
 
-        for (let j = 0; j !== Neq; j++) {
-          const c = equations[j]
+        for (int j = 0; j != nEq; j++) {
+          final c = equations[j];
 
           // Compute iteration
-          B = Bs[j]
-          invC = invCs[j]
-          lambdaj = lambda[j]
-          GWlambda = c.computeGWlambda()
-          deltalambda = invC * (B - GWlambda - c.eps * lambdaj)
+          B = Bs[j];
+          invC = invCs[j];
+          lambdaj = lambda[j];
+          GWlambda = c.computeGWlambda();
+          deltalambda = invC * (B - GWlambda - c.eps * lambdaj);
 
           // Clamp if we are not within the min/max interval
           if (lambdaj + deltalambda < c.minForce) {
-            deltalambda = c.minForce - lambdaj
+            deltalambda = c.minForce - lambdaj;
           } else if (lambdaj + deltalambda > c.maxForce) {
-            deltalambda = c.maxForce - lambdaj
+            deltalambda = c.maxForce - lambdaj;
           }
-          lambda[j] += deltalambda
+          lambda[j] += deltalambda;
 
-          deltalambdaTot += deltalambda > 0.0 ? deltalambda : -deltalambda // abs(deltalambda)
+          deltalambdaTot += deltalambda > 0.0 ? deltalambda : -deltalambda; // abs(deltalambda)
 
-          c.addToWlambda(deltalambda)
+          c.addToWlambda(deltalambda);
         }
 
         // If the total error is small enough - stop iterate
         if (deltalambdaTot * deltalambdaTot < tolSquared) {
-          break
+          break;
         }
       }
 
       // Add result to velocity
-      for (let i = 0; i !== Nbodies; i++) {
-        const b = bodies[i]
-        const v = b.velocity
-        const w = b.angularVelocity
+      for (int i = 0; i != nBodies; i++) {
+        final b = bodies[i];
+        final v = b.velocity;
+        final w = b.angularVelocity;
 
-        b.vlambda.vmul(b.linearFactor, b.vlambda)
-        v.vadd(b.vlambda, v)
+        b.vlambda.vmul(b.linearFactor, b.vlambda);
+        v.vadd(b.vlambda, v);
 
-        b.wlambda.vmul(b.angularFactor, b.wlambda)
-        w.vadd(b.wlambda, w)
+        b.wlambda.vmul(b.angularFactor, b.wlambda);
+        w.vadd(b.wlambda, w);
       }
 
       // Set the `.multiplier` property of each equation
       int l = equations.length;
       double invDt = 1 / h;
-      while (l--) {
+      while(l > 0) {
         equations[l].multiplier = lambda[l] * invDt;
+        l--;
       }
     }
 
@@ -139,6 +141,6 @@ class GSSolver extends Solver {
 }
 
 // Just temporary number holders that we want to reuse each iteration.
-const GSSolver_solve_lambda: number[] = []
-const GSSolver_solve_invCs: number[] = []
-const GSSolver_solve_Bs: number[] = []
+List<double> GSSolver_solve_lambda = [];
+List<double> GSSolver_solve_invCs = [];
+List<double> GSSolver_solve_Bs = [];

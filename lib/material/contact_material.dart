@@ -17,32 +17,32 @@ class ContactMaterial {
    * Friction coefficient.
    * @default 0.3
    */
-  num friction;
+  double friction;
   /**
    * Restitution coefficient.
    * @default 0.3
    */
-  num restitution;
+  double restitution;
   /**
    * Stiffness of the produced contact equations.
    * @default 1e7
    */
-  num contactEquationStiffness;
+  double contactEquationStiffness;
   /**
    * Relaxation time of the produced contact equations.
    * @default 3
    */
-  num contactEquationRelaxation;
+  double contactEquationRelaxation;
   /**
    * Stiffness of the produced friction equations.
    * @default 1e7
    */
-  num frictionEquationStiffness;
+  double frictionEquationStiffness;
   /**
    * Relaxation time of the produced friction equations
    * @default 3
    */
-  num frictionEquationRelaxation;
+  double frictionEquationRelaxation;
 
   static int idCounter = 0;
 
@@ -82,7 +82,7 @@ class ContactMaterial {
       this.frictionEquationRelaxation = 3
     }
   ) {
-    this.id = ContactMaterial.idCounter++;
-    this.materials = [m1, m2];
+    id = ContactMaterial.idCounter++;
+    materials = [m1, m2];
   }
 }

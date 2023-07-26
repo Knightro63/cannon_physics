@@ -1,64 +1,53 @@
-import { JacobianElement } from '../math/JacobianElement'
-import { Vec3 } from '../math/Vec3'
-import type { Body } from '../objects/Body'
-import type { Shape } from '../shapes/Shape'
+import '../math/jacobian_element.dart';
+import '../math/vec3.dart';
+import '../objects/body.dart';
+import '../shapes/shape.dart';
 
 /**
  * Equation base class.
  *
  * `a`, `b` and `eps` are {@link https://www8.cs.umu.se/kurser/5DV058/VT15/lectures/SPOOKlabnotes.pdf SPOOK} parameters that default to `0.0`. See {@link https://github.com/schteppe/cannon.js/issues/238#issuecomment-147172327 this exchange} for more details on Cannon's physics implementation.
  */
-export class Equation {
-  id: number
+class Equation {
+  late int id;
   /**
    * Minimum (read: negative max) force to be applied by the constraint.
    */
-  minForce: number
+  double minForce;
   /**
    * Maximum (read: positive max) force to be applied by the constraint.
    */
-  maxForce: number
-  bi: Body
-  bj: Body
-  si!: Shape
-  sj!: Shape
+  double maxForce;
+  Body bi;
+  Body bj;
+
+  late Shape si;
+  late Shape sj;
   /**
    * SPOOK parameter
    */
-  a: number
+  double a = 0.0;
   /**
    * SPOOK parameter
    */
-  b: number
+  double b = 0.0;
   /**
    * SPOOK parameter
    */
-  eps: number
-  jacobianElementA: JacobianElement
-  jacobianElementB: JacobianElement
-  enabled: boolean
+  double eps = 0.0;
+  JacobianElement jacobianElementA = JacobianElement();
+  JacobianElement jacobianElementB = JacobianElement();
+  bool enabled = true;
   /**
    * A number, proportional to the force added to the bodies.
    */
-  multiplier: number
+  double multiplier = 0;
 
-  static idCounter = 0
+  static int idCounter = 0;
 
-  constructor(bi: Body, bj: Body, minForce = -1e6, maxForce = 1e6) {
-    this.id = Equation.idCounter++
-    this.minForce = minForce
-    this.maxForce = maxForce
-    this.bi = bi
-    this.bj = bj
-    this.a = 0.0 // SPOOK parameter
-    this.b = 0.0 // SPOOK parameter
-    this.eps = 0.0 // SPOOK parameter
-    this.jacobianElementA = new JacobianElement()
-    this.jacobianElementB = new JacobianElement()
-    this.enabled = true
-    this.multiplier = 0
-
-    this.setSpookParams(1e7, 4, 1 / 60) // Set typical spook params
+  Equation(this.bi, this.bj, [this.minForce = -1e6, this.maxForce = 1e6]) {
+    id = Equation.idCounter++;
+    setSpookParams(1e7, 4, 1 / 60); // Set typical spook params
   }
 
   /**
@@ -69,150 +58,150 @@ export class Equation {
    * * `relaxation` = 4
    * * `timeStep`= 1 / 60, _note the hardcoded refresh rate._
    */
-  setSpookParams(stiffness: number, relaxation: number, timeStep: number): void {
-    const d = relaxation
-    const k = stiffness
-    const h = timeStep
-    this.a = 4.0 / (h * (1 + 4 * d))
-    this.b = (4.0 * d) / (1 + 4 * d)
-    this.eps = 4.0 / (h * h * k * (1 + 4 * d))
+  void setSpookParams(double stiffness, double relaxation, double timeStep) {
+    final double d = relaxation;
+    final double k = stiffness;
+    final double h = timeStep;
+    a = 4.0 / (h * (1 + 4 * d));
+    b = (4.0 * d) / (1 + 4 * d);
+    eps = 4.0 / (h * h * k * (1 + 4 * d));
   }
 
   /**
    * Computes the right hand side of the SPOOK equation
    */
-  computeB(a: number, b: number, h: number): number {
-    const GW = this.computeGW()
-    const Gq = this.computeGq()
-    const GiMf = this.computeGiMf()
-    return -Gq * a - GW * b - GiMf * h
+  double computeB(double a, double b, double h) {
+    final double gw = computeGW();
+    final double gq = computeGq();
+    final double gimf = computeGiMf();
+    return -gq * a - gw * b - gimf * h;
   }
 
   /**
    * Computes G*q, where q are the generalized body coordinates
    */
-  computeGq(): number {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const xi = bi.position
-    const xj = bj.position
-    return GA.spatial.dot(xi) + GB.spatial.dot(xj)
+  double computeGq() {
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final xi = bi.position;
+    final xj = bj.position;
+    return ga.spatial.dot(xi) + gb.spatial.dot(xj);
   }
 
   /**
    * Computes G*W, where W are the body velocities
    */
-  computeGW(): number {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const vi = bi.velocity
-    const vj = bj.velocity
-    const wi = bi.angularVelocity
-    const wj = bj.angularVelocity
-    return GA.multiplyVectors(vi, wi) + GB.multiplyVectors(vj, wj)
+  double computeGW() {
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final vi = bi.velocity;
+    final vj = bj.velocity;
+    final wi = bi.angularVelocity;
+    final wj = bj.angularVelocity;
+    return ga.multiplyVectors(vi, wi) + gb.multiplyVectors(vj, wj);
   }
 
   /**
    * Computes G*Wlambda, where W are the body velocities
    */
-  computeGWlambda(): number {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const vi = bi.vlambda
-    const vj = bj.vlambda
-    const wi = bi.wlambda
-    const wj = bj.wlambda
-    return GA.multiplyVectors(vi, wi) + GB.multiplyVectors(vj, wj)
+  double computeGWlambda() {
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final vi = bi.vlambda;
+    final vj = bj.vlambda;
+    final wi = bi.wlambda;
+    final wj = bj.wlambda;
+    return ga.multiplyVectors(vi, wi) + gb.multiplyVectors(vj, wj);
   }
 
   /**
    * Computes G*inv(M)*f, where M is the mass matrix with diagonal blocks for each body, and f are the forces on the bodies.
    */
-  computeGiMf(): number {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const fi = bi.force
-    const ti = bi.torque
-    const fj = bj.force
-    const tj = bj.torque
-    const invMassi = bi.invMassSolve
-    const invMassj = bj.invMassSolve
+  double computeGiMf() {
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final fi = bi.force;
+    final ti = bi.torque;
+    final fj = bj.force;
+    final tj = bj.torque;
+    final invMassi = bi.invMassSolve;
+    final invMassj = bj.invMassSolve;
 
-    fi.scale(invMassi, iMfi)
-    fj.scale(invMassj, iMfj)
+    fi.scale(invMassi, iMfi);
+    fj.scale(invMassj, iMfj);
 
-    bi.invInertiaWorldSolve.vmult(ti, invIi_vmult_taui)
-    bj.invInertiaWorldSolve.vmult(tj, invIj_vmult_tauj)
+    bi.invInertiaWorldSolve.vmult(ti, invIi_vmult_taui);
+    bj.invInertiaWorldSolve.vmult(tj, invIj_vmult_tauj);
 
-    return GA.multiplyVectors(iMfi, invIi_vmult_taui) + GB.multiplyVectors(iMfj, invIj_vmult_tauj)
+    return ga.multiplyVectors(iMfi, invIi_vmult_taui) + gb.multiplyVectors(iMfj, invIj_vmult_tauj);
   }
 
   /**
    * Computes G*inv(M)*G'
    */
-  computeGiMGt(): number {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const invMassi = bi.invMassSolve
-    const invMassj = bj.invMassSolve
-    const invIi = bi.invInertiaWorldSolve
-    const invIj = bj.invInertiaWorldSolve
-    let result = invMassi + invMassj
+  double computeGiMGt() {
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final invMassi = bi.invMassSolve;
+    final invMassj = bj.invMassSolve;
+    final invIi = bi.invInertiaWorldSolve;
+    final invIj = bj.invInertiaWorldSolve;
+    double result = invMassi + invMassj;
 
-    invIi.vmult(GA.rotational, tmp)
-    result += tmp.dot(GA.rotational)
+    invIi.vmult(ga.rotational, tmp);
+    result += tmp.dot(ga.rotational);
 
-    invIj.vmult(GB.rotational, tmp)
-    result += tmp.dot(GB.rotational)
+    invIj.vmult(gb.rotational, tmp);
+    result += tmp.dot(gb.rotational);
 
-    return result
+    return result;
   }
 
   /**
    * Add constraint velocity to the bodies.
    */
-  addToWlambda(deltalambda: number): void {
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
-    const bi = this.bi
-    const bj = this.bj
-    const temp = addToWlambda_temp
+  void addToWlambda(double deltalambda) {
+    const ga = jacobianElementA;
+    const gb = jacobianElementB;
+    const bi = bi;
+    const bj = bj;
+    const temp = addToWlambda_temp;
 
     // Add to linear velocity
     // v_lambda += inv(M) * delta_lamba * G
-    bi.vlambda.addScaledVector(bi.invMassSolve * deltalambda, GA.spatial, bi.vlambda)
-    bj.vlambda.addScaledVector(bj.invMassSolve * deltalambda, GB.spatial, bj.vlambda)
+    bi.vlambda.addScaledVector(bi.invMassSolve * deltalambda, ga.spatial, bi.vlambda);
+    bj.vlambda.addScaledVector(bj.invMassSolve * deltalambda, gb.spatial, bj.vlambda);
 
     // Add to angular velocity
-    bi.invInertiaWorldSolve.vmult(GA.rotational, temp)
-    bi.wlambda.addScaledVector(deltalambda, temp, bi.wlambda)
+    bi.invInertiaWorldSolve.vmult(ga.rotational, temp);
+    bi.wlambda.addScaledVector(deltalambda, temp, bi.wlambda);
 
-    bj.invInertiaWorldSolve.vmult(GB.rotational, temp)
-    bj.wlambda.addScaledVector(deltalambda, temp, bj.wlambda)
+    bj.invInertiaWorldSolve.vmult(gb.rotational, temp);
+    bj.wlambda.addScaledVector(deltalambda, temp, bj.wlambda);
   }
 
   /**
    * Compute the denominator part of the SPOOK equation: C = G*inv(M)*G' + eps
    */
-  computeC(): number {
-    return this.computeGiMGt() + this.eps
+  double computeC() {
+    return computeGiMGt() + eps;
   }
 }
 
-const iMfi = new Vec3()
-const iMfj = new Vec3()
-const invIi_vmult_taui = new Vec3()
-const invIj_vmult_tauj = new Vec3()
+final iMfi = Vec3();
+final iMfj = Vec3();
+final invIi_vmult_taui = Vec3();
+final invIj_vmult_tauj = Vec3();
 
-const tmp = new Vec3()
-const addToWlambda_temp = new Vec3()
+final tmp = Vec3();
+final addToWlambda_temp = Vec3();

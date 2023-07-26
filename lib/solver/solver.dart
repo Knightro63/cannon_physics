@@ -22,7 +22,7 @@ class Solver {
    * @todo use abstract
    * @return number of iterations performed
    */
-  num solve(num dt, World world){
+  int solve(double dt, World world){
     return 0;
   }
 
@@ -42,7 +42,7 @@ class Solver {
     final eqs = equations;
     int i = eqs.indexOf(eq);
     if (i != -1) {
-      eqs.splice(i, 1);
+      eqs.removeAt(i);
     }
   }
 
@@ -50,6 +50,6 @@ class Solver {
    * Add all equations
    */
   void removeAllEquations() {
-    this.equations.length = 0;
+    equations.length = 0;
   }
 }

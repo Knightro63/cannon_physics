@@ -24,14 +24,14 @@ class JacobianElement {
   /**
    * Multiply with other JacobianElement
    */
-  num multiplyElement(JacobianElement element) {
+  double multiplyElement(JacobianElement element) {
     return element.spatial.dot(spatial) + element.rotational.dot(rotational);
   }
 
   /**
    * Multiply with two vectors
    */
-  num multiplyVectors(Vec3 spatial, Vec3 rotational) {
+  double multiplyVectors(Vec3 spatial, Vec3 rotational) {
     return spatial.dot(this.spatial) + rotational.dot(this.rotational);
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../utils/event_target.dart';
 import '../math/vec3.dart';
 import '../math/mat3.dart';
@@ -36,6 +37,68 @@ enum BodySleepStates{awake,sleepy,sleeping,}
  *     world.addBody(body);
  */
 class Body extends EventTarget {
+  Body({
+    this.collisionFilterGroup = 1,
+    this.collisionFilterMask = -1,
+    this.collisionResponse = true,
+    Vec3? position,
+    Vec3? velocity,
+    this.mass = 0,
+    this.material,
+    this.linearDamping = 0.01,
+    this.type = BodyTypes.static,
+    this.allowSleep = true,
+    this.sleepSpeedLimit = 0.1,
+    this.sleepTimeLimit = 1,
+    Quaternion? quaternion,
+    Vec3? angularVelocity,
+    this.fixedRotation = false,
+    this.angularDamping = 0.01,
+    Vec3? linearFactor,
+    Vec3? angularFactor,
+    Shape? shape,
+    this.isTrigger = true,
+  }):super() {
+    id = Body.idCounter++;
+
+    if (position != null) {
+      this.position.copy(position);
+      previousPosition.copy(position);
+      interpolatedPosition.copy(position);
+      initPosition.copy(position);
+    }
+    if (velocity != null) {
+      this.velocity.copy(velocity);
+    }
+
+    invMass = mass > 0 ? 1.0 / mass : 0;
+    type = mass <= 0.0 ? BodyTypes.static : BodyTypes.dynamic;
+    // if ( type ==  Body.static) {
+    //   type = type!;
+    // }
+
+    if (quaternion != null) {
+      this.quaternion.copy(quaternion);
+      initQuaternion.copy(quaternion);
+      previousQuaternion.copy(quaternion);
+      interpolatedQuaternion.copy(quaternion);
+    }
+    if (angularVelocity != null) {
+      this.angularVelocity.copy(angularVelocity);
+    }
+    if (linearFactor != null) {
+      this.linearFactor.copy(linearFactor);
+    }
+    if (angularFactor != null) {
+      this.angularFactor.copy(angularFactor);
+    }
+    if (shape != null) {
+      addShape(shape);
+    }
+
+    updateMassProperties();
+  }
+
   static int idCounter = 0;
 
   /**
@@ -45,35 +108,7 @@ class Body extends EventTarget {
    * @param body The body that was involved in the collision.;
    * @param contact The details of the collision.;
    */
-  static String collide_event_name = 'collide';
-
-  /**
-   * A dynamic body is fully simulated. Can be moved manually by the user, but normally they move according to forces. A dynamic body can collide with all body types. A dynamic body always has finite, non-zero mass.
-   */
-  static BodyTypes dynamic = BodyTypes.dynamic;
-
-  /**
-   * A static body does not move during simulation and behaves as if it has infinite mass. Static bodies can be moved manually by setting the position of the body. The velocity of a static body is always zero. Static bodies do not collide with other static or kinematic bodies.
-   */
-  static BodyTypes STATIC = BodyTypes.static;
-
-  /**
-   * A kinematic body moves under simulation according to its velocity. They do not respond to forces. They can be moved manually, but normally a kinematic body is moved by setting its velocity. A kinematic body behaves as if it has infinite mass. Kinematic bodies do not collide with other static or kinematic bodies.
-   */
-  static BodyTypes KINEMATIC = BodyTypes.kinematic;
-
-  /**
-   * AWAKE
-   */
-  static BodySleepStates awake = BodySleepStates.awake;
-  /**
-   * SLEEPY
-   */
-  static BodySleepStates sleepy = BodySleepStates.sleepy;
-  /**
-   * SLEEPING
-   */
-  static BodySleepStates sleeping = BodySleepStates.sleeping;
+  static String collideEventName = 'collide';
 
   /**
    * Dispatched after a sleeping body has woken up.
@@ -96,19 +131,19 @@ class Body extends EventTarget {
   /**
    * Identifier of the body.
    */
-  int id;
+  late int id;
 
   /**
    * Position of body in World.bodies. Updated by World and used in ArrayCollisionMatrix.
    */
-  int index;
+  int index = -1;
 
   /**
    * Reference to the world the body is living in.
    */
   World? world;
 
-  Vec3 vlambda;
+  Vec3 vlambda = Vec3();
 
   /**
    * The collision group the body belongs to.
@@ -130,42 +165,41 @@ class Body extends EventTarget {
   /**
    * World space position of the body.
    */
-  Vec3 position;
+  Vec3 position = Vec3();
 
-  Vec3 previousPosition;
+  Vec3 previousPosition = Vec3();
 
   /**
    * Interpolated position of the body.
    */
-  Vec3 interpolatedPosition;
+  Vec3 interpolatedPosition = Vec3();
 
   /**
    * Initial position of the body.
    */
-  Vec3 initPosition;
+  Vec3 initPosition = Vec3();
 
   /**
    * World space velocity of the body.
    */
-  Vec3 velocity;
+  Vec3 velocity = Vec3();
 
   /**
    * Initial velocity of the body.
    */
-  Vec3 initVelocity;
+  Vec3 initVelocity = Vec3();
 
   /**
    * Linear force on the body in world space.
    */
-  Vec3 force;
+  Vec3 force = Vec3();
 
   /**
    * The mass of the body.
    * @default 0;
    */
-  num mass;
-
-  num invMass;
+  double mass;
+  late double invMass;
 
   /**
    * The physics material of the body. It defines the body interaction with other bodies.
@@ -176,12 +210,12 @@ class Body extends EventTarget {
    * How much to damp the body velocity each step. It can go from 0 to 1.
    * @default 0.01;
    */
-  num linearDamping;
+  double linearDamping;
 
   /**
-   * One of: `Body.DYNAMIC`, `Body.STATIC` and `Body.KINEMATIC`.
+   * One of: `Body.DYNAMIC`, `Body.static` and `Body.kinematic`.
    */
-  BodyType type;
+  BodyTypes type;
 
   /**
    * If true, the body will automatically fall to sleep.
@@ -192,13 +226,13 @@ class Body extends EventTarget {
   /**
    * Current sleep state.
    */
-  BodySleepState sleepState;
+  BodySleepStates sleepState = BodySleepStates.awake;
 
   /**
    * If the speed (the norm of the velocity) is smaller than this value, the body is considered sleepy.
    * @default 0.1;
    */
-  num sleepSpeedLimit;
+  double sleepSpeedLimit;
 
   /**
    * If the body has been sleepy for this sleepTimeLimit seconds, it is considered sleeping.
@@ -206,67 +240,67 @@ class Body extends EventTarget {
    */
   num sleepTimeLimit;
 
-  num timeLastSleepy;
+  num timeLastSleepy = 0;
 
-  bool wakeUpAfterNarrowphase;
+  bool wakeUpAfterNarrowphase = false;
 
   /**
    * World space rotational force on the body, around center of mass.
    */
-  Vec3 torque;
+  Vec3 torque = Vec3();
 
   /**
    * World space orientation of the body.
    */
-  Quaternion quaternion;
+  Quaternion quaternion = Quaternion();
 
   /**
    * Initial quaternion of the body.
    */
-  Quaternion initQuaternion;
+  Quaternion initQuaternion = Quaternion();
 
-  Quaternion previousQuaternion;
+  Quaternion previousQuaternion = Quaternion();
 
   /**
    * Interpolated orientation of the body.
    */
-  Quaternion interpolatedQuaternion;
+  Quaternion interpolatedQuaternion = Quaternion();
 
   /**
    * Angular velocity of the body, in world space. Think of the angular velocity as a vector, which the body rotates around. The length of this vector determines how fast (in radians per second) the body rotates.
    */
-  Vec3 angularVelocity;
+  Vec3 angularVelocity = Vec3();
 
   /**
    * Initial angular velocity of the body.
    */
-  Vec3 initAngularVelocity;
+  Vec3 initAngularVelocity = Vec3();
 
   /**
    * List of Shapes that have been added to the body.
    */
-  List<Shape> shapes;
+  List<Shape> shapes = [];
 
   /**
    * Position of each Shape in the body, given in local Body space.
    */
-  List<Vec3> shapeOffsets;
+  List<Vec3> shapeOffsets = [];
 
   /**
    * Orientation of each Shape, given in local Body space.
    */
-  List<Quaternion> shapeOrientations;
+  List<Quaternion> shapeOrientations = [];
 
   /**
    * The inertia of the body.
    */
-  Vec3 inertia;
+  Vec3 inertia = Vec3();
 
-  Vec3 invInertia;
-  Mat3 invInertiaWorld;
-  num invMassSolve;
-  Vec3 invInertiaSolve;
-  Mat3 invInertiaWorldSolve;
+  Vec3 invInertia = Vec3();
+  Mat3 invInertiaWorld = Mat3();
+  double invMassSolve = 0;
+  Vec3 invInertiaSolve  = Vec3();
+  Mat3 invInertiaWorldSolve = Mat3();
 
   /**
    * Set to true if you don't want the body to rotate. Make sure to run .updateMassProperties() if you change this after the body creation.
@@ -278,33 +312,33 @@ class Body extends EventTarget {
    * How much to damp the body angular velocity each step. It can go from 0 to 1.
    * @default 0.01;
    */
-  num angularDamping;
+  double angularDamping;
 
   /**
    * Use this property to limit the motion along any world axis. (1,1,1) will allow motion along all axes while (0,0,0) allows none.
    */
-  Vec3 linearFactor;
+  Vec3 linearFactor = Vec3(1,1,1);
 
   /**
    * Use this property to limit the rotational motion along any world axis. (1,1,1) will allow rotation along all axes while (0,0,0) allows none.
    */
-  Vec3 angularFactor;
+  Vec3 angularFactor = Vec3(1,1,1);
 
   /**
    * World space bounding box of the body and its shapes.
    */
-  AABB aabb;
+  AABB aabb = AABB();
 
   /**
    * Indicates if the AABB needs to be updated before use.
    */
-  bool aabbNeedsUpdate;
+  bool aabbNeedsUpdate = true;
 
   /**
    * Total bounding radius of the Body including its shapes, relative to body.position.
    */
-  num boundingRadius;
-  Vec3 wlambda;
+  double boundingRadius = 0;
+  Vec3 wlambda = Vec3();
   /**
    * When true the body behaves like a trigger. It does not collide
    * with other bodies but collision events are still triggered.;
@@ -312,217 +346,35 @@ class Body extends EventTarget {
    */
   bool isTrigger;
 
-  Body({
-      /**
-       * The collision group the body belongs to.
-       * @default 1;
-       */
-    num? collisionFilterGroup,
-      /**
-       * The collision group the body can collide with.
-       * @default -1;
-       */
-    num? collisionFilterMask,
+  final tmpVec = Vec3();
+  final tmpQuat = Quaternion();
+  final updateShapeAABB = AABB();
+  final uiwM1 = Mat3();
+  final uiwM2 = Mat3();
+  final uiwM3 = Mat3();
 
-      /**
-       * Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled - i.e. "collide" events will be raised, but forces will not be altered.
-       */
-    bool? collisionResponse,
-      /**
-       * World space position of the body.
-       */
-    Vec3? position,
-      /**
-       * World space velocity of the body.
-       */
-    Vec3? velocity,
-      /**
-       * The mass of the body.
-       * @default 0;
-       */
-    num? mass,
-      /**
-       * The physics material of the body. It defines the body interaction with other bodies.
-       */
-    Material? material,
-      /**
-       * How much to damp the body velocity each step. It can go from 0 to 1.
-       * @default 0.01;
-       */
-    num? linearDamping,
-      /**
-       * One of: `Body.DYNAMIC`, `Body.STATIC` and `Body.KINEMATIC`.
-       */
-    BodyType? type,
-      /**
-       * If true, the body will automatically fall to sleep.
-       * @default true;
-       */
-    bool? allowSleep,
-      /**
-       * If the speed (the norm of the velocity) is smaller than this value, the body is considered sleepy.
-       * @default 0.1;
-       */
-    num? sleepSpeedLimit,
-      /**
-       * If the body has been sleepy for this sleepTimeLimit seconds, it is considered sleeping.
-       * @default 1;
-       */
-    num? sleepTimeLimit,
-      /**
-       * World space orientation of the body.
-       */
-    Quaternion? quaternion,
-      /**
-       * Angular velocity of the body, in world space. Think of the angular velocity as a vector, which the body rotates around. The length of this vector determines how fast (in radians per second) the body rotates.
-       */
-    Vec3? angularVelocity,
-      /**
-       * Set to true if you don't want the body to rotate. Make sure to run .updateMassProperties() if you change this after the body creation.
-       * @default false;
-       */
-    bool? fixedRotation,
-      /**
-       * How much to damp the body angular velocity each step. It can go from 0 to 1.
-       * @default 0.01;
-       */
-    num? angularDamping,
-      /**
-       * Use this property to limit the motion along any world axis. (1,1,1) will allow motion along all axes while (0,0,0) allows none.
-       */
-    Vec3? linearFactor,
-      /**
-       * Use this property to limit the rotational motion along any world axis. (1,1,1) will allow rotation along all axes while (0,0,0) allows none.
-       */
-    Vec3? angularFactor,
-      /**
-       * Add a Shape to the body.
-       */
-    Shape? shape,
-      /**
-       * When true the body behaves like a trigger. It does not collide
-       * with other bodies but collision events are still triggered.;
-       * @default false;
-       */
-    bool? isTrigger,
-    }
-  ):super() {
-    this.id = Body.idCounter++;
-    this.index = -1;
-    this.world = null;
-    this.vlambda = Vec3();
+  final bodyApplyRotateForce = Vec3();
 
-    this.collisionFilterGroup =  collisionFilterGroup == 'number' ? collisionFilterGroup : 1
-    this.collisionFilterMask =  collisionFilterMask == 'number' ? collisionFilterMask : -1
-    this.collisionResponse =  collisionResponse == 'boolean' ? collisionResponse : true
-    this.position = Vec3();
-    this.previousPosition = Vec3();
-    this.interpolatedPosition = Vec3();
-    this.initPosition = Vec3();
+  final bodyApplyLocalWorldForce = Vec3();
+  final Body_applyLocalForce_relativePointWorld = Vec3();
 
-    if (position) {
-      this.position.copy(position);
-      this.previousPosition.copy(position);
-      this.interpolatedPosition.copy(position);
-      this.initPosition.copy(position);
-    }
+  final Body_applyImpulse_velo = Vec3();
+  final Body_applyImpulse_rotVelo = Vec3();
 
-    this.velocity = Vec3();
+  final Body_applyLocalImpulse_worldImpulse = Vec3();
+  final Body_applyLocalImpulse_relativePoint = Vec3();
 
-    if (velocity) {
-      this.velocity.copy(velocity);
-    }
-
-    this.initVelocity = Vec3();
-    this.force = Vec3()
-    final mass =  mass == 'number' ? mass : 0
-    this.mass = mass;
-    this.invMass = mass > 0 ? 1.0 / mass : 0
-    this.material = material || null;
-    this.linearDamping =  linearDamping == 'number' ? linearDamping : 0.01
-
-    this.type = mass <= 0.0 ? Body.STATIC : Body.DYNAMIC
-
-    if ( type ==  Body.STATIC) {
-      this.type = type!;
-    }
-
-    this.allowSleep =  allowSleep != null ? allowSleep : true
-    this.sleepState = Body.AWAKE;
-    this.sleepSpeedLimit =  sleepSpeedLimit != null ? sleepSpeedLimit : 0.1
-    this.sleepTimeLimit =  sleepTimeLimit != null ? sleepTimeLimit : 1
-    this.timeLastSleepy = 0;
-    this.wakeUpAfterNarrowphase = false;
-
-    this.torque = Vec3();
-    this.quaternion = Quaternion();
-    this.initQuaternion = Quaternion();
-    this.previousQuaternion = Quaternion();
-    this.interpolatedQuaternion = Quaternion();
-
-    if (quaternion) {
-      this.quaternion.copy(quaternion);
-      this.initQuaternion.copy(quaternion);
-      this.previousQuaternion.copy(quaternion);
-      this.interpolatedQuaternion.copy(quaternion);
-    }
-
-    this.angularVelocity = Vec3();
-
-    if (angularVelocity) {
-      this.angularVelocity.copy(angularVelocity);
-    }
-
-    this.initAngularVelocity = Vec3();
-
-    this.shapes = [];
-    this.shapeOffsets = [];
-    this.shapeOrientations = [];
-
-    this.inertia = Vec3();
-    this.invInertia = Vec3();
-    this.invInertiaWorld = Mat3();
-    this.invMassSolve = 0;
-    this.invInertiaSolve = Vec3();
-    this.invInertiaWorldSolve = Mat3();
-
-    this.fixedRotation =  fixedRotation != null ? fixedRotation : false
-    this.angularDamping =  angularDamping != null ? angularDamping : 0.01
-
-    this.linearFactor = Vec3(1, 1, 1);
-
-    if (linearFactor) {
-      this.linearFactor.copy(linearFactor);
-    }
-
-    this.angularFactor = Vec3(1, 1, 1);
-
-    if (angularFactor) {
-      this.angularFactor.copy(angularFactor);
-    }
-
-    this.aabb = AABB();
-    this.aabbNeedsUpdate = true;
-    this.boundingRadius = 0;
-    this.wlambda = Vec3();
-    this.isTrigger = Boolean(isTrigger);
-
-    if (shape) {
-      this.addShape(shape);
-    }
-
-    this.updateMassProperties();
-  }
+  final Body_updateMassProperties_halfExtents = Vec3();
 
   /**
    * Wake the body up.
    */
   void wakeUp(){
-    final prevState = this.sleepState;
-    this.sleepState = Body.awake;
-    this.wakeUpAfterNarrowphase = false;
-    if (prevState == Body.sleeping) {
-      this.dispatchEvent(Body.wakeupEvent);
+    final prevState = sleepState;
+    sleepState = BodySleepStates.awake;
+    wakeUpAfterNarrowphase = false;
+    if (prevState == BodySleepStates.sleeping) {
+      dispatchEvent(Body.wakeupEvent);
     }
   }
 
@@ -530,30 +382,32 @@ class Body extends EventTarget {
    * Force body sleep
    */
   void sleep(){
-    this.sleepState = Body.sleeping;
-    this.velocity.set(0, 0, 0);
-    this.angularVelocity.set(0, 0, 0);
-    this.wakeUpAfterNarrowphase = false;
+    sleepState = BodySleepStates.sleeping;
+    velocity.set(0, 0, 0);
+    angularVelocity.set(0, 0, 0);
+    wakeUpAfterNarrowphase = false;
   }
 
   /**
    * Called every timestep to update internal sleep timer and change sleep state if needed.
    * @param time The world time in seconds;
    */
-  void sleepTick(num? time){
-    if (this.allowSleep) {
+  void sleepTick(int time){
+    if (allowSleep) {
       final sleepState = this.sleepState;
-      final speedSquared = this.velocity.lengthSquared() + this.angularVelocity.lengthSquared();
-      final speedLimitSquared = this.sleepSpeedLimit ** 2;
-      if (sleepState == Body.awake && speedSquared < speedLimitSquared) {
-        this.sleepState = Body.sleepy; // Sleepy
-        this.timeLastSleepy = time;
-        this.dispatchEvent(Body.sleepyEvent);
-      } else if (sleepState == Body.sleepy && speedSquared > speedLimitSquared) {
-        this.wakeUp(); // Wake up
-      } else if (sleepState == Body.sleepy && time - this.timeLastSleepy > this.sleepTimeLimit) {
-        this.sleep(); // Sleeping
-        this.dispatchEvent(Body.sleepEvent);
+      final speedSquared = velocity.lengthSquared() + angularVelocity.lengthSquared();
+      final speedLimitSquared =  math.pow(sleepSpeedLimit, 2);
+      if (sleepState == BodySleepStates.awake && speedSquared < speedLimitSquared) {
+        this.sleepState = BodySleepStates.sleepy; // Sleepy
+        timeLastSleepy = time;
+        dispatchEvent(Body.sleepyEvent);
+      } 
+      else if (sleepState == BodySleepStates.sleepy && speedSquared > speedLimitSquared) {
+        wakeUp(); // Wake up
+      } 
+      else if (sleepState == BodySleepStates.sleepy && time - timeLastSleepy > sleepTimeLimit) {
+        sleep(); // Sleeping
+        dispatchEvent(Body.sleepEvent);
       }
     }
   }
@@ -561,49 +415,50 @@ class Body extends EventTarget {
   /**
    * If the body is sleeping, it should be immovable / have infinite mass during solve. We solve it by having a separate "solve mass".
    */
-void   updateSolveMassProperties(? ){
-    if (this.sleepState == Body.sleeping || this.type == Body.KINEMATIC) {
-      this.invMassSolve = 0;
-      this.invInertiaSolve.setZero();
-      this.invInertiaWorldSolve.setZero();
-    } else {
-      this.invMassSolve = this.invMass;
-      this.invInertiaSolve.copy(this.invInertia);
-      this.invInertiaWorldSolve.copy(this.invInertiaWorld);
+void updateSolveMassProperties(){
+    if (sleepState == BodySleepStates.sleeping || type == BodyTypes.kinematic) {
+      invMassSolve = 0;
+      invInertiaSolve.setZero();
+      invInertiaWorldSolve.setZero();
+    } 
+    else {
+      invMassSolve = invMass;
+      invInertiaSolve.copy(invInertia);
+      invInertiaWorldSolve.copy(invInertiaWorld);
     }
   }
 
   /**
    * Convert a world point to local body frame.
    */
-  Vec3 pointToLocalFrame(){
-    worldPoint.vsub(this.position, result);
-    this.quaternion.conjugate().vmult(result, result);
+  Vec3 pointToLocalFrame(Vec3 worldPoint,Vec3 result){
+    worldPoint.vsub(position, result);
+    quaternion.conjugate().vmult(result, result);
     return result;
   }
 
   /**
    * Convert a world vector to local body frame.
    */
-Vec3   vectorToLocalFrame(){
-    this.quaternion.conjugate().vmult(worldVector, result);
+  Vec3 vectorToLocalFrame(Vec3 worldVector, Vec3 result){
+    quaternion.conjugate().vmult(worldVector, result);
     return result;
   }
 
   /**
    * Convert a local body point to world frame.
    */
-  Vec3 pointToWorldFrame(){
-    this.quaternion.vmult(localPoint, result);
-    result.vadd(this.position, result);
+  Vec3 pointToWorldFrame(Vec3 localPoint, Vec3 result){
+    quaternion.vmult(localPoint, result);
+    result.vadd(position, result);
     return result;
   }
 
   /**
    * Convert a local body point to world frame.
    */
-  Vec3 vectorToWorldFrame(){
-    this.quaternion.vmult(localVector, result);
+  Vec3 vectorToWorldFrame(Vec3 localVector, Vec3 result){
+    quaternion.vmult(localVector, result);
     return result;
   }
 
@@ -611,25 +466,24 @@ Vec3   vectorToLocalFrame(){
    * Add a shape to the body with a local offset and orientation.
    * @return The body object, for chainability.
    */
-  Body addShape(Shape? shape,Vec3? _offset,Quaternion? _orientation){
+  Body addShape(Shape shape,[Vec3? _offset,Quaternion? _orientation]){
     final offset = Vec3();
     final orientation = Quaternion();
 
-    if (_offset) {
+    if (_offset != null) {
       offset.copy(_offset);
     }
-    if (_orientation) {
+    if (_orientation != null) {
       orientation.copy(_orientation);
     }
 
-    this.shapes.push(shape);
-    this.shapeOffsets.push(offset);
-    this.shapeOrientations.push(orientation);
-    this.updateMassProperties();
-    this.updateBoundingRadius();
+    shapes.add(shape);
+    shapeOffsets.add(offset);
+    shapeOrientations.add(orientation);
+    updateMassProperties();
+    updateBoundingRadius();
 
-    this.aabbNeedsUpdate = true;
-
+    aabbNeedsUpdate = true;
     shape.body = this;
 
     return this;
@@ -639,21 +493,21 @@ Vec3   vectorToLocalFrame(){
    * Remove a shape from the body.
    * @return The body object, for chainability.
    */
-  Body removeShape(Shape? shape){
-    final index = this.shapes.indexOf(shape);
+  Body removeShape(Shape shape){
+    final index = shapes.indexOf(shape);
 
     if (index == -1) {
       print('Shape does not belong to the body');
       return this;
     }
 
-    this.shapes.splice(index, 1);
-    this.shapeOffsets.splice(index, 1);
-    this.shapeOrientations.splice(index, 1);
-    this.updateMassProperties();
-    this.updateBoundingRadius();
+    shapes.removeAt(index);
+    shapeOffsets.removeAt(index);
+    shapeOrientations.removeAt(index);
+    updateMassProperties();
+    updateBoundingRadius();
 
-    this.aabbNeedsUpdate = true;
+    aabbNeedsUpdate = true;
 
     shape.body = null;
 
@@ -663,11 +517,11 @@ Vec3   vectorToLocalFrame(){
   /**
    * Update the bounding radius of the body. Should be done if any of the shapes are changed.
    */
-  void updateBoundingRadius(? ){
+  void updateBoundingRadius(){
     final shapes = this.shapes;
     final shapeOffsets = this.shapeOffsets;
     final N = shapes.length;
-    int radius = 0;
+    double radius = 0;
 
     for (int i = 0; i != N; i++) {
       final shape = shapes[i];
@@ -679,7 +533,7 @@ Vec3   vectorToLocalFrame(){
       }
     }
 
-    this.boundingRadius = radius;
+    boundingRadius = radius;
   }
 
   /**
@@ -692,16 +546,16 @@ Vec3   vectorToLocalFrame(){
     final N = shapes.length;
     final offset = tmpVec;
     final orientation = tmpQuat;
-    final bodyQuat = this.quaternion;
+    final bodyQuat = quaternion;
     final aabb = this.aabb;
-    final shapeAABB = updateAABB_shapeAABB;
+    final shapeAABB = updateShapeAABB;
 
     for (int i = 0; i != N; i++) {
       final shape = shapes[i];
 
       // Get shape world position
       bodyQuat.vmult(shapeOffsets[i], offset);
-      offset.vadd(this.position, offset);
+      offset.vadd(position, offset);
 
       // Get shape world quaternion
       bodyQuat.mult(shapeOrientations[i], orientation);
@@ -716,14 +570,14 @@ Vec3   vectorToLocalFrame(){
       }
     }
 
-    this.aabbNeedsUpdate = false;
+    aabbNeedsUpdate = false;
   }
 
   /**
    * Update `.inertiaWorld` and `.invInertiaWorld`
    */
   void updateInertiaWorld([bool force = false]) {
-    final I = this.invInertia;
+    final I = invInertia;
     if (I.x == I.y && I.y == I.z && !force) {
       // If inertia M = s*I, where I is identity and s a scalar, then
       //    R*M*R' = R*(s*I)*R' = s*R*I*R' = s*R*R' = s*I = M
@@ -731,13 +585,12 @@ Vec3   vectorToLocalFrame(){
       // In other words, we don't have to transform the inertia if all
       // inertia diagonal entries are equal.
     } else {
-      final m1 = uiw_m1;
-      final m2 = uiw_m2;
-      final m3 = uiw_m3;
-      m1.setRotationFromQuaternion(this.quaternion);
+      final m1 = uiwM1;
+      final m2 = uiwM2;
+      m1.setRotationFromQuaternion(quaternion);
       m1.transpose(m2);
       m1.scale(I, m1);
-      m1.mmult(m2, this.invInertiaWorld);
+      m1.mmult(m2, invInertiaWorld);
     }
   }
 
@@ -750,23 +603,23 @@ Vec3   vectorToLocalFrame(){
   void applyForce(Vec3 force, [Vec3? relativePoint]) {
     relativePoint ??= Vec3();
     // Needed?
-    if (this.type != Body.dynamic) {
+    if (type != BodyTypes.dynamic) {
       return;
     }
 
-    if (this.sleepState == Body.sleeping) {
-      this.wakeUp();
+    if (sleepState == BodySleepStates.sleeping) {
+      wakeUp();
     }
 
     // Compute produced rotational force
-    final rotForce = Body_applyForce_rotForce;
+    final rotForce = bodyApplyRotateForce;
     relativePoint.cross(force, rotForce);
 
     // Add linear force
     this.force.vadd(force, this.force);
 
     // Add rotational force
-    this.torque.vadd(rotForce, this.torque);
+    torque.vadd(rotForce, torque);
   }
 
   /**
@@ -774,19 +627,19 @@ Vec3   vectorToLocalFrame(){
    * @param force The force vector to apply, defined locally in the body frame.
    * @param localPoint A local point in the body to apply the force on.
    */
-  void applyLocalForce(){
-    if (this.type != Body.dynamic) {
+  void applyLocalForce(Vec3 localForce, Vec3 localPoint){
+    if (type != BodyTypes.dynamic) {
       return;
     }
 
-    final worldForce = Body_applyLocalForce_worldForce;
+    final worldForce = bodyApplyLocalWorldForce;
     final relativePointWorld = Body_applyLocalForce_relativePointWorld;
 
     // Transform the force vector to world space
-    this.vectorToWorldFrame(localForce, worldForce);
-    this.vectorToWorldFrame(localPoint, relativePointWorld);
+    vectorToWorldFrame(localForce, worldForce);
+    vectorToWorldFrame(localPoint, relativePointWorld);
 
-    this.applyForce(worldForce, relativePointWorld);
+    applyForce(worldForce, relativePointWorld);
   }
 
   /**
@@ -794,12 +647,12 @@ Vec3   vectorToLocalFrame(){
    * @param torque The amount of torque to add.;
    */
   void applyTorque(Vec3 torque){
-    if (this.type != Body.dynamic) {
+    if (type != BodyTypes.dynamic) {
       return;
     }
 
-    if (this.sleepState == Body.sleeping) {
-      this.wakeUp();
+    if (sleepState == BodySleepStates.sleeping) {
+      wakeUp();
     }
 
     // Add rotational force
@@ -813,13 +666,13 @@ Vec3   vectorToLocalFrame(){
    * @param impulse The amount of impulse to add.;
    * @param relativePoint A point relative to the center of mass to apply the force on.
    */
-  void applyImpulse(){
-    if (this.type != Body.dynamic) {
+  void applyImpulse(Vec3 impulse, Vec3 relativePoint){
+    if (type != BodyTypes.dynamic) {
       return;
     }
 
-    if (this.sleepState == Body.sleeping) {
-      this.wakeUp();
+    if (sleepState == BodySleepStates.sleeping) {
+      wakeUp();
     }
 
     // Compute point position relative to the body center
@@ -828,10 +681,10 @@ Vec3   vectorToLocalFrame(){
     // Compute produced central impulse velocity
     final velo = Body_applyImpulse_velo;
     velo.copy(impulse);
-    velo.scale(this.invMass, velo);
+    velo.scale(invMass, velo);
 
     // Add linear impulse
-    this.velocity.vadd(velo, this.velocity);
+    velocity.vadd(velo, velocity);
 
     // Compute produced rotational impulse velocity
     final rotVelo = Body_applyImpulse_rotVelo;
@@ -842,10 +695,10 @@ Vec3   vectorToLocalFrame(){
      rotVelo.y *= this.invInertia.y;
      rotVelo.z *= this.invInertia.z;
      */
-    this.invInertiaWorld.vmult(rotVelo, rotVelo);
+    invInertiaWorld.vmult(rotVelo, rotVelo);
 
     // Add rotational Impulse
-    this.angularVelocity.vadd(rotVelo, this.angularVelocity);
+    angularVelocity.vadd(rotVelo, angularVelocity);
   }
 
   /**
@@ -853,8 +706,8 @@ Vec3   vectorToLocalFrame(){
    * @param force The force vector to apply, defined locally in the body frame.
    * @param localPoint A local point in the body to apply the force on.
    */
-  void applyLocalImpulse(){
-    if (this.type != Body.dynamic) {
+  void applyLocalImpulse(Vec3 localImpulse, Vec3 localPoint){
+    if (type != BodyTypes.dynamic) {
       return;
     }
 
@@ -862,10 +715,10 @@ Vec3   vectorToLocalFrame(){
     final relativePointWorld = Body_applyLocalImpulse_relativePoint;
 
     // Transform the force vector to world space
-    this.vectorToWorldFrame(localImpulse, worldImpulse);
-    this.vectorToWorldFrame(localPoint, relativePointWorld);
+    vectorToWorldFrame(localImpulse, worldImpulse);
+    vectorToWorldFrame(localPoint, relativePointWorld);
 
-    this.applyImpulse(worldImpulse, relativePointWorld);
+    applyImpulse(worldImpulse, relativePointWorld);
   }
 
   /**
@@ -874,25 +727,25 @@ Vec3   vectorToLocalFrame(){
   void updateMassProperties(){
     final halfExtents = Body_updateMassProperties_halfExtents;
 
-    this.invMass = this.mass > 0 ? 1.0 / this.mass : 0
-    final I = this.inertia;
-    final fixed = this.fixedRotation;
+    invMass = mass > 0 ? 1.0 / mass : 0;
+    final I = inertia;
+    final fixed =fixedRotation;
 
     // Approximate with AABB box
-    this.updateAABB();
+    updateAABB();
     halfExtents.set(
-      (this.aabb.upperBound.x - this.aabb.lowerBound.x) / 2,
-      (this.aabb.upperBound.y - this.aabb.lowerBound.y) / 2,
-      (this.aabb.upperBound.z - this.aabb.lowerBound.z) / 2
+      (aabb.upperBound.x - aabb.lowerBound.x) / 2,
+      (aabb.upperBound.y - aabb.lowerBound.y) / 2,
+      (aabb.upperBound.z - aabb.lowerBound.z) / 2
     );
-    Box.calculateInertia(halfExtents, this.mass, I);
+    Box.calculateInertia(halfExtents, mass, I);
 
-    this.invInertia.set(
+    invInertia.set(
       I.x > 0 && !fixed ? 1.0 / I.x : 0,
       I.y > 0 && !fixed ? 1.0 / I.y : 0,
       I.z > 0 && !fixed ? 1.0 / I.z : 0
     );
-    this.updateInertiaWorld(true);
+    updateInertiaWorld(true);
   }
 
   /**
@@ -901,11 +754,11 @@ Vec3   vectorToLocalFrame(){
    * @param result;
    * @return The result vector.;
    */
-  Vec3 getVelocityAtWorldPoint(Vec3? worldPoint, Vec3? result){
+  Vec3 getVelocityAtWorldPoint(Vec3 worldPoint, Vec3 result){
     final Vec3 r = Vec3();
-    worldPoint.vsub(this.position, r);
-    this.angularVelocity.cross(r, result);
-    this.velocity.vadd(result, result);
+    worldPoint.vsub(position, r);
+    angularVelocity.cross(r, result);
+    velocity.vadd(result, result);
     return result;
   }
 
@@ -917,22 +770,22 @@ Vec3   vectorToLocalFrame(){
    */
   void integrate(double dt,[bool quatNormalize = false,bool quatNormalizeFast = false]){
     // Save previous position
-    this.previousPosition.copy(this.position);
-    this.previousQuaternion.copy(this.quaternion);
+    previousPosition.copy(position);
+    previousQuaternion.copy(quaternion);
 
-    if (!(this.type == Body.dynamic || this.type == Body.KINEMATIC) || this.sleepState == Body.sleeping) {
+    if (!(type == BodyTypes.dynamic || type == BodyTypes.kinematic) || sleepState == BodySleepStates.sleeping) {
       // Only for dynamic
       return;
     }
 
-    final velo = this.velocity;
-    final angularVelo = this.angularVelocity;
-    final pos = this.position;
+    final velo = velocity;
+    final angularVelo = angularVelocity;
+    final pos = position;
     final force = this.force;
     final torque = this.torque;
-    final quat = this.quaternion;
+    final quat = quaternion;
     final invMass = this.invMass;
-    final invInertia = this.invInertiaWorld;
+    final invInertia = invInertiaWorld;
     final linearFactor = this.linearFactor;
 
     final iMdt = invMass * dt;
@@ -954,7 +807,7 @@ Vec3   vectorToLocalFrame(){
     pos.y += velo.y * dt;
     pos.z += velo.z * dt;
 
-    quat.integrate(this.angularVelocity, dt, this.angularFactor, quat);
+    quat.integrate(angularVelocity, dt, this.angularFactor, quat);
 
     if (quatNormalize) {
       if (quatNormalizeFast) {
@@ -964,31 +817,9 @@ Vec3   vectorToLocalFrame(){
       }
     }
 
-    this.aabbNeedsUpdate = true;
+    aabbNeedsUpdate = true;
 
     // Update world inertia
-    this.updateInertiaWorld();
+    updateInertiaWorld();
   }
 }
-
-final tmpVec = Vec3();
-final tmpQuat = Quaternion();
-
-final updateAABB_shapeAABB = AABB();
-
-final uiw_m1 = Mat3();
-final uiw_m2 = Mat3();
-final uiw_m3 = Mat3();
-
-final Body_applyForce_rotForce = Vec3();
-
-final Body_applyLocalForce_worldForce = Vec3();
-final Body_applyLocalForce_relativePointWorld = Vec3();
-
-final Body_applyImpulse_velo = Vec3();
-final Body_applyImpulse_rotVelo = Vec3();
-
-final Body_applyLocalImpulse_worldImpulse = Vec3();
-final Body_applyLocalImpulse_relativePoint = Vec3();
-
-final Body_updateMassProperties_halfExtents = Vec3();
