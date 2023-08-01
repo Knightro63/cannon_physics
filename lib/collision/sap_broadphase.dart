@@ -1,9 +1,9 @@
+import 'package:cannon/utils/utils.dart';
+
 import '../collision/broadphase.dart';
 import '../collision/aabb.dart';
-import '../world/world.dart' hide Body;
+import '../world/world.dart';
 import '../objects/body.dart';
-
-enum AxisIndex{x,y,z}
 
 /**
  * Sweep and prune broadphase along one axis.

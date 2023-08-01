@@ -1,3 +1,5 @@
+enum AxisIndex{x,y,z}
+
 class Utils {
   /**
    * Extend an options object with default values.

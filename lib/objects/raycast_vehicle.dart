@@ -2,14 +2,12 @@ import '../objects/body.dart';
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
 import '../collision/ray.dart';
-import '../objects/wheelinfo.dart';
-import '../objects/wheelinfo.dart';
+import '../objects/wheel_info.dart';
 import '../math/transform.dart';
-import '../finalraints/constraint.dart';
+import '../constraints/constraint.dart';
 import '../world/world.dart';
 import 'dart:math' as math;
-
-//export type RaycastVehicleOptions = ConstructorParameters< RaycastVehicle>[0];
+import 'package:cannon/utils/utils.dart';
 
 /**
  * Vehicle helper class that casts rays from the wheel positions towards the ground and applies forces.
@@ -18,41 +16,40 @@ class RaycastVehicle {
 
  RaycastVehicle ({
     required this.chassisBody,
-    this.indexRightAxis = 2,
-    this.indexForwardAxis = 0,
-    this.indexUpAxis = 1,
+    this.indexRightAxis = AxisIndex.z,
+    this.indexForwardAxis = AxisIndex.x,
+    this.indexUpAxis = AxisIndex.y,
   });
 
-
-  /** The car chassis body. */
-Body chassisBody;
-  /** The wheels. */
-List<WheelInfo> wheelInfos = [];
-  /** Will be set to true if the car is sliding. */
-bool sliding = false;
-World? world;
-  /** Index of the right axis. x=0, y=1, z=2 */
-num indexRightAxis;
-  /** Index of the forward axis. x=0, y=1, z=2 */
-num indexForwardAxis;
-  /** Index of the up axis. x=0, y=1, z=2 */
-num indexUpAxis;
-  /** The finalraints. */
-List<Constraint> finalraints = [];
-  /** Optional pre-step callback. */
-void  Function() preStepCallback = (){};
-num currentVehicleSpeedKmHour = 0;
-  /** Number of wheels on the ground. */
-num numWheelsOnGround = 0;
+  /// The car chassis body.
+  Body chassisBody;
+  /// The wheels.
+  List<WheelInfo> wheelInfos = [];
+  /// Will be set to true if the car is sliding.
+  bool sliding = false;
+  World? world;
+  /// Index of the right axis. x=0, y=1, z=2
+  AxisIndex indexRightAxis;
+  /// Index of the forward axis. x=0, y=1, z=2
+  AxisIndex indexForwardAxis;
+  /// Index of the up axis. x=0, y=1, z=2
+  AxisIndex indexUpAxis;
+  /// The finalraints. */
+  List<Constraint> finalraints = [];
+  /// Optional pre-step callback
+  void  Function() preStepCallback = (){};
+  double currentVehicleSpeedKmHour = 0;
+  /// Number of wheels on the ground
+  int numWheelsOnGround = 0;
 
 
   /**
    * Add a wheel. For information about the options, see `WheelInfo`.
    */
-num   addWheel([WheelInfoOptions? options =  const {}]){
-    final info = WheelInfo(options);
-    final index = this.wheelInfos.length;
-    this.wheelInfos.push(info);
+  int addWheel([WheelInfo? wheelInfo]){
+    final info = wheelInfo ?? WheelInfo();
+    final index = wheelInfos.length;
+    wheelInfos.add(info);
 
     return index;
   }
@@ -60,77 +57,77 @@ num   addWheel([WheelInfoOptions? options =  const {}]){
   /**
    * Set the steering value of a wheel.
    */
-void   setSteeringValue(num? value,num? wheelIndex){
-    final wheel = this.wheelInfos[wheelIndex];
+  void setSteeringValue(double value, int wheelIndex){
+    final wheel = wheelInfos[wheelIndex];
     wheel.steering = value;
   }
 
   /**
    * Set the wheel force to apply on one of the wheels each time step
    */
-void   applyEngineForce(num? value,num? wheelIndex){
-    this.wheelInfos[wheelIndex].engineForce = value;
+  void applyEngineForce(double value,int wheelIndex){
+    wheelInfos[wheelIndex].engineForce = value;
   }
 
   /**
    * Set the braking force of a wheel
    */
-void   setBrake(num? brake,num? wheelIndex){
-    this.wheelInfos[wheelIndex].brake = brake;
+  void setBrake(double brake,int wheelIndex){
+    wheelInfos[wheelIndex].brake = brake;
   }
 
   /**
    * Add the vehicle including its finalraints to the world.
    */
-void   addToWorld(World? world){
-    world.addBody(this.chassisBody);
+  void addToWorld(World world){
+    world.addBody(chassisBody);
     final that = this;
-    this.preStepCallback = ()  {
+    preStepCallback = (){
       that.updateVehicle(world.dt);
     };
-    world.addEventListener('preStep', this.preStepCallback);
+    world.addEventListener('preStep', preStepCallback);
     this.world = world;
   }
 
   /**
    * Get one of the wheel axles, world-oriented.
    */
-void   private getVehicleAxisWorld(num? axisIndex,Vec3? result){
-    result.set(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 : 0);
-    this.chassisBody.vectorToWorldFrame(result, result);
+  void getVehicleAxisWorld(AxisIndex axisIndex, Vec3 result){
+    result.set(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 :0);
+    chassisBody.vectorToWorldFrame(result, result);
   }
 
-void   updateVehicle(num? timeStep){
+  void updateVehicle(double timeStep){
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
     final chassisBody = this.chassisBody;
 
     for (int i = 0; i < numWheels; i++) {
-      this.updateWheelTransform(i);
+      updateWheelTransform(i);
     }
 
-    this.currentVehicleSpeedKmHour = 3.6 * chassisBody.velocity.length();
+    currentVehicleSpeedKmHour = 3.6 * chassisBody.velocity.length();
 
     final forwardWorld = Vec3();
-    this.getVehicleAxisWorld(this.indexForwardAxis, forwardWorld);
+    getVehicleAxisWorld(indexForwardAxis, forwardWorld);
 
     if (forwardWorld.dot(chassisBody.velocity) < 0) {
-      this.currentVehicleSpeedKmHour *= -1;
+      currentVehicleSpeedKmHour *= -1;
     }
 
-    ; // simulate suspension
+    // simulate suspension
     for (int i = 0; i < numWheels; i++) {
-      this.castRay(wheelInfos[i]);
+      castRay(wheelInfos[i]);
     }
 
-    this.updateSuspension(timeStep);
+    updateSuspension(timeStep);
 
     final impulse = Vec3();
     final relpos = Vec3();
     for (int i = 0; i < numWheels; i++) {
       //apply suspension force
       final wheel = wheelInfos[i];
-      int suspensionForce = wheel.suspensionForce;
+      double suspensionForce = wheel.suspensionForce;
       if (suspensionForce > wheel.maxSuspensionForce) {
         suspensionForce = wheel.maxSuspensionForce;
       }
@@ -140,7 +137,7 @@ void   updateVehicle(num? timeStep){
       chassisBody.applyImpulse(impulse, relpos);
     }
 
-    this.updateFriction(timeStep);
+    updateFriction(timeStep);
 
     final hitNormalWorldScaledWithProj = Vec3();
     final fwd = Vec3();
@@ -151,16 +148,16 @@ void   updateVehicle(num? timeStep){
       //wheel.chassisConnectionPointWorld.vsub(chassisBody.position, relpos);
       chassisBody.getVelocityAtWorldPoint(wheel.chassisConnectionPointWorld, vel);
 
-      ; // Hack to get the rotation in the correct direction
+      // Hack to get the rotation in the correct direction
       int m = 1;
-      switch (this.indexUpAxis) {
-        case 1:
+      switch (indexUpAxis) {
+        case AxisIndex.y:
           m = -1;
           break;
       }
 
       if (wheel.isInContact) {
-        this.getVehicleAxisWorld(this.indexForwardAxis, fwd);
+        getVehicleAxisWorld(indexForwardAxis, fwd);
         final proj = fwd.dot(wheel.raycastResult.hitNormalWorld);
         wheel.raycastResult.hitNormalWorld.scale(proj, hitNormalWorldScaledWithProj);
 
@@ -170,12 +167,13 @@ void   updateVehicle(num? timeStep){
         wheel.deltaRotation = (m * proj2 * timeStep) / wheel.radius;
       }
 
-      if ((wheel.sliding || !wheel.isInContact) && wheel.engineForce != 0 && wheel.useCustomSlidingRotationalSpeed) {
-        ; // Apply custom rotation when accelerating and sliding
-        wheel.deltaRotation = (wheel.engineForce > 0 ? 1 : -1) * wheel.customSlidingRotationalSpeed * timeStep
+      if ((wheel.sliding || !wheel.isInContact) && wheel.engineForce != 0 
+      && wheel.useCustomSlidingRotationalSpeed) {
+        // Apply custom rotation when accelerating and sliding
+        wheel.deltaRotation = (wheel.engineForce > 0 ? 1 : -1) * wheel.customSlidingRotationalSpeed * timeStep;
       }
 
-      ; // Lock wheels
+      // Lock wheels
       if (wheel.brake.abs() > wheel.engineForce.abs()) {
         wheel.deltaRotation = 0;
       }
@@ -191,28 +189,28 @@ void   updateSuspension(num? deltaTime){
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
 
-    for (int w_it = 0; w_it < numWheels; w_it++) {
-      final wheel = wheelInfos[w_it];
+    for (int wIt = 0; wIt < numWheels; wIt++) {
+      final wheel = wheelInfos[wIt];
 
       if (wheel.isInContact) {
-        int force; 
+        double force; 
         
         // Spring
-        final susp_length = wheel.suspensionRestLength;
-        final current_length = wheel.suspensionLength;
-        final length_diff = susp_length - current_length;
+        final suspLength = wheel.suspensionRestLength;
+        final currentLength = wheel.suspensionLength;
+        final lengthDiff = suspLength - currentLength;
 
-        force = wheel.suspensionStiffness * length_diff * wheel.clippedInvContactDotSuspension
+        force = wheel.suspensionStiffness * lengthDiff * wheel.clippedInvContactDotSuspension;
 
-        ; // Damper
-        final projected_rel_vel = wheel.suspensionRelativeVelocity;
-        int susp_damping;
-        if (projected_rel_vel < 0) {
-          susp_damping = wheel.dampingCompression;
+        // Damper
+        final projectedRelVel = wheel.suspensionRelativeVelocity;
+        double suspDamping;
+        if (projectedRelVel < 0) {
+          suspDamping = wheel.dampingCompression;
         } else {
-          susp_damping = wheel.dampingRelaxation;
+          suspDamping = wheel.dampingRelaxation;
         }
-        force -= susp_damping * projected_rel_vel;
+        force -= suspDamping * projectedRelVel;
 
         wheel.suspensionForce = force * chassisMass;
         if (wheel.suspensionForce < 0) {
@@ -227,21 +225,21 @@ void   updateSuspension(num? deltaTime){
   /**
    * Remove the vehicle including its finalraints from the world.
    */
-void   removeFromWorld(World? world){
-    final finalraints = this.finalraints;
-    world.removeBody(this.chassisBody);
-    world.removeEventListener('preStep', this.preStepCallback);
+  void removeFromWorld(World world){
+    //final finalraints = this.finalraints;
+    world.removeBody(chassisBody);
+    world.removeEventListener('preStep', preStepCallback);
     this.world = null;
   }
 
-num   castRay(WheelInfo? wheel){
+  double castRay(WheelInfo wheel){
     final rayvector = castRay_rayvector;
     final target = castRay_target;
 
-    this.updateWheelTransformWorld(wheel);
+    updateWheelTransformWorld(wheel);
     final chassisBody = this.chassisBody;
 
-    int depth = -1;
+    double depth = -1;
 
     final raylen = wheel.suspensionRestLength + wheel.radius;
 
@@ -250,22 +248,22 @@ num   castRay(WheelInfo? wheel){
     source.vadd(rayvector, target);
     final raycastResult = wheel.raycastResult;
 
-    final param = 0;
+    //final param = 0;
 
     raycastResult.reset();
-    ; // Turn off ray collision with the chassis temporarily
+    // Turn off ray collision with the chassis temporarily
     final oldState = chassisBody.collisionResponse;
     chassisBody.collisionResponse = false;
 
-    ; // Cast ray against world
-    this.world!.rayTest(source, target, raycastResult);
+    // Cast ray against world
+    world!.rayTest(source, target, raycastResult);
     chassisBody.collisionResponse = oldState;
 
     final object = raycastResult.body;
 
     wheel.raycastResult.groundObject = 0;
 
-    if (object) {
+    if (object != null) {
       depth = raycastResult.distance;
       wheel.raycastResult.hitNormalWorld = raycastResult.hitNormalWorld;
       wheel.isInContact = true;
@@ -323,13 +321,13 @@ num   castRay(WheelInfo? wheel){
    * Note when rendering wheels: during each step, wheel transforms are updated BEFORE the chassis; ie. their position becomes invalid after the step. Thus when you render wheels, you must update wheel transforms before rendering them. See raycastVehicle demo for an example.
    * @param wheelIndex The wheel index to update.;
    */
-  void updateWheelTransform(num wheelIndex){
+  void updateWheelTransform(int wheelIndex){
     final up = tmpVec4;
     final right = tmpVec5;
     final fwd = tmpVec6;
 
-    final wheel = this.wheelInfos[wheelIndex];
-    this.updateWheelTransformWorld(wheel);
+    final wheel = wheelInfos[wheelIndex];
+    updateWheelTransformWorld(wheel);
 
     wheel.directionLocal.scale(-1, up);
     right.copy(wheel.axleLocal);
@@ -347,7 +345,7 @@ num   castRay(WheelInfo? wheel){
 
     // World rotation of the wheel
     final q = wheel.worldTransform.quaternion;
-    this.chassisBody.quaternion.mult(steeringOrn, q);
+    chassisBody.quaternion.mult(steeringOrn, q);
     q.mult(rotatingOrn, q);
 
     q.normalize();
@@ -362,36 +360,38 @@ num   castRay(WheelInfo? wheel){
   /**
    * Get the world transform of one of the wheels
    */
-  Transform getWheelTransformWorld(num wheelIndex){
-    return this.wheelInfos[wheelIndex].worldTransform;
+  Transform getWheelTransformWorld(int wheelIndex){
+    return wheelInfos[wheelIndex].worldTransform;
   }
 
-void   updateFriction(num? timeStep){
+  void updateFriction(double timeStep){
     final surfNormalWS_scaled_proj = updateFriction_surfNormalWS_scaled_proj;
 
-    ; //calculate the impulse, so that the wheels don't move sidewards
+    //calculate the impulse, so that the wheels don't move sidewards
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
     final chassisBody = this.chassisBody;
     final forwardWS = updateFriction_forwardWS;
     final axle = updateFriction_axle;
 
-    this.numWheelsOnGround = 0;
+    numWheelsOnGround = 0;
+    final int forwardWSLength = forwardWS.length;
+    final int axleLength = axle.length;
 
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
 
       final groundObject = wheel.raycastResult.body;
-      if (groundObject) {
-        this.numWheelsOnGround++;
+      if (groundObject != null) {
+        numWheelsOnGround++;
       }
 
       wheel.sideImpulse = 0;
       wheel.forwardImpulse = 0;
-      if (!forwardWS[i]) {
+      if (forwardWSLength < i){//!forwardWS[i]) {
         forwardWS[i] = Vec3();
       }
-      if (!axle[i]) {
+      if (axleLength < i){//!axle[i]) {
         axle[i] = Vec3();
       }
     }
@@ -401,12 +401,12 @@ void   updateFriction(num? timeStep){
 
       final groundObject = wheel.raycastResult.body;
 
-      if (groundObject) {
+      if (groundObject != null) {
         final axlei = axle[i];
-        final wheelTrans = this.getWheelTransformWorld(i);
+        final wheelTrans = getWheelTransformWorld(i);
 
         // Get world axle
-        wheelTrans.vectorToWorldFrame(directions[this.indexRightAxis], axlei);
+        wheelTrans.vectorToWorld(directions[indexRightAxis.index], axlei);
 
         final surfNormalWS = wheel.raycastResult.hitNormalWorld;
         final proj = axlei.dot(surfNormalWS);
@@ -429,20 +429,20 @@ void   updateFriction(num? timeStep){
       }
     }
 
-    final sideFactor = 1;
-    final fwdFactor = 0.5;
+    const sideFactor = 1;
+    const fwdFactor = 0.5;
+    sliding = false;
 
-    this.sliding = false;
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
       final groundObject = wheel.raycastResult.body;
 
-      int rollingFriction = 0;
+      double rollingFriction = 0;
 
       wheel.slipInfo = 1;
-      if (groundObject) {
-        final defaultRollingFrictionImpulse = 0;
-        final maxImpulse = wheel.brake ? wheel.brake : defaultRollingFrictionImpulse;
+      if (groundObject != null) {
+        const double defaultRollingFrictionImpulse = 0;
+        final double maxImpulse = wheel.brake != 0 ? wheel.brake : defaultRollingFrictionImpulse;
 
         // btWheelContactPoint contactPt(chassisBody,groundObject,wheelInfraycastInfo.hitPointWorld,forwardWS[wheel],maxImpulse);
         // rollingFriction = calcRollingFriction(contactPt);
@@ -466,7 +466,7 @@ void   updateFriction(num? timeStep){
       wheel.forwardImpulse = 0;
       wheel.skidInfo = 1;
 
-      if (groundObject) {
+      if (groundObject != null) {
         wheel.skidInfo = 1;
 
         final maximp = wheel.suspensionForce * timeStep * wheel.frictionSlip;
@@ -483,7 +483,7 @@ void   updateFriction(num? timeStep){
 
         wheel.sliding = false;
         if (impulseSquared > maximpSquared) {
-          this.sliding = true;
+          sliding = true;
           wheel.sliding = true;
 
           final factor = maximp / math.sqrt(impulseSquared);
@@ -493,7 +493,7 @@ void   updateFriction(num? timeStep){
       }
     }
 
-    if (this.sliding) {
+    if (sliding) {
       for (int i = 0; i < numWheels; i++) {
         final wheel = wheelInfos[i];
         if (wheel.sideImpulse != 0) {
@@ -509,36 +509,36 @@ void   updateFriction(num? timeStep){
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
 
-      final rel_pos = Vec3();
-      wheel.raycastResult.hitPointWorld.vsub(chassisBody.position, rel_pos);
+      final relPos = Vec3();
+      wheel.raycastResult.hitPointWorld.vsub(chassisBody.position, relPos);
       // cannons applyimpulse is using world coord for the position
       //rel_pos.copy(wheel.raycastResult.hitPointWorld);
 
       if (wheel.forwardImpulse != 0) {
         final impulse = Vec3();
         forwardWS[i].scale(wheel.forwardImpulse, impulse);
-        chassisBody.applyImpulse(impulse, rel_pos);
+        chassisBody.applyImpulse(impulse, relPos);
       }
 
       if (wheel.sideImpulse != 0) {
         final groundObject = wheel.raycastResult.body!;
 
-        final rel_pos2 = Vec3();
-        wheel.raycastResult.hitPointWorld.vsub(groundObject.position, rel_pos2);
+        final relPos2 = Vec3();
+        wheel.raycastResult.hitPointWorld.vsub(groundObject.position, relPos2);
         //rel_pos2.copy(wheel.raycastResult.hitPointWorld);
         final sideImp = Vec3();
         axle[i].scale(wheel.sideImpulse, sideImp);
 
         ; // Scale the relative position in the up direction with rollInfluence.
         // If rollInfluence is 1, the impulse will be applied on the hitPoint (easy to roll over), if it is zero it will be applied in the same plane as the center of mass (not easy to roll over).
-        chassisBody.vectorToLocalFrame(rel_pos, rel_pos);
-        rel_pos['xyz'[this.indexUpAxis] as 'x' | 'y' | 'z'] *= wheel.rollInfluence;
-        chassisBody.vectorToWorldFrame(rel_pos, rel_pos);
-        chassisBody.applyImpulse(sideImp, rel_pos);
+        chassisBody.vectorToLocalFrame(relPos, relPos);
+        relPos[indexUpAxis.index] *= wheel.rollInfluence;//'xyz'[this.indexUpAxis] as 'x' | 'y' | 'z'
+        chassisBody.vectorToWorldFrame(relPos, relPos);
+        chassisBody.applyImpulse(sideImp, relPos);
 
-        ; //apply friction impulse on the ground
+        //apply friction impulse on the ground
         sideImp.scale(-1, sideImp);
-        groundObject.applyImpulse(sideImp, rel_pos2);
+        groundObject.applyImpulse(sideImp, relPos2);
       }
     }
   }
@@ -560,22 +560,22 @@ final castRay_target = Vec3();
 final directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
 
 final updateFriction_surfNormalWS_scaled_proj = Vec3();
-List<Vec3> finalupdateFriction_axle =  [];
-final updateFriction_forwardWS: Vec3[] = [];
-final sideFrictionStiffness2 = 1;
+final List<Vec3> updateFriction_axle =  [];
+final List<Vec3>updateFriction_forwardWS = [];
+const sideFrictionStiffness2 = 1;
 
 final calcRollingFriction_vel1 = Vec3();
 final calcRollingFriction_vel2 = Vec3();
 final calcRollingFriction_vel = Vec3();
 
-num calcRollingFriction(
-Body body0,
-Body body1,
-Vec3 frictionPosWorld,
-Vec3 frictionDirectionWorld,
-num maxImpulse,
+double calcRollingFriction(
+  Body body0,
+  Body body1,
+  Vec3 frictionPosWorld,
+  Vec3 frictionDirectionWorld,
+  double maxImpulse,
 ){
-  int j1 = 0;
+  double j1 = 0;
   final contactPosWorld = frictionPosWorld;
 
   // final rel_pos1 = Vec3();
@@ -594,10 +594,10 @@ num maxImpulse,
 
   final denom0 = computeImpulseDenominator(body0, frictionPosWorld, frictionDirectionWorld);
   final denom1 = computeImpulseDenominator(body1, frictionPosWorld, frictionDirectionWorld);
-  final relaxation = 1;
+  const relaxation = 1;
   final jacDiagABInv = relaxation / (denom0 + denom1);
 
-  ; // calculate j that moves us to zero relative velocity
+  // calculate j that moves us to zero relative velocity
   j1 = -vrel * jacDiagABInv;
 
   if (maxImpulse < j1) {
@@ -615,7 +615,7 @@ final computeImpulseDenominator_c0 = Vec3();
 final computeImpulseDenominator_vec = Vec3();
 final computeImpulseDenominator_m = Vec3();
 
-num computeImpulseDenominator(Body? body,Vec3? pos,Vec3? normal){
+double computeImpulseDenominator(Body body,Vec3 pos,Vec3 normal){
   final r0 = computeImpulseDenominator_r0;
   final c0 = computeImpulseDenominator_c0;
   final vec = computeImpulseDenominator_vec;
@@ -634,7 +634,7 @@ final resolveSingleBilateral_vel2 = Vec3();
 final resolveSingleBilateral_vel = Vec3();
 
 // bilateral finalraint between two dynamic objects
-num resolveSingleBilateral(Body? body1,Vec3? pos1,Body? body2,Vec3? pos2,Vec3? normal){
+double resolveSingleBilateral(Body body1,Vec3 pos1,Body body2,Vec3 pos2,Vec3 normal){
   final normalLenSqr = normal.lengthSquared();
   if (normalLenSqr > 1.1) {
     return 0 ; // no impulse
@@ -652,11 +652,11 @@ num resolveSingleBilateral(Body? body1,Vec3? pos1,Body? body2,Vec3? pos2,Vec3? n
 
   vel1.vsub(vel2, vel);
 
-  final rel_vel = normal.dot(vel);
+  final relVel = normal.dot(vel);
 
-  final contactDamping = 0.2;
+  const contactDamping = 0.2;
   final massTerm = 1 / (body1.invMass + body2.invMass);
-  final impulse = -contactDamping * rel_vel * massTerm;
+  final impulse = -contactDamping * relVel * massTerm;
 
   return impulse;
 }

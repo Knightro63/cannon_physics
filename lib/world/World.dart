@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../utils/event_target.dart';
 import '../solver/gs_solver.dart';
 import '../collision/naive_broadphase.dart';
@@ -5,9 +6,9 @@ import '../world/narrow_phase.dart';
 import '../math/vec3.dart';
 import '../material/material.dart';
 import '../material/contact_material.dart';
-import '../collision/ArrayCollisionMatrix';
-import '../collision/OverlapKeeper';
-import '../utils/TupleDictionary';
+import '../collision/array_collision_matrix.dart';
+import '../collision/overlap_keeper.dart';
+import '../utils/tuple_dictionary.dart';
 import '../collision/raycast_result.dart';
 import '../collision/ray.dart';
 import '../collision/aabb.dart';
@@ -19,62 +20,113 @@ import '../equations/friction_equation.dart';
 import '../constraints/constraint.dart';
 import '../shapes/shape.dart';
 
-//export type WorldOptions = ConstructorParameters<typeof World>[0]
+class CollideEvent{
+  CollideEvent({
+    this.type = '',
+    this.body,
+    this.contact
+  });
+  String type;
+  Body? body; 
+  ContactEquation? contact; 
+}
+
+class BodyEvent{
+  BodyEvent({
+    this.type = '',
+    this.target
+  });
+  String type;
+  Body? target;
+}
+class Timing{
+  DateTime? navigationStart;
+}
+class Performance{
+  Timing? timing;
+  DateTime? nowOffset;// = DateTime.now();
+  int now() => nowOffset == null?0:DateTime.now().difference(nowOffset!).inMilliseconds;
+
+  void init(){
+    if(now() == 0) {
+      nowOffset = DateTime.now();
+      if (timing != null && timing!.navigationStart != null) {
+        nowOffset = timing!.navigationStart;
+      }
+    }
+  }
+}
+
+class Profile{
+  Profile({
+    this.solve = 0,
+    this.makeContactConstraints = 0,
+    this.broadphase = 0,
+    this.integrate = 0,
+    this.narrowphase = 0
+  });
+
+  int solve;
+  int makeContactConstraints;
+  int broadphase;
+  int integrate;
+  int narrowphase;
+}
 
 /// The physics world
 class World extends EventTarget {
   /**
    * Currently / last used timestep. Is set to -1 if not available. This value is updated before each internal step, which means that it is "fresh" inside event callbacks.
    */
-  double dt;
+  double dt = -1;
 
   /**
    * Makes bodies go to sleep when they've been inactive.
    * @default false
    */
-  bool allowSleep;
+  late bool allowSleep;
 
   /**
    * All the current contacts (instances of ContactEquation) in the world.
    */
-  List<ContactEquation> contacts;
+  List<ContactEquation> contacts = [];
 
-  List<FrictionEquation> frictionEquations;
+  List<FrictionEquation> frictionEquations = [];
 
   /**
    * How often to normalize quaternions. Set to 0 for every step, 1 for every second etc.. A larger value increases performance. If bodies tend to explode, set to a smaller value (zero to be sure nothing can go wrong).
    * @default 0
    */
-  int quatNormalizeSkip;
+  late int quatNormalizeSkip;
 
   /**
    * Set to true to use fast quaternion normalization. It is often enough accurate to use.
    * If bodies tend to explode, set to false.
    * @default false
    */
-  bool quatNormalizeFast;
+  late bool quatNormalizeFast;
 
   /**
    * The wall-clock time since simulation start.
    */
-  double time;
+  double time = 0.0;
 
   /**
    * Number of timesteps taken since start.
    */
-  int stepnumber;
+  int stepnumber = 0;
 
   /**
    * Default and last timestep sizes.
    */
-  double default_dt;
+  double default_dt = 1/60;
 
-  int nextId;
+  int nextId = 0;
 
   /**
    * The gravity of the world.
    */
-  Vec3 gravity;
+  Vec3 gravity = Vec3();
 
   /**
    * Gravity to use when approximating the friction max force (mu*mass*gravity).
@@ -87,180 +139,109 @@ class World extends EventTarget {
    * The broadphase algorithm to use.
    * @default NaiveBroadphase
    */
-  Broadphase broadphase;
+  late Broadphase broadphase;
 
   /**
    * All bodies in this world
    */
-  List<Body> bodies;
+  List<Body> bodies = [];
 
   /**
    * True if any bodies are not sleeping, false if every body is sleeping.
    */
-  bool hasActiveBodies;
+  bool hasActiveBodies = false;
 
   /**
    * The solver algorithm to use.
    * @default GSSolver
    */
-  Solver solver;
-  List<Constraint> constraints;
-  Narrowphase narrowphase;
+  late Solver solver;
+  List<Constraint> constraints = [];
+  late Narrowphase narrowphase;
 
   /**
    * collisionMatrix
    */
-  ArrayCollisionMatrix collisionMatrix;
+  ArrayCollisionMatrix collisionMatrix = ArrayCollisionMatrix();
 
   /**
    * CollisionMatrix from the previous step.
    */
-  ArrayCollisionMatrix collisionMatrixPrevious;
-  OverlapKeeper bodyOverlapKeeper;
-  OverlapKeeper shapeOverlapKeeper;
+  ArrayCollisionMatrix collisionMatrixPrevious = ArrayCollisionMatrix();
+  OverlapKeeper bodyOverlapKeeper = OverlapKeeper();
+  OverlapKeeper shapeOverlapKeeper = OverlapKeeper();
 
   /**
    * All added contactmaterials.
    */
-  List<ContactMaterial> contactmaterials;
+  List<ContactMaterial> contactmaterials = [];
 
   /**
    * Used to look up a ContactMaterial given two instances of Material.
    */
-  TupleDictionary contactMaterialTable;
+  TupleDictionary contactMaterialTable = TupleDictionary();
   /**
    * The default material of the bodies.
    */
-  Material defaultMaterial;
+  Material defaultMaterial = Material(name:'default');
 
   /**
    * This contact material is used if no suitable contactmaterial is found for a contact.
    */
-  ContactMaterial defaultContactMaterial;
-  bool doProfiling;
+  late ContactMaterial defaultContactMaterial;
+  bool doProfiling = false;
   
-  profile: {
-    solve: number
-    makeContactConstraints: number
-    broadphase: number
-    integrate: number
-    narrowphase: number
-  }
+  Profile profile = Profile();
 
   /**
    * Time accumulator for interpolation.
    * @see https://gafferongames.com/game-physics/fix-your-timestep/
    */
-  double accumulator;
+  double accumulator = 0;
 
-  List subsystems;
+  List subsystems = [];
 
   /**
    * Dispatched after a body has been added to the world.
    */
-  addBodyEvent: { type: 'addBody'; body: Body | null }
+  BodyEvent addBodyEvent = BodyEvent(type: 'addBody');
 
   /**
    * Dispatched after a body has been removed from the world.
    */
-  removeBodyEvent: { type: 'removeBody'; body: Body | null }
-
+  BodyEvent removeBodyEvent = BodyEvent(type: 'removeBody');
   Map<int,Body> idToBodyMap = {};
-
   double? lastCallTime;
 
   World({
-      /**
-       * The gravity of the world.
-       */
-      gravity?: Vec3
-      /**
-       * Gravity to use when approximating the friction max force (mu*mass*gravity).
-       * If undefined, global gravity will be used.
-       */
-      frictionGravity?: Vec3
-      /**
-       * Makes bodies go to sleep when they've been inactive.
-       * @default false
-       */
-      allowSleep?: boolean
-      /**
-       * The broadphase algorithm to use.
-       * @default NaiveBroadphase
-       */
-      broadphase?: Broadphase
-      /**
-       * The solver algorithm to use.
-       * @default GSSolver
-       */
-      solver?: Solver
-      /**
-       * Set to true to use fast quaternion normalization. It is often enough accurate to use.
-       * If bodies tend to explode, set to false.
-       * @default false
-       */
-      quatNormalizeFast?: boolean
-      /**
-       * How often to normalize quaternions. Set to 0 for every step, 1 for every second etc.. A larger value increases performance. If bodies tend to explode, set to a smaller value (zero to be sure nothing can go wrong).
-       * @default 0
-       */
-      quatNormalizeSkip?: number
+    Vec3? gravity,
+    Vec3? frictionGravity,
+    this.allowSleep = false,
+    Broadphase? broadphase,
+    Solver? solver,
+    bool? quatNormalizeFast,
+    int? quatNormalizeSkip
+  }):super(){
+    this.quatNormalizeSkip = quatNormalizeSkip ?? 0;
+    this.quatNormalizeFast = quatNormalizeFast ?? false;
+    if (gravity != null) {
+      this.gravity.copy(gravity);
     }
-  ):super(){
-    
-
-    this.dt = -1
-    this.allowSleep = !!options.allowSleep
-    this.contacts = []
-    this.frictionEquations = []
-    this.quatNormalizeSkip = options.quatNormalizeSkip !== undefined ? options.quatNormalizeSkip : 0
-    this.quatNormalizeFast = options.quatNormalizeFast !== undefined ? options.quatNormalizeFast : false
-    this.time = 0.0
-    this.stepnumber = 0
-    this.default_dt = 1 / 60
-    this.nextId = 0
-    this.gravity = Vec3()
-
-    if (options.gravity) {
-      this.gravity.copy(options.gravity)
+    if (frictionGravity != null) {
+      this.frictionGravity = Vec3();
+      this.frictionGravity!.copy(frictionGravity);
     }
-    if (options.frictionGravity) {
-      this.frictionGravity = Vec3()
-      this.frictionGravity.copy(options.frictionGravity)
-    }
-
-    this.broadphase = options.broadphase !== undefined ? options.broadphase : NaiveBroadphase()
-    this.bodies = []
-    this.hasActiveBodies = false
-    this.solver = options.solver !== undefined ? options.solver : GSSolver()
-    this.constraints = []
-    this.narrowphase = Narrowphase(this)
-    this.collisionMatrix = ArrayCollisionMatrix()
-    this.collisionMatrixPrevious = ArrayCollisionMatrix()
-    this.bodyOverlapKeeper = OverlapKeeper()
-    this.shapeOverlapKeeper = OverlapKeeper()
-    this.contactmaterials = []
-    this.contactMaterialTable = TupleDictionary()
-    this.defaultMaterial = Material('default')
-    this.defaultContactMaterial = ContactMaterial(this.defaultMaterial, this.defaultMaterial, {
+    this.broadphase = broadphase ?? NaiveBroadphase();
+    this.solver = solver ?? GSSolver();
+    narrowphase = Narrowphase(this);
+    defaultContactMaterial = ContactMaterial(defaultMaterial, defaultMaterial,
       friction: 0.3,
       restitution: 0.0,
-    })
-    this.doProfiling = false
-    this.profile = {
-      solve: 0,
-      makeContactConstraints: 0,
-      broadphase: 0,
-      integrate: 0,
-      narrowphase: 0,
-    }
+    );
 
-    this.accumulator = 0
-    this.subsystems = []
-    this.addBodyEvent = { type: 'addBody', body: null }
-    this.removeBodyEvent = { type: 'removeBody', body: null }
-    this.idToBodyMap = {}
-    this.broadphase.setWorld(this)
+    this.broadphase.setWorld(this);
+
+
   }
 
   /**
@@ -275,13 +256,13 @@ class World extends EventTarget {
    * Store old collision state info
    */
   void collisionMatrixTick() {
-    const temp = this.collisionMatrixPrevious;
-    this.collisionMatrixPrevious = this.collisionMatrix;
-    this.collisionMatrix = temp;
-    this.collisionMatrix.reset();
+    final temp = collisionMatrixPrevious;
+    collisionMatrixPrevious = collisionMatrix;
+    collisionMatrix = temp;
+    collisionMatrix.reset();
 
-    this.bodyOverlapKeeper.tick();
-    this.shapeOverlapKeeper.tick();
+    bodyOverlapKeeper.tick();
+    shapeOverlapKeeper.tick();
   }
 
   /**
@@ -297,7 +278,7 @@ class World extends EventTarget {
   void removeConstraint(Constraint c) {
     int idx = constraints.indexOf(c);
     if (idx != -1) {
-      constraints.splice(idx, 1);
+      constraints.removeAt(idx);
     }
   }
 
@@ -306,22 +287,23 @@ class World extends EventTarget {
    * @deprecated Use .raycastAll, .raycastClosest or .raycastAny instead.
    */
   void rayTest(Vec3 from, Vec3 to, RaycastResult result) {
-    if (result is RaycastResult) {
+    // if (result is RaycastResult) {
       // Do raycastClosest
-      raycastClosest(from, to, { skipBackfaces: true }, result);
-    } 
-    else {
-      // Do raycastAll
-      raycastAll(from, to, { skipBackfaces: true }, result);
-    }
+      raycastClosest(from, to, RayOptions()..skipBackfaces = true , result);
+    // } 
+    // else {
+    //   // Do raycastAll
+    //   raycastAll(from, to, { skipBackfaces: true }, result);
+    // }
   }
 
   /**
    * Ray cast against all bodies. The provided callback will be executed for each hit with a RaycastResult as single argument.
    * @return True if any body was hit.
    */
-  bool raycastAll([Vec3? from,Vec3? to, RayOptiosn options = {},RaycastCallback? callback]) {
-    options.mode = Ray.ALL;
+  bool raycastAll([Vec3? from,Vec3? to, RayOptions? options, RaycastCallback? callback]) {
+    options ??= RayOptions();
+    options.mode = RayMode.all;
     options.from = from;
     options.to = to;
     options.callback = callback;
@@ -332,8 +314,9 @@ class World extends EventTarget {
    * Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
    * @return True if any body was hit.
    */
-  bool raycastAny([Vec3? from, Vec3? to, RayOptions options = {}, RaycastResult? result ]) {
-    options.mode = Ray.ANY;
+  bool raycastAny([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result ]) {
+    options ??= RayOptions();
+    options.mode = RayMode.any;
     options.from = from;
     options.to = to;
     options.result = result;
@@ -344,8 +327,9 @@ class World extends EventTarget {
    * Ray cast, and return information of the closest hit.
    * @return True if any body was hit.
    */
-  bool raycastClosest([Vec3? from, Vec3? to, RayOptions options  = {}, RaycastResult? result]) {
-    options.mode = Ray.CLOSEST;
+  bool raycastClosest([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result]) {
+    options ??= RayOptions();
+    options.mode = RayMode.closest;
     options.from = from;
     options.to = to;
     options.result = result;
@@ -358,23 +342,23 @@ class World extends EventTarget {
    * @todo Adding an array of bodies should be possible. This would save some loops too
    */
   void addBody(Body body) {
-    if (this.bodies.includes(body)) {
+    if (bodies.contains(body)) {
       return;
     }
-    body.index = this.bodies.length;
-    this.bodies.add(body);
+    body.index = bodies.length;
+    bodies.add(body);
     body.world = this;
     body.initPosition.copy(body.position);
     body.initVelocity.copy(body.velocity);
-    body.timeLastSleepy = this.time;
-    if (body is Body) {
+    body.timeLastSleepy = time;
+    //if (body is Body) {
       body.initAngularVelocity.copy(body.angularVelocity);
       body.initQuaternion.copy(body.quaternion);
-    }
-    this.collisionMatrix.setNumObjects(this.bodies.length);
-    this.addBodyEvent.body = body;
-    this.idToBodyMap[body.id] = body;
-    this.dispatchEvent(this.addBodyEvent);
+    //}
+    collisionMatrix.setNumObjects(bodies.length);
+    addBodyEvent.target = body;
+    idToBodyMap[body.id] = body;
+    dispatchEvent(addBodyEvent);
   }
 
   /**
@@ -382,26 +366,26 @@ class World extends EventTarget {
    */
   void removeBody(Body body) {
     body.world = null;
-    const n = this.bodies.length - 1;
-    const bodies = this.bodies;
-    const idx = bodies.indexOf(body);
+    final n = this.bodies.length - 1;
+    final bodies = this.bodies;
+    final idx = bodies.indexOf(body);
     if (idx != -1) {
-      bodies.splice(idx, 1); // Todo: should use a garbage free method
+      bodies.removeAt(idx); // Todo: should use a garbage free method
 
       // Recompute index
-      for (let i = 0; i !== bodies.length; i++) {
+      for (int i = 0; i != bodies.length; i++) {
         bodies[i].index = i;
       }
 
-      this.collisionMatrix.setNumObjects(n);
-      this.removeBodyEvent.body = body;
-      delete this.idToBodyMap[body.id];
-      this.dispatchEvent(this.removeBodyEvent);
+      collisionMatrix.setNumObjects(n);
+      removeBodyEvent.target = body;
+      idToBodyMap.remove(body.id);//delete this.idToBodyMap[body.id];
+      dispatchEvent(removeBodyEvent);
     }
   }
 
   Body getBodyById(int id) {
-    return idToBodyMap[id];
+    return idToBodyMap[id]!;
   }
 
   /**
@@ -411,9 +395,9 @@ class World extends EventTarget {
     final bodies = this.bodies;
     for (int i = 0; i < bodies.length; i++) {
       final shapes = bodies[i].shapes;
-      for (let j = 0; j < shapes.length; j++) {
-        const shape = shapes[j];
-        if (shape.id === id) {
+      for (int j = 0; j < shapes.length; j++) {
+        final shape = shapes[j];
+        if (shape.id == id) {
           return shape;
         }
       }
@@ -441,7 +425,7 @@ class World extends EventTarget {
       return;
     }
 
-    contactmaterials.splice(idx, 1);
+    contactmaterials.removeAt(idx);
     contactMaterialTable.delete(cmat.materials[0].id, cmat.materials[1].id);
   }
 
@@ -458,10 +442,10 @@ class World extends EventTarget {
    */
   void fixedStep([double dt = 1 / 60, int maxSubSteps = 10]) {
     final time = performance.now() / 1000; // seconds
-    if (lastCallTime != null) {
+    if (lastCallTime == null) {
       step(dt, null, maxSubSteps);
     } else {
-      final timeSinceLastCalled = time - lastCallTime;
+      final timeSinceLastCalled = time - lastCallTime!;
       step(dt, timeSinceLastCalled, maxSubSteps);
     }
     lastCallTime = time;
@@ -480,23 +464,23 @@ class World extends EventTarget {
    *     // fixed timestepping without interpolation
    *     world.step(1 / 60)
    */
-  void step([double dt, double? timeSinceLastCalled, maxSubSteps = 10]) {
+  void step(double dt, [double? timeSinceLastCalled, int maxSubSteps = 10]) {
     if (timeSinceLastCalled == null) {
       // Fixed, simple stepping
 
-      this.internalStep(dt);
+      internalStep(dt);
 
       // Increment time
-      this.time += dt;
+      time += dt;
     } else {
-      this.accumulator += timeSinceLastCalled;
+      accumulator += timeSinceLastCalled;
 
-      const t0 = performance.now();
+      final t0 = performance.now();
       int substeps = 0;
-      while (this.accumulator >= dt && substeps < maxSubSteps) {
+      while (accumulator >= dt && substeps < maxSubSteps) {
         // Do fixed steps to catch up
-        this.internalStep(dt);
-        this.accumulator -= dt;
+        internalStep(dt);
+        accumulator -= dt;
         substeps++;
         if (performance.now() - t0 > dt * 1000) {
           // The framerate is not interactive anymore.
@@ -508,24 +492,24 @@ class World extends EventTarget {
 
       // Remove the excess accumulator, since we may not
       // have had enough substeps available to catch up
-      this.accumulator = this.accumulator % dt;
+      accumulator = accumulator % dt;
 
-      const t = this.accumulator / dt;
-      for (int j = 0; j != this.bodies.length; j++) {
-        const b = this.bodies[j];
+      final t = accumulator / dt;
+      for (int j = 0; j != bodies.length; j++) {
+        final b = bodies[j];
         b.previousPosition.lerp(b.position, t, b.interpolatedPosition);
         b.previousQuaternion.slerp(b.quaternion, t, b.interpolatedQuaternion);
         b.previousQuaternion.normalize();
       }
-      this.time += timeSinceLastCalled;
+      time += timeSinceLastCalled;
     }
   }
 
   void internalStep(double dt) {
     this.dt = dt;
 
-    final world = this;
-    final that = this;
+    //final world = this;
+    //final that = this;
     final contacts = this.contacts;
     final p1 = World_step_p1;
     final p2 = World_step_p2;
@@ -535,28 +519,27 @@ class World extends EventTarget {
     final gravity = this.gravity;
     final doProfiling = this.doProfiling;
     final profile = this.profile;
-    final DYNAMIC = Body.DYNAMIC;
-    double profilingStart = -double.infinity;
+    int profilingStart = -1;
     final constraints = this.constraints;
     final frictionEquationPool = World_step_frictionEquationPool;
-    final gnorm = gravity.length();
+    //final gnorm = gravity.length();
     final gx = gravity.x;
     final gy = gravity.y;
     final gz = gravity.z;
     int i = 0;
 
     if (doProfiling) {
-      profilingStart = performance.now()
+      profilingStart = performance.now();
     }
 
     // Add gravity to all objects
     for (i = 0; i != N; i++) {
-      const bi = bodies[i];
-      if (bi.type == DYNAMIC) {
+      final bi = bodies[i];
+      if (bi.type == BodyTypes.dynamic) {
         // Only for dynamic bodies
-        const f = bi.force;
+        final f = bi.force;
 
-        const m = bi.mass;
+        final m = bi.mass;
         f.x += m * gx;
         f.y += m * gy;
         f.z += m * gz;
@@ -564,8 +547,8 @@ class World extends EventTarget {
     }
 
     // Update subsystems
-    for (int i = 0, Nsubsystems = this.subsystems.length; i != Nsubsystems; i++) {
-      this.subsystems[i].update();
+    for (int i = 0, Nsubsystems = subsystems.length; i != Nsubsystems; i++) {
+      subsystems[i].update();
     }
 
     // Collision detection
@@ -574,7 +557,7 @@ class World extends EventTarget {
     }
     p1.length = 0; // Clean up pair arrays from last step
     p2.length = 0;
-    this.broadphase.collisionPairs(this, p1, p2);
+    broadphase.collisionPairs(this, p1, p2);
     if (doProfiling) {
       profile.broadphase = performance.now() - profilingStart;
     }
@@ -582,7 +565,7 @@ class World extends EventTarget {
     // Remove constrained pairs with collideConnected == false
     int Nconstraints = constraints.length;
     for (i = 0; i != Nconstraints; i++) {
-      const c = constraints[i];
+      final c = constraints[i];
       if (!c.collideConnected) {
         for (int j = p1.length - 1; j >= 0; j -= 1) {
           if ((c.bodyA == p1[j] && c.bodyB == p2[j]) || (c.bodyB == p1[j] && c.bodyA == p2[j])) {
@@ -593,34 +576,34 @@ class World extends EventTarget {
       }
     }
 
-    this.collisionMatrixTick()
+   collisionMatrixTick();
 
     // Generate contacts
     if (doProfiling) {
-      profilingStart = performance.now()
+      profilingStart = performance.now();
     }
-    const oldcontacts = World_step_oldContacts
-    const NoldContacts = contacts.length
+    final oldcontacts = World_step_oldContacts;
+    final NoldContacts = contacts.length;
 
-    for (i = 0; i !== NoldContacts; i++) {
-      oldcontacts.push(contacts[i])
+    for (i = 0; i != NoldContacts; i++) {
+      oldcontacts.add(contacts[i]);
     }
-    contacts.length = 0
+    contacts.length = 0;
 
     // Transfer FrictionEquation from current list to the pool for reuse
-    const NoldFrictionEquations = this.frictionEquations.length;
+    final NoldFrictionEquations = frictionEquations.length;
     for (i = 0; i != NoldFrictionEquations; i++) {
-      frictionEquationPool.push(this.frictionEquations[i]);
+      frictionEquationPool.add(frictionEquations[i]);
     }
-    this.frictionEquations.length = 0;
+    frictionEquations.length = 0;
 
-    this.narrowphase.getContacts(
+    narrowphase.getContacts(
       p1,
       p2,
       this,
       contacts,
       oldcontacts, // To be reused
-      this.frictionEquations,
+      frictionEquations,
       frictionEquationPool
     );
 
@@ -630,47 +613,47 @@ class World extends EventTarget {
 
     // Loop over all collisions
     if (doProfiling) {
-      profilingStart = performance.now()
+      profilingStart = performance.now();
     }
 
     // Add all friction eqs
-    for (i = 0; i < this.frictionEquations.length; i++) {
-      solver.addEquation(this.frictionEquations[i])
+    for (i = 0; i < frictionEquations.length; i++) {
+      solver.addEquation(frictionEquations[i]);
     }
 
-    const ncontacts = contacts.length;
+    final ncontacts = contacts.length;
     for (int k = 0; k != ncontacts; k++) {
       // Current contact
-      const c = contacts[k];
+      final c = contacts[k];
 
       // Get current collision indeces
-      const bi = c.bi;
+      final bi = c.bi;
 
-      const bj = c.bj;
-      const si = c.si;
-      const sj = c.sj;
+      final bj = c.bj;
+      final si = c.si;
+      final sj = c.sj;
 
       // Get collision properties
-      let cm;
-      if (bi.material && bj.material) {
-        cm = this.getContactMaterial(bi.material, bj.material) || this.defaultContactMaterial;
+      ContactMaterial cm;
+      if (bi.material != null && bj.material != null) {
+        cm = getContactMaterial(bi.material!, bj.material!) ?? this.defaultContactMaterial;
       } else {
-        cm = this.defaultContactMaterial;
+        cm = defaultContactMaterial;
       }
 
       // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
 
-      let mu = cm.friction;
+      double mu = cm.friction;
       // c.restitution = cm.restitution;
 
       // If friction or restitution were specified in the material, use them
-      if (bi.material && bj.material) {
-        if (bi.material.friction >= 0 && bj.material.friction >= 0) {
-          mu = bi.material.friction * bj.material.friction;
+      if (bi.material != null && bj.material != null) {
+        if (bi.material!.friction >= 0 && bj.material!.friction >= 0) {
+          mu = bi.material!.friction * bj.material!.friction;
         }
 
-        if (bi.material.restitution >= 0 && bj.material.restitution >= 0) {
-          c.restitution = bi.material.restitution * bj.material.restitution;
+        if (bi.material!.restitution >= 0 && bj.material!.restitution >= 0) {
+          c.restitution = bi.material!.restitution * bj.material!.restitution;
         }
       }
 
@@ -686,14 +669,14 @@ class World extends EventTarget {
       // if(mu > 0){
 
       // 	// Create 2 tangent equations
-      // 	const mug = mu * gnorm;
-      // 	const reducedMass = (bi.invMass + bj.invMass);
+      // 	final mug = mu * gnorm;
+      // 	final reducedMass = (bi.invMass + bj.invMass);
       // 	if(reducedMass > 0){
       // 		reducedMass = 1/reducedMass;
       // 	}
-      // 	const pool = frictionEquationPool;
-      // 	const c1 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
-      // 	const c2 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
+      // 	final pool = frictionEquationPool;
+      // 	final c1 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
+      // 	final c2 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
       // 	this.frictionEquations.push(c1, c2);
 
       // 	c1.bi = c2.bi = bi;
@@ -723,13 +706,13 @@ class World extends EventTarget {
 
       if (
         bi.allowSleep &&
-        bi.type == Body.DYNAMIC &&
-        bi.sleepState == Body.SLEEPING &&
-        bj.sleepState == Body.AWAKE &&
-        bj.type != Body.STATIC
+        bi.type == BodyTypes.dynamic &&
+        bi.sleepState == BodySleepStates.sleeping &&
+        bj.sleepState == BodySleepStates.awake &&
+        bj.type != BodyTypes.static
       ) {
-        const speedSquaredB = bj.velocity.lengthSquared() + bj.angularVelocity.lengthSquared();
-        const speedLimitSquaredB = math.pow(bj.sleepSpeedLimit,2);
+        final speedSquaredB = bj.velocity.lengthSquared() + bj.angularVelocity.lengthSquared();
+        final speedLimitSquaredB = math.pow(bj.sleepSpeedLimit,2);
         if (speedSquaredB >= speedLimitSquaredB * 2) {
           bi.wakeUpAfterNarrowphase = true;
         }
@@ -737,22 +720,22 @@ class World extends EventTarget {
 
       if (
         bj.allowSleep &&
-        bj.type == Body.DYNAMIC &&
-        bj.sleepState == Body.SLEEPING &&
-        bi.sleepState == Body.AWAKE &&
-        bi.type != Body.STATIC
+        bj.type == BodyTypes.dynamic &&
+        bj.sleepState == BodySleepStates.sleeping &&
+        bi.sleepState == BodySleepStates.awake &&
+        bi.type != BodyTypes.static
       ) {
-        const speedSquaredA = bi.velocity.lengthSquared() + bi.angularVelocity.lengthSquared();
-        const speedLimitSquaredA = math.pow(bi.sleepSpeedLimit,2);
+        final speedSquaredA = bi.velocity.lengthSquared() + bi.angularVelocity.lengthSquared();
+        final speedLimitSquaredA = math.pow(bi.sleepSpeedLimit,2);
         if (speedSquaredA >= speedLimitSquaredA * 2) {
           bj.wakeUpAfterNarrowphase = true;
         }
       }
 
       // Now we know that i and j are in contact. Set collision matrix state
-      this.collisionMatrix.set(bi, bj, true);
+      collisionMatrix.set(bi, bj, true);
 
-      if (!this.collisionMatrixPrevious.get(bi, bj)) {
+      if (collisionMatrixPrevious.get(bi, bj) != 0) {
         // First contact!
         // We reuse the collideEvent object, otherwise we will end up creating objects for each contact, even if there's no event listener attached.
         World_step_collideEvent.body = bj;
@@ -763,11 +746,11 @@ class World extends EventTarget {
         bj.dispatchEvent(World_step_collideEvent);
       }
 
-      this.bodyOverlapKeeper.set(bi.id, bj.id);
-      this.shapeOverlapKeeper.set(si.id, sj.id);
+      bodyOverlapKeeper.set(bi.id, bj.id);
+      shapeOverlapKeeper.set(si.id, sj.id);
     }
 
-    this.emitContactEvents();
+    emitContactEvents();
 
     if (doProfiling) {
       profile.makeContactConstraints = performance.now() - profilingStart;
@@ -776,7 +759,7 @@ class World extends EventTarget {
 
     // Wake up bodies
     for (i = 0; i != N; i++) {
-      const bi = bodies[i];
+      final bi = bodies[i];
       if (bi.wakeUpAfterNarrowphase) {
         bi.wakeUp();
         bi.wakeUpAfterNarrowphase = false;
@@ -786,10 +769,10 @@ class World extends EventTarget {
     // Add user-added constraints
     Nconstraints = constraints.length;
     for (i = 0; i != Nconstraints; i++) {
-      const c = constraints[i];
+      final c = constraints[i];
       c.update();
       for (int j = 0, Neq = c.equations.length; j != Neq; j++) {
-        const eq = c.equations[j];
+        final eq = c.equations[j];
         solver.addEquation(eq);
       }
     }
@@ -805,23 +788,22 @@ class World extends EventTarget {
     solver.removeAllEquations();
 
     // Apply damping, see http://code.google.com/p/bullet/issues/detail?id=74 for details
-    const pow = Math.pow;
     for (i = 0; i != N; i++) {
-      const bi = bodies[i];
-      if (bi.type & DYNAMIC) {
+      final bi = bodies[i];
+      if (bi.type == BodyTypes.dynamic) {
         // Only for dynamic bodies
-        const ld = pow(1.0 - bi.linearDamping, dt);
-        const v = bi.velocity;
+        final ld = math.pow(1.0 - bi.linearDamping, dt).toDouble();
+        final v = bi.velocity;
         v.scale(ld, v);
-        const av = bi.angularVelocity;
-        if (av) {
-          const ad = pow(1.0 - bi.angularDamping, dt);
+        final av = bi.angularVelocity;
+        //if (av) {
+          final ad = math.pow(1.0 - bi.angularDamping, dt).toDouble();
           av.scale(ad, av);
-        }
+        //}
       }
     }
 
-    this.dispatchEvent(World_step_preStepEvent)
+   dispatchEvent(World_step_preStepEvent);
 
     // Leap frog
     // vnew = v + h*f/m
@@ -829,16 +811,16 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-    const stepnumber = this.stepnumber;
-    const quatNormalize = stepnumber % (this.quatNormalizeSkip + 1) === 0;
-    const quatNormalizeFast = this.quatNormalizeFast;
+    final stepnumber = this.stepnumber;
+    final quatNormalize = stepnumber % (quatNormalizeSkip + 1) == 0;
+    final quatNormalizeFast = this.quatNormalizeFast;
 
     for (i = 0; i != N; i++) {
       bodies[i].integrate(dt, quatNormalize, quatNormalizeFast);
     }
-    this.clearForces();
+    clearForces();
 
-    this.broadphase.dirty = true;
+    broadphase.dirty = true;
 
     if (doProfiling) {
       profile.integrate = performance.now() - profilingStart;
@@ -847,17 +829,17 @@ class World extends EventTarget {
     // Update step number
     this.stepnumber += 1;
 
-    this.dispatchEvent(World_step_postStepEvent);
+    dispatchEvent(World_step_postStepEvent);
 
     // Sleeping update
     bool hasActiveBodies = true;
-    if (this.allowSleep) {
+    if (allowSleep) {
       hasActiveBodies = false;
       for (i = 0; i != N; i++) {
-        const bi = bodies[i];
-        bi.sleepTick(this.time);
+        final bi = bodies[i];
+        bi.sleepTick(time);
 
-        if (bi.sleepState != Body.SLEEPING) {
+        if (bi.sleepState != BodySleepStates.sleeping) {
           hasActiveBodies = true;
         }
       }
@@ -866,49 +848,49 @@ class World extends EventTarget {
   }
 
   void emitContactEvents() {
-    const hasBeginContact = this.hasAnyEventListener('beginContact');
-    const hasEndContact = this.hasAnyEventListener('endContact');
+    final hasBeginContact = hasAnyEventListener('beginContact');
+    final hasEndContact = hasAnyEventListener('endContact');
 
     if (hasBeginContact || hasEndContact) {
-      this.bodyOverlapKeeper.getDiff(additions, removals);
+      bodyOverlapKeeper.getDiff(additions, removals);
     }
 
     if (hasBeginContact) {
       for (int i = 0, l = additions.length; i < l; i += 2) {
-        beginContactEvent.bodyA = this.getBodyById(additions[i]);
-        beginContactEvent.bodyB = this.getBodyById(additions[i + 1]);
-        this.dispatchEvent(beginContactEvent);
+        beginContactEvent.bodyA = getBodyById(additions[i]);
+        beginContactEvent.bodyB = getBodyById(additions[i + 1]);
+        dispatchEvent(beginContactEvent);
       }
       beginContactEvent.bodyA = beginContactEvent.bodyB = null;
     }
 
     if (hasEndContact) {
       for (int i = 0, l = removals.length; i < l; i += 2) {
-        endContactEvent.bodyA = this.getBodyById(removals[i]);
-        endContactEvent.bodyB = this.getBodyById(removals[i + 1]);
-        this.dispatchEvent(endContactEvent);
+        endContactEvent.bodyA = getBodyById(removals[i]);
+        endContactEvent.bodyB = getBodyById(removals[i + 1]);
+        dispatchEvent(endContactEvent);
       }
       endContactEvent.bodyA = endContactEvent.bodyB = null;
     }
 
     additions.length = removals.length = 0;
 
-    const hasBeginShapeContact = this.hasAnyEventListener('beginShapeContact');
-    const hasEndShapeContact = this.hasAnyEventListener('endShapeContact');
+    final hasBeginShapeContact = hasAnyEventListener('beginShapeContact');
+    final hasEndShapeContact = hasAnyEventListener('endShapeContact');
 
     if (hasBeginShapeContact || hasEndShapeContact) {
-      this.shapeOverlapKeeper.getDiff(additions, removals);
+      shapeOverlapKeeper.getDiff(additions, removals);
     }
 
     if (hasBeginShapeContact) {
       for (int i = 0, l = additions.length; i < l; i += 2) {
-        const shapeA = this.getShapeById(additions[i]);
-        const shapeB = this.getShapeById(additions[i + 1]);
+        final shapeA = getShapeById(additions[i]);
+        final shapeB = getShapeById(additions[i + 1]);
         beginShapeContactEvent.shapeA = shapeA;
         beginShapeContactEvent.shapeB = shapeB;
-        if (shapeA) beginShapeContactEvent.bodyA = shapeA.body;
-        if (shapeB) beginShapeContactEvent.bodyB = shapeB.body;
-        this.dispatchEvent(beginShapeContactEvent);
+        if (shapeA != null) beginShapeContactEvent.bodyA = shapeA.body;
+        if (shapeB != null) beginShapeContactEvent.bodyB = shapeB.body;
+        dispatchEvent(beginShapeContactEvent);
       }
       beginShapeContactEvent.bodyA =
         beginShapeContactEvent.bodyB =
@@ -919,13 +901,13 @@ class World extends EventTarget {
 
     if (hasEndShapeContact) {
       for (int i = 0, l = removals.length; i < l; i += 2) {
-        const shapeA = this.getShapeById(removals[i]);
-        const shapeB = this.getShapeById(removals[i + 1]);
+        final shapeA = getShapeById(removals[i]);
+        final shapeB = getShapeById(removals[i + 1]);
         endShapeContactEvent.shapeA = shapeA;
         endShapeContactEvent.shapeB = shapeB;
-        if (shapeA) endShapeContactEvent.bodyA = shapeA.body;
-        if (shapeB) endShapeContactEvent.bodyB = shapeB.body;
-        this.dispatchEvent(endShapeContactEvent);
+        if (shapeA != null) endShapeContactEvent.bodyA = shapeA.body;
+        if (shapeB != null) endShapeContactEvent.bodyB = shapeB.body;
+        dispatchEvent(endShapeContactEvent);
       }
       endShapeContactEvent.bodyA =
         endShapeContactEvent.bodyB =
@@ -939,13 +921,10 @@ class World extends EventTarget {
    * Sets all body forces in the world to zero.
    */
   void clearForces() {
-    const bodies = this.bodies;
-    const N = bodies.length;
+    final bodies = this.bodies;
+    final N = bodies.length;
     for (int i = 0; i != N; i++) {
-      const b = bodies[i];
-      const force = b.force;
-      const tau = b.torque;
-
+      final b = bodies[i];
       b.force.set(0, 0, 0);
       b.torque.set(0, 0, 0);
     }
@@ -953,80 +932,68 @@ class World extends EventTarget {
 }
 
 // Temp stuff
-const tmpAABB1 = AABB();
-const tmpArray1 = [];
-const tmpRay = Ray();
+final tmpAABB1 = AABB();
+final tmpArray1 = [];
+final tmpRay = Ray();
 
 // performance.now() fallback on Date.now()
-const performance = (globalThis.performance || {}) as Performance
+final Performance performance = Performance();
 
-if (!performance.now) {
-  DateTime nowOffset = DateTime.now();
-  if (performance.timing && performance.timing.navigationStart) {
-    nowOffset = performance.timing.navigationStart;
-  }
-  performance.now = () => DateTime.now() - nowOffset;
-}
-
-const step_tmp1 = Vec3();
+final Vec3 step_tmp1 = Vec3();
 
 // Dispatched after the world has stepped forward in time.
 // Reusable event objects to save memory.
-const World_step_postStepEvent = { type: 'postStep' };
+final CollideEvent World_step_postStepEvent = CollideEvent( type: 'postStep' );
 
 // Dispatched before the world steps forward in time.
-const World_step_preStepEvent = { type: 'preStep' };
+final CollideEvent World_step_preStepEvent = CollideEvent( type: 'preStep' );
 
-const World_step_collideEvent: {
-  type: typeof Body.COLLIDE_EVENT_NAME
-  body: Body | null
-  contact: ContactEquation | null
-} = { type: Body.COLLIDE_EVENT_NAME, body: null, contact: null }
+final CollideEvent World_step_collideEvent = CollideEvent();
 
 // Pools for unused objects
-const World_step_oldContacts: ContactEquation[] = []
-const World_step_frictionEquationPool: FrictionEquation[] = []
+final List<ContactEquation> World_step_oldContacts = [];
+final List<FrictionEquation> World_step_frictionEquationPool = [];
 
 // Reusable arrays for collision pairs
-const World_step_p1: Body[] = []
-const World_step_p2: Body[] = []
+final List<Body> World_step_p1 = [];
+final List<Body> World_step_p2 = [];
 
 // Stuff for emitContactEvents
-const additions: number[] = []
-const removals: number[] = []
-type ContactEvent = {
-  type: string
-  bodyA: Body | null
-  bodyB: Body | null
+final List<int> additions = [];
+final List<int> removals = [];
+class ContactEvent{
+  ContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
 }
-const beginContactEvent: ContactEvent = {
+ContactEvent beginContactEvent = ContactEvent(
   type: 'beginContact',
-  bodyA: null,
-  bodyB: null,
-}
-const endContactEvent: ContactEvent = {
+);
+ContactEvent endContactEvent  = ContactEvent(
   type: 'endContact',
-  bodyA: null,
-  bodyB: null,
+);
+class ShapeContactEvent{
+  ShapeContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB,
+    this.shapeA,
+    this.shapeB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
+  Shape? shapeA;
+  Shape? shapeB;
 }
-type ShapeContactEvent = {
-  type: string
-  bodyA: Body | null
-  bodyB: Body | null
-  shapeA: Shape | null
-  shapeB: Shape | null
-}
-const beginShapeContactEvent: ShapeContactEvent = {
+ShapeContactEvent beginShapeContactEvent  = ShapeContactEvent(
   type: 'beginShapeContact',
-  bodyA: null,
-  bodyB: null,
-  shapeA: null,
-  shapeB: null,
-}
-const endShapeContactEvent: ShapeContactEvent = {
+);
+ShapeContactEvent endShapeContactEvent  = ShapeContactEvent(
   type: 'endShapeContact',
-  bodyA: null,
-  bodyB: null,
-  shapeA: null,
-  shapeB: null,
-}
+);

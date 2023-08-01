@@ -12,6 +12,24 @@ class ConvexPolyhedronContactPoint{
   double depth;
 }
 
+class Polygon{
+  Polygon(
+    this.faces,
+    this.connectedFaces
+  );
+  List<int> connectedFaces;
+  List<int> faces;
+
+  int get length => faces.length;
+  int indexOf(int element){
+    return faces.indexOf(element);
+  }
+  //void operator []=(int addr, int value) => puts(addr,Uint8List.fromList([value]));
+  int operator [](int addr) => faces[addr];
+
+  bool contains(Object? element) => faces.contains(element);
+}
+
 /**
  * A set of polygons describing a convex shape.
  *
@@ -72,8 +90,8 @@ class ConvexPolyhedron extends Shape {
   }):super(type: ShapeType.convexpolyhedron){
     //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
 
-    if (this.faceNormals.length == 0) {
-      this.computeNormals();
+    if (faceNormals.isEmpty) {
+      computeNormals();
     }
 
     if (boundingSphereRadius == null) {
@@ -86,7 +104,7 @@ class ConvexPolyhedron extends Shape {
     worldVerticesNeedsUpdate = true;
     worldFaceNormals = []; // World transformed version of .faceNormals
     worldFaceNormalsNeedsUpdate = true;
-    uniqueAxes = axes != null? axes.sublist(1) : null;
+    uniqueAxes = axes?.sublist(1);
     uniqueEdges = [];
     computeEdges();
   }
@@ -97,7 +115,7 @@ class ConvexPolyhedron extends Shape {
   void computeEdges() {
     final List<List<int>> faces = this.faces;
     final List<Vec3> vertices = this.vertices;
-    final List<Vec3> edges = this.uniqueEdges;
+    final List<Vec3> edges = uniqueEdges;
 
     edges.length = 0;
 
@@ -135,13 +153,13 @@ class ConvexPolyhedron extends Shape {
     // Generate normals
     for (int i = 0; i < faces.length; i++) {
       // Check so all vertices exists for this face
-      for (int j = 0; j < faces[i].length; j++) {
-        if (vertices[faces[i][j]] != null) {
-          throw 'Vertex ${faces[i][j]} not found!';
-        }
-      }
+      // for (int j = 0; j < faces[i].length; j++) {
+      //   if (vertices[faces[i][j]] != null) {
+      //     throw 'Vertex ${faces[i][j]} not found!';
+      //   }
+      // }
 
-      final Vec3 n = faceNormals[i] ?? Vec3();
+      final Vec3 n = faceNormals[i];// ?? Vec3();
       getFaceNormal(i, n);
       n.negate(n);
       faceNormals[i] = n;
@@ -150,8 +168,8 @@ class ConvexPolyhedron extends Shape {
         print(
           '.faceNormals[${i}] = Vec3(${n.toString()}) looks like it points into the shape? The vertices follow. Make sure they are ordered CCW around the normal, using the right hand rule.'
         );
-        for (int j = 0; j < this.faces[i].length; j++) {
-          print('.vertices[${this.faces[i][j]}] = Vec3(${this.vertices[this.faces[i][j]].toString()})');
+        for (int j = 0; j < faces[i].length; j++) {
+          print('.vertices[${faces[i][j]}] = Vec3(${vertices[faces[i][j]].toString()})');
         }
       }
     }
@@ -197,14 +215,14 @@ class ConvexPolyhedron extends Shape {
     double maxDist,
     List<ConvexPolyhedronContactPoint> result
   ) {
-    final WorldNormal = Vec3();
+    final worldNormal = Vec3();
     int closestFaceB = -1;
     double dmax = -double.infinity;
 
     for (int face = 0; face < hullB.faces.length; face++) {
-      WorldNormal.copy(hullB.faceNormals[face]);
-      quatB.vmult(WorldNormal, WorldNormal);
-      final double d = WorldNormal.dot(separatingNormal);
+      worldNormal.copy(hullB.faceNormals[face]);
+      quatB.vmult(worldNormal, worldNormal);
+      final double d = worldNormal.dot(separatingNormal);
       if (d > dmax) {
         dmax = d;
         closestFaceB = face;
@@ -243,15 +261,15 @@ class ConvexPolyhedron extends Shape {
     List<int>? faceListB
   ]) {
     final faceANormalWS3 = Vec3();
-    final Worldnormal1 = Vec3();
+    final worldNormal1 = Vec3();
     final deltaC = Vec3();
     final worldEdge0 = Vec3();
     final worldEdge1 = Vec3();
-    final Cross = Vec3();
+    final cross = Vec3();
 
     double dmin = double.infinity;
     final hullA = this;
-    int curPlaneTests = 0;
+    //int curPlaneTests = 0;
 
     if (hullA.uniqueAxes == null) {
       final numFacesA = faceListA != null? faceListA.length : hullA.faces.length;
@@ -296,31 +314,31 @@ class ConvexPolyhedron extends Shape {
       for (int i = 0; i < numFacesB; i++) {
         final fi = faceListB != null? faceListB[i] : i;
 
-        Worldnormal1.copy(hullB.faceNormals[fi]);
-        quatB.vmult(Worldnormal1, Worldnormal1);
-        curPlaneTests++;
-        final d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB);
+        worldNormal1.copy(hullB.faceNormals[fi]);
+        quatB.vmult(worldNormal1, worldNormal1);
+        //curPlaneTests++;
+        final d = hullA.testSepAxis(worldNormal1, hullB, posA, quatA, posB, quatB);
         if (d == null) {
           return false;
         }
         if (d < dmin) {
           dmin = d;
-          target.copy(Worldnormal1);
+          target.copy(worldNormal1);
         }
       }
     } else {
       // Test unique axes in B
       for (int i = 0; i != hullB.uniqueAxes!.length; i++) {
-        quatB.vmult(hullB.uniqueAxes![i], Worldnormal1);
+        quatB.vmult(hullB.uniqueAxes![i], worldNormal1);
 
-        curPlaneTests++;
-        final d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB);
+        //curPlaneTests++;
+        final d = hullA.testSepAxis(worldNormal1, hullB, posA, quatA, posB, quatB);
         if (d == null) {
           return false;
         }
         if (d < dmin) {
           dmin = d;
-          target.copy(Worldnormal1);
+          target.copy(worldNormal1);
         }
       }
     }
@@ -333,17 +351,17 @@ class ConvexPolyhedron extends Shape {
       for (int e1 = 0; e1 != hullB.uniqueEdges.length; e1++) {
         // Get world edge 2
         quatB.vmult(hullB.uniqueEdges[e1], worldEdge1);
-        worldEdge0.cross(worldEdge1, Cross);
+        worldEdge0.cross(worldEdge1, cross);
 
-        if (!Cross.almostZero()) {
-          Cross.normalize();
-          final dist = hullA.testSepAxis(Cross, hullB, posA, quatA, posB, quatB);
+        if (!cross.almostZero()) {
+          cross.normalize();
+          final dist = hullA.testSepAxis(cross, hullB, posA, quatA, posB, quatB);
           if (dist == null) {
             return false;
           }
           if (dist < dmin) {
             dmin = dist;
-            target.copy(Cross);
+            target.copy(cross);
           }
         }
       }
@@ -460,17 +478,17 @@ class ConvexPolyhedron extends Shape {
     }
 
     // Get the face and construct connected faces
-    final polyA = hullA.faces[closestFaceA] as number[] & { connectedFaces: number[] }
+    final Polygon polyA = Polygon(hullA.faces[closestFaceA],[]);// as number[] & { connectedFaces: number[] }
     polyA.connectedFaces = [];
     for (int i = 0; i < hullA.faces.length; i++) {
       for (int j = 0; j < hullA.faces[i].length; j++) {
         if (
           /* Sharing a vertex*/
-          polyA.indexOf(hullA.faces[i][j]) != -1 &&
+          polyA.contains(hullA.faces[i][j]) &&
           /* Not the one we are looking for connections from */
           i != closestFaceA &&
           /* Not already added */
-          polyA.connectedFaces.indexOf(i) == -1
+          !polyA.connectedFaces.contains(i)
         ) {
           polyA.connectedFaces.add(i);
         }
@@ -507,10 +525,10 @@ class ConvexPolyhedron extends Shape {
       clipFaceAgainstPlane(pVtxIn, pVtxOut, planeNormalWS, planeEqWS);
 
       // Throw away all clipped points, but save the remaining until next clip
-      while (pVtxIn.length > 0) {
+      while (pVtxIn.isNotEmpty) {
         pVtxIn.sublist(1) ;//.removeAt(0);
       }
-      while(pVtxOut.length > 0) {
+      while(pVtxOut.isNotEmpty) {
         pVtxIn.add(pVtxOut.removeAt(0));
       }
     }
@@ -527,7 +545,7 @@ class ConvexPolyhedron extends Shape {
       double depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; // ???
 
       if (depth <= minDist) {
-        print('clamped: depth=${depth} to minDist=${minDist}');
+        print('clamped: depth=$depth to minDist=$minDist');
         depth = minDist;
       }
 
@@ -550,8 +568,8 @@ class ConvexPolyhedron extends Shape {
    * @param planeConstant The constant in the mathematical plane equation
    */
   List<Vec3> clipFaceAgainstPlane(List<Vec3> inVertices, List<Vec3> outVertices, Vec3 planeNormal, double planeConstant){
-    double n_dot_first;
-    double n_dot_last;
+    double nDotFirst;
+    double nDotLast;
     final numVerts = inVertices.length;
 
     if (numVerts < 2) {
@@ -561,13 +579,13 @@ class ConvexPolyhedron extends Shape {
     Vec3 firstVertex = inVertices[inVertices.length - 1];
     Vec3 lastVertex = inVertices[0];
 
-    n_dot_first = planeNormal.dot(firstVertex) + planeConstant;
+    nDotFirst = planeNormal.dot(firstVertex) + planeConstant;
 
     for (int vi = 0; vi < numVerts; vi++) {
       lastVertex = inVertices[vi];
-      n_dot_last = planeNormal.dot(lastVertex) + planeConstant;
-      if (n_dot_first < 0) {
-        if (n_dot_last < 0) {
+      nDotLast = planeNormal.dot(lastVertex) + planeConstant;
+      if (nDotFirst < 0) {
+        if (nDotLast < 0) {
           // Start < 0, end < 0, so output lastVertex
           final newv = Vec3();
           newv.copy(lastVertex);
@@ -575,20 +593,20 @@ class ConvexPolyhedron extends Shape {
         } else {
           // Start < 0, end >= 0, so output intersection
           final newv = Vec3();
-          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv);
+          firstVertex.lerp(lastVertex, nDotFirst / (nDotFirst - nDotLast), newv);
           outVertices.add(newv);
         }
       } else {
-        if (n_dot_last < 0) {
+        if (nDotLast < 0) {
           // Start >= 0, end < 0 so output intersection and end
           final newv = Vec3();
-          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv);
+          firstVertex.lerp(lastVertex, nDotFirst / (nDotFirst - nDotLast), newv);
           outVertices.add(newv);
           outVertices.add(lastVertex);
         }
       }
       firstVertex = lastVertex;
-      n_dot_first = n_dot_last;
+      nDotFirst = nDotLast;
     }
     return outVertices;
   }
@@ -597,7 +615,7 @@ class ConvexPolyhedron extends Shape {
    * Updates `.worldVertices` and sets `.worldVerticesNeedsUpdate` to false.
    */
   void computeWorldVertices(Vec3 position, Quaternion quat) {
-    while (worldVertices.length < this.vertices.length) {
+    while (worldVertices.length < vertices.length) {
       worldVertices.add(Vec3());
     }
 
@@ -608,7 +626,7 @@ class ConvexPolyhedron extends Shape {
       position.vadd(worldVerts[i], worldVerts[i]);
     }
 
-    this.worldVerticesNeedsUpdate = false;
+    worldVerticesNeedsUpdate = false;
   }
 
   void computeLocalAABB(Vec3 aabbmin, Vec3 aabbmax) {
@@ -731,7 +749,7 @@ class ConvexPolyhedron extends Shape {
    */
   Vec3 getAveragePointLocal([Vec3? target]) {
     target ??= Vec3();
-    final verts = this.vertices;
+    final verts = vertices;
     for (int i = 0; i < verts.length; i++) {
       target.vadd(verts[i], target);
     }
@@ -754,7 +772,7 @@ class ConvexPolyhedron extends Shape {
         quat.vmult(v, v);
       }
       // Rotate face normals
-      for (int i = 0; i < this.faceNormals.length; i++) {
+      for (int i = 0; i < faceNormals.length; i++) {
         final v = faceNormals[i];
         quat.vmult(v, v);
       }
@@ -785,7 +803,7 @@ class ConvexPolyhedron extends Shape {
     final verts = vertices;
     final faces = this.faces;
     final normals = faceNormals;
-    bool? positiveResult = null;
+    //bool? positiveResult;
     final pointInside = Vec3();
     getAveragePointLocal(pointInside);
 
@@ -808,7 +826,7 @@ class ConvexPolyhedron extends Shape {
     }
 
     // If we got here, all dot products were of the same sign.
-    return positiveResult != null ? true : false;
+    return false;
   }
 
   /**
@@ -818,7 +836,7 @@ class ConvexPolyhedron extends Shape {
    */
   static void project(ConvexPolyhedron shape, Vec3 axis, Vec3 pos, Quaternion quat, List<double> result) {
     final int n = shape.vertices.length;
-    final worldVertex = project_worldVertex;
+    //final worldVertex = project_worldVertex;
     final localAxis = project_localAxis;
     double max = 0;
     double min = 0;

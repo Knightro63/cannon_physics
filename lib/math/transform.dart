@@ -28,14 +28,14 @@ class Transform {
    * Get a global point in local transform coordinates.
    */
   Vec3 pointToLocal(Vec3 worldPoint, [Vec3? result]) {
-    return pointToLocalFrame(this.position, this.quaternion, worldPoint, result);
+    return pointToLocalFrame(position, quaternion, worldPoint, result);
   }
 
   /**
    * Get a local point in global transform coordinates.
    */
   Vec3 pointToWorld(Vec3 localPoint, Vec3? result) {
-    return pointToWorldFrame(this.position, this.quaternion, localPoint, result);
+    return pointToWorldFrame(position, quaternion, localPoint, result);
   }
 
   /**

@@ -1,8 +1,7 @@
 import 'broadphase.dart';
-import 'dart:math' as math;
 import  '../objects/body.dart';
 import  '../collision/aabb.dart';
-import  '../world/world.dart' hide Body;
+import  '../world/world.dart';
 
 /// Naive broadphase implementation, used in lack of better ones.
 ///
@@ -36,7 +35,8 @@ class NaiveBroadphase extends Broadphase {
 
   /// Returns all the bodies within an AABB.
   /// [result] An array to store resulting bodies in.
-  List<Body> aabbQuery(Wold world, AABB aabb, [List<Body> result = const []]){
+  @override
+  List<Body> aabbQuery(World world, AABB aabb, [List<Body> result = const []]){
     for (int i = 0; i < world.bodies.length; i++) {
       final b = world.bodies[i];
 

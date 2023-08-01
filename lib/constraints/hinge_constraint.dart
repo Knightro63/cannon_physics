@@ -20,6 +20,7 @@ class HingeConstraint extends PointToPointConstraint {
   late RotationalEquation rotationalEquation1;
   late RotationalEquation rotationalEquation2;
   late RotationalMotorEquation motorEquation;
+  double? motorTargetVelocity;
 
   HingeConstraint(
     Body bodyA,

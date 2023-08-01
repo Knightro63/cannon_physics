@@ -1,33 +1,32 @@
 import '../solver/solver.dart';
 import '../objects/body.dart';
 import '../equations/equation.dart';
-import '../world/world.dart' hide Body;
+import '../world/world.dart';
 import './gs_solver.dart';
 
 //type SplitSolverNode = { body: Body | null; children: SplitSolverNode[]; eqs: Equation[]; visited: boolean }
 
 class SplitSolverNode{
-  //SplitSolverNode();
+  SplitSolverNode({
+    this.body,
+    this.children = const [],
+    this.eqs = const [],
+    this.visited = false
+  });
   Body? body;
-  List children;
+  List<SplitSolverNode> children;
   List<Equation> eqs;
-  bool visited = false;
+  bool visited;
 }
 
-/**
- * Splits the equations into islands and solves them independently. Can improve performance.
- */
-class SplitSolver extends Solver {
-  /**
-   * The number of solver iterations determines quality of the constraints in the world. The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
-   */
-  int iterations = 10;
 
-  /**
-   * When tolerance is reached, the system is assumed to be converged.
-   */
+/// Splits the equations into islands and solves them independently. Can improve performance.
+class SplitSolver extends Solver {
+  /// The number of solver iterations determines quality of the constraints in the world. The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
+  int iterations = 10;
+  /// When tolerance is reached, the system is assumed to be converged.
   double tolerance = 1e-7;
-  /** subsolver */
+  /// subsolver
   GSSolver subsolver;
   List<SplitSolverNode> nodes = [];
   List<SplitSolverNode> nodePool = [];
@@ -45,127 +44,129 @@ class SplitSolver extends Solver {
    */
   @override
   int solve(double dt, World world) {
-    const nodes = SplitSolver_solve_nodes
-    const nodePool = this.nodePool
-    const bodies = world.bodies
-    const equations = this.equations
-    const Neq = equations.length
-    const Nbodies = bodies.length
-    const subsolver = this.subsolver
+    final nodes = SplitSolver_solve_nodes;
+    final nodePool = this.nodePool;
+    final bodies = world.bodies;
+    final equations = this.equations;
+    final Neq = equations.length;
+    final Nbodies = bodies.length;
+    final subsolver = this.subsolver;
 
     // Create needed nodes, reuse if possible
     while (nodePool.length < Nbodies) {
-      nodePool.push(this.createNode())
+      nodePool.add(this.createNode());
     }
-    nodes.length = Nbodies
-    for (let i = 0; i < Nbodies; i++) {
-      nodes[i] = nodePool[i]
+    nodes.length = Nbodies;
+    for (int i = 0; i < Nbodies; i++) {
+      nodes[i] = nodePool[i];
     }
 
     // Reset node values
-    for (let i = 0; i !== Nbodies; i++) {
-      const node = nodes[i]
-      node.body = bodies[i]
-      node.children.length = 0
-      node.eqs.length = 0
-      node.visited = false
+    for (int i = 0; i != Nbodies; i++) {
+      final node = nodes[i];
+      node.body = bodies[i];
+      node.children.length = 0;
+      node.eqs.length = 0;
+      node.visited = false;
     }
-    for (let k = 0; k !== Neq; k++) {
-      const eq = equations[k]
-      const i = bodies.indexOf(eq.bi)
-      const j = bodies.indexOf(eq.bj)
-      const ni = nodes[i]
-      const nj = nodes[j]
-      ni.children.push(nj)
-      ni.eqs.push(eq)
-      nj.children.push(ni)
-      nj.eqs.push(eq)
+    for (int k = 0; k != Neq; k++) {
+      final eq = equations[k];
+      final i = bodies.indexOf(eq.bi);
+      final j = bodies.indexOf(eq.bj);
+      final ni = nodes[i];
+      final nj = nodes[j];
+      ni.children.add(nj);
+      ni.eqs.add(eq);
+      nj.children.add(ni);
+      nj.eqs.add(eq);
     }
 
-    let child: SplitSolverNode | false
-    let n = 0
-    let eqs = SplitSolver_solve_eqs
+    //:  | false;
+    int n = 0;
+    List<Equation> eqs = SplitSolver_solve_eqs;
 
-    subsolver.tolerance = this.tolerance
-    subsolver.iterations = this.iterations
+    subsolver.tolerance = tolerance;
+    subsolver.iterations = iterations;
 
-    const dummyWorld = SplitSolver_solve_dummyWorld
-    while ((child = getUnvisitedNode(nodes))) {
-      eqs.length = 0
-      dummyWorld.bodies.length = 0
-      bfs(child, visitFunc, dummyWorld.bodies, eqs)
+    final dummyWorld = SplitSolver_solve_dummyWorld;
+    while(true) {
+      SplitSolverNode? child = getUnvisitedNode(nodes);
+      if(child == null) break;
+      eqs.length = 0;
+      dummyWorld.length = 0;
+      bfs(child, visitFunc, dummyWorld, eqs);
 
-      const Neqs = eqs.length
+      final Neqs = eqs.length;
 
-      eqs = eqs.sort(sortById)
+      //eqs = eqs.sort(sortById);
+      eqs.sort(sortById);
 
-      for (let i = 0; i !== Neqs; i++) {
-        subsolver.addEquation(eqs[i])
+      for (int i = 0; i != Neqs; i++) {
+        subsolver.addEquation(eqs[i]);
       }
 
-      const iter = subsolver.solve(dt, dummyWorld as World)
-      subsolver.removeAllEquations()
-      n++
+      //final iter = subsolver.solve(dt, dummyWorld as World);
+      subsolver.removeAllEquations();
+      n++;
     }
 
-    return n
+    return n;
   }
-
-  // Returns the number of subsystems
-  List<SplitSolverNode> SplitSolver_solve_nodes = []; // All allocated node objects
-  const SplitSolver_solve_nodePool: SplitSolverNode[] = []; // All allocated node objects
-  const SplitSolver_solve_eqs: Equation[] = []; // Temp array
-  const SplitSolver_solve_bds: Body[] = []; // Temp array
-  const SplitSolver_solve_dummyWorld: { bodies: Body[] } = { bodies: [] }; // Temp object
-
-  const STATIC = Body.STATIC;
 
   SplitSolverNode? getUnvisitedNode(List<SplitSolverNode> nodes){
     int nNodes = nodes.length;
     for (int i = 0; i != nNodes; i++) {
       final node = nodes[i];
-      if (!node.visited && !(node.body!.type & STATIC)) {
+      if (!node.visited && node.body?.type != BodyTypes.static) {
         return node;
       }
     }
     return null;
   }
-
-  const queue: SplitSolverNode[] = []
-
+  SplitSolverNode createNode(){
+      return SplitSolverNode();//{ body:null, children:[], eqs:[], visited:false };
+  }
   void bfs(
-    root: SplitSolverNode,
-    visitFunc: (node: SplitSolverNode, bds: (Body | null)[], eqs: Equation[]) => void,
-    bds: (Body | null)[],
-    eqs: Equation[]
+    SplitSolverNode root,
+    void Function(SplitSolverNode node, List<Body?> bds, List<Equation> eqs) visitFunc,
+    List<Body?> bds,
+    List<Equation> eqs
   ) {
-    queue.push(root)
-    root.visited = true
-    visitFunc(root, bds, eqs)
-    while (queue.length) {
-      const node = queue.pop()!
-      // Loop over unvisited child nodes
-      let child: SplitSolverNode | false
-      while ((child = getUnvisitedNode(node.children))) {
-        child.visited = true
-        visitFunc(child, bds, eqs)
-        queue.push(child)
+    queue.add(root);
+    root.visited = true;
+    visitFunc(root, bds, eqs);
+    while (queue.isNotEmpty) {
+      final node = queue.removeLast();
+      while(true) {
+        SplitSolverNode? child = getUnvisitedNode(node.children);
+        if(child == null) break;
+        child.visited = true;
+        visitFunc(child, bds, eqs);
+        queue.add(child);
       }
     }
   }
 
   void visitFunc(SplitSolverNode node, List<Body?> bds, List<Equation> eqs) {
-    bds.push(node.body)
-    const Neqs = node.eqs.length
-    for (let i = 0; i !== Neqs; i++) {
-      const eq = node.eqs[i]
-      if (!eqs.includes(eq)) {
-        eqs.push(eq)
+    bds.add(node.body);
+    final Neqs = node.eqs.length;
+    for (int i = 0; i != Neqs; i++) {
+      final eq = node.eqs[i];
+      if (!eqs.contains(eq)) {
+        eqs.add(eq);
       }
     }
   }
 
-  int sortById(a: { id: number }, b: { id: number }) {
+  int sortById(Equation a, Equation b) {
     return b.id - a.id;
   }
 }
+
+  // Returns the number of subsystems
+  List<SplitSolverNode> SplitSolver_solve_nodes = []; // All allocated node objects
+  final List<SplitSolverNode> SplitSolver_solve_nodePool = []; // All allocated node objects
+  final List<Equation> SplitSolver_solve_eqs = []; // Temp array
+  final List<Body> SplitSolver_solve_bds = []; // Temp array
+  final List<Body> SplitSolver_solve_dummyWorld = [];// { bodies: Body[] } = { bodies: [] }; // Temp object
+  List<SplitSolverNode> queue = [];

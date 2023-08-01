@@ -1,23 +1,23 @@
-import { Shape } from '../shapes/Shape'
-import { Vec3 } from '../math/Vec3'
-import { Transform } from '../math/Transform'
-import { Quaternion } from '../math/Quaternion'
-import { Body } from '../objects/Body'
-import { AABB } from '../collision/AABB'
-import { Ray } from '../collision/Ray'
-import { Vec3Pool } from '../utils/Vec3Pool'
-import { ContactEquation } from '../equations/ContactEquation'
-import { FrictionEquation } from '../equations/FrictionEquation'
-import type { Box } from '../shapes/Box'
-import type { Sphere } from '../shapes/Sphere'
-import type { ConvexPolyhedron, ConvexPolyhedronContactPoint } from '../shapes/ConvexPolyhedron'
-import type { Particle } from '../shapes/Particle'
-import type { Plane } from '../shapes/Plane'
-import type { Trimesh } from '../shapes/Trimesh'
-import type { Heightfield } from '../shapes/Heightfield'
-import { Cylinder } from '../shapes/Cylinder'
-import type { ContactMaterial } from '../material/ContactMaterial'
-import type { World } from '../world/World'
+import '../shapes/shape.dart';
+import '../math/vec3.dart';
+import '../math/transform.dart';
+import '../math/quaternion.dart';
+import '../objects/body.dart';
+import '../collision/aabb.dart';
+import '../collision/ray.dart';
+import '../utils/vec3_pool.dart';
+import '../equations/contact_equation.dart';
+import '../equations/friction_equation.dart';
+import '../shapes/box.dart';
+import '../shapes/sphere.dart';
+import '../shapes/convex_polyhedron.dart';
+import '../shapes/particle.dart';
+import '../shapes/plane.dart';
+import '../shapes/trimesh.dart';
+import '../shapes/heightfield.dart';
+import '../shapes/cylinder.dart';
+import '../material/contact_material.dart';
+import '../world/world.dart';
 
 // Naming rule: based of the order in SHAPE_TYPES,
 // the first part of the method is formed by the

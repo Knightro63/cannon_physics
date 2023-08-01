@@ -6,7 +6,7 @@ export 'collision/array_collision_matrix.dart';
 export 'collision/broadphase.dart';
 export './collision/grid_broadphase.dart';
 export './collision/naive_broadphase.dart';
-export './collision/ray.dart';
+export 'collision/ray.dart';
 export './collision/raycast_result.dart';
 export './collision/sap_broadphase.dart';
 export './constraints/cone_twist_constraint.dart';
@@ -48,6 +48,6 @@ export './solver/split_solver.dart';
 export './utils/pool.dart';
 export './utils/event_target.dart';
 export 'utils/vec3_pool.dart';
-export './world/narrowphase.dart';
+export './world/narrow_phase.dart';
 export './world/world.dart';
 

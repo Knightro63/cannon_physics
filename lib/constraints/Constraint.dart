@@ -1,4 +1,3 @@
-import '../utils/utils.dart';
 import '../objects/body.dart';
 import '../equations/equation.dart';
 

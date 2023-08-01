@@ -15,23 +15,21 @@ class OctreeNode {
   }) {
     this.aabb = aabb ?? AABB();
   }
-
-  /** The root node */
+  int? maxDepth;
+  /// The root node 
   OctreeNode? root;
-  /** Boundary of this node */
+  /// Boundary of this node
   late AABB aabb;
-  /** Contained data at the current node level */
-  List<num> data = const [];
-  /** Children to this node */
+  /// Contained data at the current node level
+  List<int> data = const [];
+  /// Children to this node
   List<OctreeNode> children = const [];
 
   final halfDiagonal = Vec3();
 
   final tmpAABB = AABB();
 
-  /**
-   * reset
-   */
+  /// reset
   void reset(){
     children.length = data.length = 0;
   }
@@ -40,8 +38,8 @@ class OctreeNode {
    * Insert data into this node
    * @return True if successful, otherwise false
    */
-  bool insert(AABB aabb, num elementData, [int level = 0]){
-    final nodeData = this.data;
+  bool insert(AABB aabb, int elementData, [int level = 0]){
+    final nodeData = data;
 
     // Ignore objects that do not belong in this node
     if (!this.aabb.contains(aabb)) {
@@ -49,13 +47,13 @@ class OctreeNode {
     }
 
     final children = this.children;
-    final maxDepth = (this as any).maxDepth ?? (this.root! as any).maxDepth;
+    final maxDepth = this.maxDepth ?? root!.maxDepth;//(this as any).maxDepth ?? (root! as any).maxDepth;
 
-    if (level < maxDepth) {
+    if (maxDepth != null && level < maxDepth) {
       // Subdivide if there are no children yet
       bool subdivided = false;
       if (children.isNotEmpty) {
-        this.subdivide();
+        subdivide();
         subdivided = true;
       }
 
@@ -127,8 +125,8 @@ class OctreeNode {
    * Get all data, potentially within an AABB
    * @return The "result" object
    */
-  List<num> aabbQuery(AABB aabb, List<num> result){
-    final nodeData = data;
+  List<int> aabbQuery(AABB aabb, List<int> result){
+    // final nodeData = data;
 
     // abort if the range does not intersect this node
     // if (!this.aabb.overlaps(aabb)){
@@ -140,7 +138,7 @@ class OctreeNode {
 
     // Add child data
     // @todo unwrap recursion into a queue / loop, that's faster in JS
-    List<OctreeNode> children = this.children;
+    // List<OctreeNode> children = this.children;
 
     // for (let i = 0, N = this.children.length; i !== N; i++) {
     //     children[i].aabbQuery(aabb, result);
@@ -150,9 +148,11 @@ class OctreeNode {
     while (queue.isNotEmpty) {
       final node = queue.last;
       if (node.aabb.overlaps(aabb)) {
-        Array.prototype.push.apply(result, node.data);
+        //Array.prototype.push.apply(result, node.data);
+        result.addAll(node.data);
       }
-      Array.prototype.push.apply(queue, node.children);
+      //Array.prototype.push.apply(queue, node.children);
+      queue.addAll(node.children);
     }
 
     return result;
@@ -162,7 +162,7 @@ class OctreeNode {
    * Get all data, potentially intersected by a ray.
    * @return The "result" object
    */
-  List<num> rayQuery(Ray ray, Transform treeTransform, List<num>result){
+  List<int> rayQuery(Ray ray, Transform treeTransform, List<int>result){
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */
     ray.getAABB(tmpAABB);
@@ -179,7 +179,7 @@ class OctreeNode {
     for (int i = children.length - 1; i >= 0; i--) {
       children[i].removeEmptyNodes();
       if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
-        children.splice(i, 1);
+        children.removeAt(i);
       }
     }
   }
@@ -193,13 +193,15 @@ class Octree extends OctreeNode {
    * Maximum subdivision depth
    * @default 8
    */
-  late num maxDepth;
+  
 
   /**
    * @param aabb The total AABB of the tree
    */
-  Octree(
+  Octree({
     AABB? aabb,
-    {this.maxDepth = 8}
-  ):super(aabb:aabb);
+    int maxDepth = 8
+  }):super(aabb:aabb){
+    this.maxDepth = maxDepth;
+  }
 }

@@ -8,30 +8,30 @@ class ArrayCollisionMatrix {
   /**
    * The matrix storage.
    */
-  List<num> matrix;
+  List<double> matrix;
 
   ArrayCollisionMatrix([this.matrix = const []]);
 
   /**
    * Get an element
    */
-  num get(Body bi, Body  bj) {
-    int i = bi.index;//{ index: i } 
-    int j = bj.index;//{ index: j }
+  double get(Body bi, Body  bj) {
+    int i = bi.index;
+    int j = bj.index;
     if (j > i) {
       final temp = j;
       j = i;
       i = temp;
     }
-    return this.matrix[((i * (i + 1)) >> 1) + j - 1];
+    return matrix[((i * (i + 1)) >> 1) + j - 1];
   }
 
   /**
    * Set an element
    */
   void set(Body bi, Body bj, bool value) {
-    int i = bi.index;//{ index: i }
-    int j = bj.index;//{ index: j }
+    int i = bi.index;
+    int j = bj.index;
     if (j > i) {
       final temp = j;
       j = i;

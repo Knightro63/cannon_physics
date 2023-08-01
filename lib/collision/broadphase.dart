@@ -3,7 +3,7 @@ import  '../objects/body.dart';
 import  '../math/vec3.dart';
 import  '../math/quaternion.dart';
 import  '../collision/aabb.dart';
-import  '../world/world.dart' hide Body;
+import  '../world/world.dart';
 
 // Temp objects
 final Vec3 Broadphase_collisionPairs_r = Vec3();

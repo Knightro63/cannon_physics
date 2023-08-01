@@ -2,7 +2,7 @@
  * Base class for objects that dispatches events.
  */
 class EventTarget {
-  Map<String,Function>? _listeners;//private _listeners: Record<string, Function[]> | null;
+  Map<String,List<Function>>? _listeners;//private _listeners: Record<string, Function[]> | null;
 
   /**
    * Add an event listener
@@ -15,7 +15,7 @@ class EventTarget {
       listeners![type] = [];
     }
     if (!listeners![type]!.contains(listener)) {
-      listeners[type] = listener;
+      listeners[type]!.add(listener);
     }
     return this;
   }
@@ -28,7 +28,7 @@ class EventTarget {
       return false;
     }
     final listeners = _listeners;
-    if (listeners![type] != null && listeners[type].contains(listener)) {
+    if (listeners?[type] != null && listeners![type]!.contains(listener)) {
       return true;
     }
     return false;
@@ -57,9 +57,9 @@ class EventTarget {
     if (listeners?[type] == null) {
       return this;
     }
-    final index = listeners[type].indexOf(listener);
-    if (index != -1) {
-      listeners[type].splice(index, 1);
+    final index = listeners?[type]?.indexOf(listener);
+    if (index != null) {
+      listeners?[type]?.removeAt(index);
     }
     return this;
   }
@@ -68,7 +68,7 @@ class EventTarget {
    * Emit an event.
    * @return The self object, for chainability.
    */
-  EventTarget dispatchEvent(event){
+  EventTarget dispatchEvent(dynamic event){
     if (_listeners == null) {
       return this;
     }

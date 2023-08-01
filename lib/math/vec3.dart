@@ -1,3 +1,5 @@
+import 'package:cannon/math/quaternion.dart';
+
 import  'mat3.dart';
 import 'dart:math' as math;
 
@@ -22,6 +24,36 @@ class Vec3 {
   static Vec3 unitZ = Vec3(0, 0, 0);
 
   Vec3([this.x = 0.0, this.y = 0.0, this.z = 0.0]);
+
+  void operator []=(int addr, double value){
+    if(addr == 0){
+      x = value;
+    }
+    else if(addr == 1){
+      y = value;
+    }
+    else if(addr == 2){
+      z = value;
+    }
+    else{
+      throw('Value can not be bigger than 2 nd less than 0');
+    }
+  }
+
+  double operator [](int addr){
+    if(addr == 0){
+      return x;
+    }
+    else if(addr == 1){
+      return y;
+    }
+    else if(addr == 2){
+      return z;
+    }
+    else{
+      throw('Value can not be bigger than 2 nd less than 0');
+    }
+  }
 
   /**
    * Vector cross product
@@ -282,6 +314,7 @@ class Vec3 {
   /**
    * Converts to a more readable format
    */
+  @override
   String toString(){
     return '$x,$y,$z';
   }
@@ -355,5 +388,9 @@ class Vec3 {
    */
   Vec3 clone() {
     return Vec3(x, y, z);
+  }
+
+  Quaternion toQuant(){
+    return Quaternion(x,y,z);
   }
 }

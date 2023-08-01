@@ -392,7 +392,7 @@ class Body extends EventTarget {
    * Called every timestep to update internal sleep timer and change sleep state if needed.
    * @param time The world time in seconds;
    */
-  void sleepTick(int time){
+  void sleepTick(double time){
     if (allowSleep) {
       final sleepState = this.sleepState;
       final speedSquared = velocity.lengthSquared() + angularVelocity.lengthSquared();

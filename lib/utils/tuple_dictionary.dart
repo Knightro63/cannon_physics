@@ -1,15 +1,17 @@
-String get getKey = (int i, int j) (i < j ? '$i-$j' : '$j-$i');
+String getKey(int i, int j){
+  return (i < j ? '$i-$j' : '$j-$i');
+}
 
 /**
  * TupleDictionary
  */
 class TupleDictionary {
-  data: { [id: string]: any; keys: string[] } = { keys: [] }
+  Map<String,dynamic> data = {};//: { [id: string]: any; keys: string[] } = { keys: [] }
 
   /** get */
   dynamic get(int i, int j){
     final key = getKey(i, j);
-    return this.data[key];
+    return data[key];
   }
 
   /** set */
@@ -17,30 +19,31 @@ class TupleDictionary {
     final key = getKey(i, j);
 
     // Check if key already exists
-    if (get(i, j) != null) {
-      data.keys.add(key);
-    }
+    // if (get(i, j) != null) {
+    //   data.keys.add(key);
+    // }
 
-    this.data[key] = value;
+    data[key] = value;
   }
 
   /** delete */
   void delete(int i, int j) {
-    const key = getKey(i, j);
-    const index = this.data.keys.indexOf(key);
-    if (index != -1) {
-      this.data.keys.splice(index, 1);
-    }
-    delete this.data[key];
+    final key = getKey(i, j);
+    // final index = data.keys.indexOf(key);
+    // if (index != -1) {
+    //   data.keys.splice(index, 1);
+    // }
+    data.remove(key);//delete this.data[key];
   }
 
   /** reset */
   void reset() {
     final data = this.data;
-    final keys = data.keys;
-    while (keys.length > 0) {
-      const key = keys.pop()!;
-      delete data[key];
-    }
+    //final keys = data.keys;
+    data.clear();
+    // while (keys.isNotEmpty) {
+    //   final key = keys.last;
+    //   data.remove(key);//delete data[key];
+    // }
   }
 }

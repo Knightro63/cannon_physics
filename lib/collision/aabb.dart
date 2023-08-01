@@ -37,10 +37,10 @@ class AABB {
   {
     this.lowerBound = lowerBound ?? Vec3();
     this.upperBound = upperBound ?? Vec3();
-    final that = this;
-    this.preStepCallback = (){
-      that.setFromPoints([Vec3()]);
-    };
+    // final that = this;
+    // this.preStepCallback = (){
+    //   that.setFromPoints([Vec3()]);
+    // };
   }
 
   /**
@@ -254,6 +254,7 @@ class AABB {
    */
   bool overlapsRay(Ray ray) {
     final direction = ray.direction;
+    final from = ray.from;
     // final t = 0
 
     // ray.direction is unit direction vector of ray
@@ -262,12 +263,12 @@ class AABB {
     final dirFracZ = 1 / direction.z;
 
     // this.lowerBound is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
-    final t1 = (this.lowerBound.x - from.x) * dirFracX;
-    final t2 = (this.upperBound.x - from.x) * dirFracX;
-    final t3 = (this.lowerBound.y - from.y) * dirFracY;
-    final t4 = (this.upperBound.y - from.y) * dirFracY;
-    final t5 = (this.lowerBound.z - from.z) * dirFracZ;
-    final t6 = (this.upperBound.z - from.z) * dirFracZ;
+    final t1 = (lowerBound.x - from.x) * dirFracX;
+    final t2 = (upperBound.x - from.x) * dirFracX;
+    final t3 = (lowerBound.y - from.y) * dirFracY;
+    final t4 = (upperBound.y - from.y) * dirFracY;
+    final t5 = (lowerBound.z - from.z) * dirFracZ;
+    final t6 = (upperBound.z - from.z) * dirFracZ;
 
     // final tmin = math.max(math.max(math.min(t1, t2), math.min(t3, t4)));
     // final tmax = math.min(math.min(math.max(t1, t2), math.max(t3, t4)));

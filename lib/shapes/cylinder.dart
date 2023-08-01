@@ -15,13 +15,13 @@ import './shape.dart';
  *     world.addBody(cylinderBody)
  */
 class Cylinder extends ConvexPolyhedron {
-  /** The radius of the top of the Cylinder. */
+  /// The radius of the top of the Cylinder.
   double radiusTop;
-  /** The radius of the bottom of the Cylinder. */
+  /// The radius of the bottom of the Cylinder.
   double radiusBottom;
-  /** The height of the Cylinder. */
+  ///The height of the Cylinder.
   double height;
-  /** The number of segments to build the cylinder out of. */
+  /// The number of segments to build the cylinder out of.
   int numSegments;
 
   /**
@@ -41,7 +41,8 @@ class Cylinder extends ConvexPolyhedron {
 
     final int N = numSegments;
     final List<int> bottomface = [];
-    final topface = [];
+    final List<int> topface = [];
+    final List<Vec3> axes =[];
 
     // First bottom point
     vertices.add(Vec3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
@@ -83,10 +84,10 @@ class Cylinder extends ConvexPolyhedron {
     }
     faces.add(temp);
 
-    this.type = ShapeType.cylinder;
-    this.radiusTop = radiusTop;
-    this.radiusBottom = radiusBottom;
-    this.height = height;
-    this.numSegments = numSegments;
+    type = ShapeType.cylinder;
+    radiusTop = radiusTop;
+    radiusBottom = radiusBottom;
+    height = height;
+    numSegments = numSegments;
   }
 }
