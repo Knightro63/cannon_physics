@@ -1,7 +1,7 @@
 import '../utils/event_target.dart';
 import '../solver/gs_solver.dart';
 import '../collision/naive_broadphase.dart';
-import '../world/narrowphase.dart';
+import '../world/narrow_phase.dart';
 import '../math/vec3.dart';
 import '../material/material.dart';
 import '../material/contact_material.dart';
@@ -21,9 +21,7 @@ import '../shapes/shape.dart';
 
 //export type WorldOptions = ConstructorParameters<typeof World>[0]
 
-/**
- * The physics world
- */
+/// The physics world
 class World extends EventTarget {
   /**
    * Currently / last used timestep. Is set to -1 if not available. This value is updated before each internal step, which means that it is "fresh" inside event callbacks.

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../shapes/shape.dart';
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
@@ -14,18 +15,18 @@ class Sphere extends Shape {
   /**
    * The radius of the sphere.
    */
-  num radius;
+  double radius;
 
   /**
    *
    * @param radius The radius of the sphere, a non-negative number.
    */
   Sphere([this.radius = 1.0]): super(type: ShapeType.sphere ){
-    if (this.radius < 0) {
-      throw('The sphere radius cannot be negative.')
+    if (radius < 0) {
+      throw('The sphere radius cannot be negative.');
     }
 
-    this.updateBoundingSphereRadius();
+    updateBoundingSphereRadius();
   }
 
   /** calculateLocalInertia */
@@ -39,12 +40,12 @@ class Sphere extends Shape {
   }
 
   /** volume */
-  num volume() {
-    return (4.0 * Math.PI * Math.pow(this.radius, 3)) / 3.0;
+  double volume() {
+    return (4.0 * math.pi * math.pow(radius, 3)) / 3.0;
   }
 
   void updateBoundingSphereRadius() {
-    this.boundingSphereRadius = this.radius;
+    boundingSphereRadius = radius;
   }
 
   void calculateWorldAABB(Vec3 pos,Quaternion quat,Vec3 min,Vec3 max) {

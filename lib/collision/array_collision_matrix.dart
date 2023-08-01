@@ -16,8 +16,8 @@ class ArrayCollisionMatrix {
    * Get an element
    */
   num get(Body bi, Body  bj) {
-    int i = bi;//{ index: i } 
-    int j = bj;//{ index: j }
+    int i = bi.index;//{ index: i } 
+    int j = bj.index;//{ index: j }
     if (j > i) {
       final temp = j;
       j = i;
@@ -49,10 +49,9 @@ class ArrayCollisionMatrix {
     }
   }
 
-  /**
-   * Sets the max number of objects
-   */
-  void setNumObjects(num n) {
+  
+  /// Sets the max number of objects
+  void setNumObjects(int n) {
     matrix.length = (n * (n - 1)) >> 1;
   }
 }

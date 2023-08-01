@@ -1,6 +1,6 @@
-import { Shape } from '../shapes/Shape'
-import { Vec3 } from '../math/Vec3'
-import type { Quaternion } from '../math/Quaternion'
+import '../shapes/shape.dart';
+import '../math/vec3.dart';
+import '../math/quaternion.dart';
 
 /**
  * A plane, facing in the Z direction. The plane has its surface at z=0 and everything below z=0 is assumed to be solid plane. To make the plane face in some other direction than z, you must put it inside a Body and rotate that body. See the demos.
@@ -10,72 +10,67 @@ import type { Quaternion } from '../math/Quaternion'
  *     planeBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0) // make it face up
  *     world.addBody(planeBody)
  */
-export class Plane extends Shape {
+class Plane extends Shape {
   /** worldNormal */
-  worldNormal: Vec3
+  late Vec3 worldNormal; 
   /** worldNormalNeedsUpdate */
-  worldNormalNeedsUpdate: boolean
-  boundingSphereRadius: number
+  late bool worldNormalNeedsUpdate;
+  late double boundingSphereRadius;
 
-  constructor() {
-    super({ type: Shape.types.PLANE })
-
+  Plane():super(type: ShapeType.plane ){
     // World oriented normal
-    this.worldNormal = new Vec3()
-    this.worldNormalNeedsUpdate = true
-
-    this.boundingSphereRadius = Number.MAX_VALUE
+    worldNormal = Vec3();
+    worldNormalNeedsUpdate = true;
+    boundingSphereRadius = double.infinity;
   }
 
   /** computeWorldNormal */
-  computeWorldNormal(quat: Quaternion): void {
-    const n = this.worldNormal
-    n.set(0, 0, 1)
-    quat.vmult(n, n)
-    this.worldNormalNeedsUpdate = false
+  void computeWorldNormal(Quaternion quat){
+    final n = worldNormal;
+    n.set(0, 0, 1);
+    quat.vmult(n, n);
+    worldNormalNeedsUpdate = false;
   }
 
-  calculateLocalInertia(mass: number, target = new Vec3()): Vec3 {
-    return target
+  Vec3 calculateLocalInertia(double mass, [Vec3? target]) {
+    target ??= Vec3();
+    return target;
   }
 
-  volume(): number {
-    return (
-      // The plane is infinite...
-      Number.MAX_VALUE
-    )
+  double volume() {
+    return double.infinity;
   }
 
-  calculateWorldAABB(pos: Vec3, quat: Quaternion, min: Vec3, max: Vec3): void {
+  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
     // The plane AABB is infinite, except if the normal is pointing along any axis
-    tempNormal.set(0, 0, 1) // Default plane normal is z
-    quat.vmult(tempNormal, tempNormal)
-    const maxVal = Number.MAX_VALUE
-    min.set(-maxVal, -maxVal, -maxVal)
-    max.set(maxVal, maxVal, maxVal)
+    tempNormal.set(0, 0, 1); // Default plane normal is z
+    quat.vmult(tempNormal, tempNormal);
+    final maxVal = double.infinity;
+    min.set(-maxVal, -maxVal, -maxVal);
+    max.set(maxVal, maxVal, maxVal);
 
-    if (tempNormal.x === 1) {
-      max.x = pos.x
-    } else if (tempNormal.x === -1) {
-      min.x = pos.x
+    if (tempNormal.x == 1) {
+      max.x = pos.x;
+    } else if (tempNormal.x == -1) {
+      min.x = pos.x;
     }
 
-    if (tempNormal.y === 1) {
-      max.y = pos.y
-    } else if (tempNormal.y === -1) {
-      min.y = pos.y
+    if (tempNormal.y == 1) {
+      max.y = pos.y;
+    } else if (tempNormal.y == -1) {
+      min.y = pos.y;
     }
 
-    if (tempNormal.z === 1) {
-      max.z = pos.z
-    } else if (tempNormal.z === -1) {
-      min.z = pos.z
+    if (tempNormal.z == 1) {
+      max.z = pos.z;
+    } else if (tempNormal.z == -1) {
+      min.z = pos.z;
     }
   }
 
-  updateBoundingSphereRadius(): void {
-    this.boundingSphereRadius = Number.MAX_VALUE
+  void updateBoundingSphereRadius() {
+    boundingSphereRadius = double.infinity;
   }
 }
 
-const tempNormal = new Vec3()
+final tempNormal = Vec3();

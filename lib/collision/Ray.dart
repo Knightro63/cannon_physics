@@ -1,22 +1,22 @@
-import { Vec3 } from '../math/Vec3'
-import { Quaternion } from '../math/Quaternion'
-import { Transform } from '../math/Transform'
-import { RaycastResult } from '../collision/RaycastResult'
-import { Shape } from '../shapes/Shape'
-import { AABB } from '../collision/AABB'
-import type { Body } from '../objects/Body'
-import type { Sphere } from '../shapes/Sphere'
-import type { Box } from '../shapes/Box'
-import type { Plane } from '../shapes/Plane'
-import type { Heightfield } from '../shapes/Heightfield'
-import type { ConvexPolyhedron } from '../shapes/ConvexPolyhedron'
-import type { Trimesh } from '../shapes/Trimesh'
-import type { World } from '../world/World'
+import 'ray.dart'{ Vec3 } from '../math/Vec3'
+import 'ray.dart'{ Quaternion } from '../math/Quaternion'
+import 'ray.dart'{ Transform } from '../math/Transform'
+import 'ray.dart'{ RaycastResult } from '../collision/RaycastResult'
+import 'ray.dart'{ Shape } from '../shapes/Shape'
+import 'ray.dart'{ AABB } from '../collision/AABB'
+import 'ray.dart'type { Body } from '../objects/Body'
+import 'ray.dart'type { Sphere } from '../shapes/Sphere'
+import 'ray.dart'type { Box } from '../shapes/Box'
+import 'ray.dart'type { Plane } from '../shapes/Plane'
+import 'ray.dart'type { Heightfield } from '../shapes/Heightfield'
+import 'ray.dart'type { ConvexPolyhedron } from '../shapes/ConvexPolyhedron'
+import 'ray.dart'type { Trimesh } from '../shapes/Trimesh'
+import 'ray.dart'type { World } from '../world/World'
 
 /**
  * RAY_MODES
  */
-export const RAY_MODES = {
+export 'ray.dart'const RAY_MODES = {
   /** CLOSEST */
   CLOSEST: 1,
   /** ANY */
@@ -28,12 +28,12 @@ export const RAY_MODES = {
 /**
  * RayMode
  */
-export type RayMode = typeof RAY_MODES[keyof typeof RAY_MODES]
+export 'ray.dart'type RayMode = typeof RAY_MODES[keyof typeof RAY_MODES]
 
 /**
  * RayOptions
  */
-export type RayOptions = {
+export 'ray.dart'type RayOptions = {
   /**
    * from
    */
@@ -76,12 +76,12 @@ export type RayOptions = {
   callback?: RaycastCallback
 }
 
-export type RaycastCallback = (result: RaycastResult) => void
+export 'ray.dart'type RaycastCallback = (result: RaycastResult) => void
 
 /**
  * A line in 3D space that intersects bodies and return points.
  */
-export class Ray {
+export 'ray.dart'class Ray {
   /**
    * from
    */

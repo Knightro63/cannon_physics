@@ -70,7 +70,7 @@ class Equation {
   /**
    * Computes the right hand side of the SPOOK equation
    */
-  double computeB(double a, double b, double h) {
+  double computeB(double h) {
     final double gw = computeGW();
     final double gq = computeGq();
     final double gimf = computeGiMf();
@@ -171,11 +171,11 @@ class Equation {
    * Add constraint velocity to the bodies.
    */
   void addToWlambda(double deltalambda) {
-    const ga = jacobianElementA;
-    const gb = jacobianElementB;
-    const bi = bi;
-    const bj = bj;
-    const temp = addToWlambda_temp;
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
+    final bi = this.bi;
+    final bj = this.bj;
+    final temp = addToWlambda_temp;
 
     // Add to linear velocity
     // v_lambda += inv(M) * delta_lamba * G

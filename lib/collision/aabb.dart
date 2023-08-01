@@ -1,5 +1,5 @@
 import '../math/vec3.dart';
-import '../collision/Ray.dart';
+import 'ray.dart';
 import 'dart:math' as math;
 import '../math/transform.dart';
 import '../math/quaternion.dart';

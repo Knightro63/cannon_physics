@@ -1,6 +1,6 @@
 library cannon;
 
-export './collision/ObjectCollisionMatrix.dart';
+export 'collision/object_collision_matrix.dart';
 export 'collision/aabb.dart';
 export 'collision/array_collision_matrix.dart';
 export 'collision/broadphase.dart';

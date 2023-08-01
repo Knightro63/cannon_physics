@@ -51,7 +51,7 @@ class Shape {
   /**
    * The local bounding sphere radius of this shape.
    */
-  num boundingSphereRadius;
+  double boundingSphereRadius;
 
   /**
    * Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled.
@@ -62,12 +62,12 @@ class Shape {
   /**
    * @default 1
    */
-  num collisionFilterGroup;
+  int collisionFilterGroup;
 
   /**
    * @default -1
    */
-  num collisionFilterMask;
+  int collisionFilterMask;
 
   /**
    * Optional material of the shape that regulates contact properties.
@@ -122,7 +122,7 @@ class Shape {
   /**
    * Get the volume of this shape
    */
-  num volume() {
+  double volume() {
     throw 'volume() not implemented for shape type ${this.type}';
   }
 
@@ -130,7 +130,7 @@ class Shape {
    * Calculates the inertia in the local frame for this shape.
    * @see http://en.wikipedia.org/wiki/List_of_moments_of_inertia
    */
-  void calculateLocalInertia(num mass, Vec3 target) {
+  void calculateLocalInertia(double mass, Vec3 target) {
     throw 'calculateLocalInertia() not implemented for shape type ${this.type}';
   }
 

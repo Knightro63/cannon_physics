@@ -3,7 +3,7 @@ import  '../objects/body.dart';
 import  '../math/vec3.dart';
 import  '../math/quaternion.dart';
 import  '../collision/aabb.dart';
-import  '../world/world.dart';
+import  '../world/world.dart' hide Body;
 
 // Temp objects
 final Vec3 Broadphase_collisionPairs_r = Vec3();
@@ -66,8 +66,8 @@ class Broadphase {
 
     // Check types
     if (
-      ((bodyA.type & Body.static) != 0 || bodyA.sleepState == Body.sleeping) &&
-      ((bodyB.type & Body.static) != 0 || bodyB.sleepState == Body.sleeping)
+      (bodyA.type == BodyTypes.static || bodyA.sleepState == BodySleepStates.sleeping) &&
+      (bodyB.type == BodyTypes.static || bodyB.sleepState == BodySleepStates.sleeping)
     ) {
       // Both bodies are static or sleeping. Skip.
       return false;
@@ -79,7 +79,7 @@ class Broadphase {
   /**
    * Check if the bounding volumes of two bodies intersect.
    */
-  void intersectionTest(Body bodyA, Body bodyB,List<Body>,List<Body> pairs1, List<Body> pairs2) {
+  void intersectionTest(Body bodyA, Body bodyB, List<Body> pairs1, List<Body> pairs2) {
     if (useBoundingBoxes) {
       doBoundingBoxBroadphase(bodyA, bodyB, pairs1, pairs2);
     } else {
@@ -92,32 +92,32 @@ class Broadphase {
    * @param pairs1 bodyA is appended to this array if intersection
    * @param pairs2 bodyB is appended to this array if intersection
    */
-  void doBoundingSphereBroadphase(bodyA: Body, bodyB: Body, pairs1: Body[], pairs2: Body[]) {
-    final r = Broadphase_collisionPairs_r
-    bodyB.position.vsub(bodyA.position, r)
-    final boundingRadiusSum2 = (bodyA.boundingRadius + bodyB.boundingRadius) ** 2
-    final norm2 = r.lengthSquared()
+  void doBoundingSphereBroadphase(Body bodyA, Body bodyB, List<Body> pairs1, List<Body> pairs2) {
+    final r = Broadphase_collisionPairs_r;
+    bodyB.position.vsub(bodyA.position, r);
+    final boundingRadiusSum2 = math.pow(bodyA.boundingRadius + bodyB.boundingRadius,2);// ** 2
+    final norm2 = r.lengthSquared();
     if (norm2 < boundingRadiusSum2) {
-      pairs1.push(bodyA)
-      pairs2.push(bodyB)
+      pairs1.add(bodyA);
+      pairs2.add(bodyB);
     }
   }
 
   /**
    * Check if the bounding boxes of two bodies are intersecting.
    */
-  doBoundingBoxBroadphase(bodyA: Body, bodyB: Body, pairs1: Body[], pairs2: Body[]): void {
+  void doBoundingBoxBroadphase(Body bodyA, Body bodyB,List<Body> pairs1,List<Body> pairs2) {
     if (bodyA.aabbNeedsUpdate) {
-      bodyA.updateAABB()
+      bodyA.updateAABB();
     }
     if (bodyB.aabbNeedsUpdate) {
-      bodyB.updateAABB()
+      bodyB.updateAABB();
     }
 
     // Check AABB / AABB
     if (bodyA.aabb.overlaps(bodyB.aabb)) {
-      pairs1.push(bodyA)
-      pairs2.push(bodyB)
+      pairs1.add(bodyA);
+      pairs2.add(bodyB);
     }
   }
 
@@ -151,7 +151,7 @@ class Broadphase {
       final pairIndex = t[key];
       pairs1.add(p1[pairIndex]);
       pairs2.add(p2[pairIndex]);
-      delete t[key];
+      t.remove(key);//delete t[key];
     }
   }
 

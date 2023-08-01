@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../shapes/shape.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
@@ -5,9 +6,10 @@ import '../math/quaternion.dart';
 
 /** ConvexPolyhedronContactPoint */
 class ConvexPolyhedronContactPoint{
+  ConvexPolyhedronContactPoint(this.point,this.normal,this.depth);
   Vec3 point;
   Vec3 normal;
-  num depth;
+  double depth;
 }
 
 /**
@@ -38,19 +40,19 @@ class ConvexPolyhedron extends Shape {
   /** faceNormals */
   List<Vec3> faceNormals;
   /** worldVertices */
-  List<Vec3> worldVertices;
+  late List<Vec3> worldVertices;
   /** worldVerticesNeedsUpdate */
-  bool worldVerticesNeedsUpdate;
+  late bool worldVerticesNeedsUpdate;
   /** worldFaceNormals */
-  List<Vec3> worldFaceNormals;
+  late List<Vec3> worldFaceNormals;
   /** worldFaceNormalsNeedsUpdate */
-  bool worldFaceNormalsNeedsUpdate;
+  late bool worldFaceNormalsNeedsUpdate;
   /**
    * If given, these locally defined, normalized axes are the only ones being checked when doing separating axis check.
    */
   List<Vec3>? uniqueAxes;
   /** uniqueEdges */
-  List<Vec3> uniqueEdges;
+  late List<Vec3> uniqueEdges;
 
   /**
    * @param vertices An array of Vec3's
@@ -58,30 +60,24 @@ class ConvexPolyhedron extends Shape {
    */
   ConvexPolyhedron({
     /** An array of Vec3's */
-    vertices?: Vec3[]
+    this.vertices = const [],
     /** Array of integer arrays, describing which vertices that is included in each face. */
-    faces?: number[][]
+    this.faces = const [],
     /** normals */
-    normals?: Vec3[]
+    this.faceNormals = const [],
     /** axes */
-    axes?: Vec3[]
+    List<Vec3>? axes,
     /** boundingSphereRadius */
-    boundingSphereRadius?: number
-  }) {
-    const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
-
-    super({ type: Shape.types.CONVEXPOLYHEDRON })
-
-    this.vertices = vertices
-    this.faces = faces
-    this.faceNormals = normals
+    double? boundingSphereRadius
+  }):super(type: ShapeType.convexpolyhedron){
+    //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
 
     if (this.faceNormals.length == 0) {
       this.computeNormals();
     }
 
-    if (boundingSphereRadius != null) {
-      this.updateBoundingSphereRadius();
+    if (boundingSphereRadius == null) {
+      updateBoundingSphereRadius();
     } else {
       this.boundingSphereRadius = boundingSphereRadius;
     }
@@ -90,7 +86,7 @@ class ConvexPolyhedron extends Shape {
     worldVerticesNeedsUpdate = true;
     worldFaceNormals = []; // World transformed version of .faceNormals
     worldFaceNormalsNeedsUpdate = true;
-    this.uniqueAxes = axes ? axes.slice() : null;
+    uniqueAxes = axes != null? axes.sublist(1) : null;
     uniqueEdges = [];
     computeEdges();
   }
@@ -197,29 +193,29 @@ class ConvexPolyhedron extends Shape {
     Vec3 posB,
     Quaternion quatB,
     Vec3 separatingNormal,
-    num minDist,
-    num maxDist,
+    double minDist,
+    double maxDist,
     List<ConvexPolyhedronContactPoint> result
   ) {
-    const WorldNormal = Vec3();
+    final WorldNormal = Vec3();
     int closestFaceB = -1;
-    int dmax = -Number.MAX_VALUE;
+    double dmax = -double.infinity;
 
     for (int face = 0; face < hullB.faces.length; face++) {
       WorldNormal.copy(hullB.faceNormals[face]);
       quatB.vmult(WorldNormal, WorldNormal);
-      const d = WorldNormal.dot(separatingNormal);
+      final double d = WorldNormal.dot(separatingNormal);
       if (d > dmax) {
         dmax = d;
         closestFaceB = face;
       }
     }
 
-    const worldVertsB1 = [];
+    final List<Vec3> worldVertsB1 = [];
 
     for (int i = 0; i < hullB.faces[closestFaceB].length; i++) {
-      const b = hullB.vertices[hullB.faces[closestFaceB][i]];
-      const worldb = Vec3();
+      final b = hullB.vertices[hullB.faces[closestFaceB][i]];
+      final worldb = Vec3();
       worldb.copy(b);
       quatB.vmult(worldb, worldb);
       posB.vadd(worldb, worldb);
@@ -227,7 +223,7 @@ class ConvexPolyhedron extends Shape {
     }
 
     if (closestFaceB >= 0) {
-      this.clipFaceAgainstHull(separatingNormal, posA, quatA, worldVertsB1, minDist, maxDist, result);
+      clipFaceAgainstHull(separatingNormal, posA, quatA, worldVertsB1, minDist, maxDist, result);
     }
   }
 
@@ -237,187 +233,184 @@ class ConvexPolyhedron extends Shape {
    * @return Returns false if a separation is found, else true
    */
   bool findSeparatingAxis(
-    hullB: ConvexPolyhedron,
-    posA: Vec3,
-    quatA: Quaternion,
-    posB: Vec3,
-    quatB: Quaternion,
-    target: Vec3,
-    faceListA?: number[] | null,
-    faceListB?: number[] | null
-  ) {
-    const faceANormalWS3 = Vec3()
-    const Worldnormal1 = Vec3()
-    const deltaC = Vec3()
-    const worldEdge0 = Vec3()
-    const worldEdge1 = Vec3()
-    const Cross = Vec3()
+    ConvexPolyhedron hullB,
+    Vec3 posA,
+    Quaternion quatA,
+    Vec3 posB,
+    Quaternion quatB,
+    Vec3 target,[
+    List<int>? faceListA,
+    List<int>? faceListB
+  ]) {
+    final faceANormalWS3 = Vec3();
+    final Worldnormal1 = Vec3();
+    final deltaC = Vec3();
+    final worldEdge0 = Vec3();
+    final worldEdge1 = Vec3();
+    final Cross = Vec3();
 
-    let dmin = Number.MAX_VALUE
-    const hullA = this
-    let curPlaneTests = 0
+    double dmin = double.infinity;
+    final hullA = this;
+    int curPlaneTests = 0;
 
-    if (!hullA.uniqueAxes) {
-      const numFacesA = faceListA ? faceListA.length : hullA.faces.length
+    if (hullA.uniqueAxes == null) {
+      final numFacesA = faceListA != null? faceListA.length : hullA.faces.length;
 
       // Test face normals from hullA
-      for (let i = 0; i < numFacesA; i++) {
-        const fi = faceListA ? faceListA[i] : i
+      for (int i = 0; i < numFacesA; i++) {
+        final fi = faceListA != null? faceListA[i] : i;
 
         // Get world face normal
-        faceANormalWS3.copy(hullA.faceNormals[fi])
-        quatA.vmult(faceANormalWS3, faceANormalWS3)
+        faceANormalWS3.copy(hullA.faceNormals[fi]);
+        quatA.vmult(faceANormalWS3, faceANormalWS3);
 
-        const d = hullA.testSepAxis(faceANormalWS3, hullB, posA, quatA, posB, quatB)
-        if (d === false) {
-          return false
+        final d = hullA.testSepAxis(faceANormalWS3, hullB, posA, quatA, posB, quatB);
+        if (d == null) {
+          return false;
         }
-
         if (d < dmin) {
-          dmin = d
-          target.copy(faceANormalWS3)
+          dmin = d;
+          target.copy(faceANormalWS3);
         }
       }
     } else {
       // Test unique axes
-      for (let i = 0; i !== hullA.uniqueAxes.length; i++) {
+      for (int i = 0; i != hullA.uniqueAxes!.length; i++) {
         // Get world axis
-        quatA.vmult(hullA.uniqueAxes[i], faceANormalWS3)
+        quatA.vmult(hullA.uniqueAxes![i], faceANormalWS3);
 
-        const d = hullA.testSepAxis(faceANormalWS3, hullB, posA, quatA, posB, quatB)
-        if (d === false) {
-          return false
+        final d = hullA.testSepAxis(faceANormalWS3, hullB, posA, quatA, posB, quatB);
+        if (d == null) {
+          return false;
         }
-
         if (d < dmin) {
-          dmin = d
-          target.copy(faceANormalWS3)
+          dmin = d;
+          target.copy(faceANormalWS3);
         }
       }
     }
 
-    if (!hullB.uniqueAxes) {
+    if (hullB.uniqueAxes ==  null) {
       // Test face normals from hullB
-      const numFacesB = faceListB ? faceListB.length : hullB.faces.length
-      for (let i = 0; i < numFacesB; i++) {
-        const fi = faceListB ? faceListB[i] : i
+      final numFacesB = faceListB != null ? faceListB.length : hullB.faces.length;
+      for (int i = 0; i < numFacesB; i++) {
+        final fi = faceListB != null? faceListB[i] : i;
 
-        Worldnormal1.copy(hullB.faceNormals[fi])
-        quatB.vmult(Worldnormal1, Worldnormal1)
-        curPlaneTests++
-        const d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB)
-        if (d === false) {
-          return false
+        Worldnormal1.copy(hullB.faceNormals[fi]);
+        quatB.vmult(Worldnormal1, Worldnormal1);
+        curPlaneTests++;
+        final d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB);
+        if (d == null) {
+          return false;
         }
-
         if (d < dmin) {
-          dmin = d
-          target.copy(Worldnormal1)
+          dmin = d;
+          target.copy(Worldnormal1);
         }
       }
     } else {
       // Test unique axes in B
-      for (let i = 0; i !== hullB.uniqueAxes.length; i++) {
-        quatB.vmult(hullB.uniqueAxes[i], Worldnormal1)
+      for (int i = 0; i != hullB.uniqueAxes!.length; i++) {
+        quatB.vmult(hullB.uniqueAxes![i], Worldnormal1);
 
-        curPlaneTests++
-        const d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB)
-        if (d === false) {
-          return false
+        curPlaneTests++;
+        final d = hullA.testSepAxis(Worldnormal1, hullB, posA, quatA, posB, quatB);
+        if (d == null) {
+          return false;
         }
-
         if (d < dmin) {
-          dmin = d
-          target.copy(Worldnormal1)
+          dmin = d;
+          target.copy(Worldnormal1);
         }
       }
     }
 
     // Test edges
-    for (let e0 = 0; e0 !== hullA.uniqueEdges.length; e0++) {
+    for (int e0 = 0; e0 != hullA.uniqueEdges.length; e0++) {
       // Get world edge
-      quatA.vmult(hullA.uniqueEdges[e0], worldEdge0)
+      quatA.vmult(hullA.uniqueEdges[e0], worldEdge0);
 
-      for (let e1 = 0; e1 !== hullB.uniqueEdges.length; e1++) {
+      for (int e1 = 0; e1 != hullB.uniqueEdges.length; e1++) {
         // Get world edge 2
-        quatB.vmult(hullB.uniqueEdges[e1], worldEdge1)
-        worldEdge0.cross(worldEdge1, Cross)
+        quatB.vmult(hullB.uniqueEdges[e1], worldEdge1);
+        worldEdge0.cross(worldEdge1, Cross);
 
         if (!Cross.almostZero()) {
-          Cross.normalize()
-          const dist = hullA.testSepAxis(Cross, hullB, posA, quatA, posB, quatB)
-          if (dist === false) {
-            return false
+          Cross.normalize();
+          final dist = hullA.testSepAxis(Cross, hullB, posA, quatA, posB, quatB);
+          if (dist == null) {
+            return false;
           }
           if (dist < dmin) {
-            dmin = dist
-            target.copy(Cross)
+            dmin = dist;
+            target.copy(Cross);
           }
         }
       }
     }
 
-    posB.vsub(posA, deltaC)
+    posB.vsub(posA, deltaC);
     if (deltaC.dot(target) > 0.0) {
-      target.negate(target)
+      target.negate(target);
     }
 
-    return true
+    return true;
   }
 
   /**
    * Test separating axis against two hulls. Both hulls are projected onto the axis and the overlap size is returned if there is one.
    * @return The overlap depth, or FALSE if no penetration.
    */
-  testSepAxis(
-    axis: Vec3,
-    hullB: ConvexPolyhedron,
-    posA: Vec3,
-    quatA: Quaternion,
-    posB: Vec3,
-    quatB: Quaternion
-  ): number | false {
-    const hullA = this
-    ConvexPolyhedron.project(hullA, axis, posA, quatA, maxminA)
-    ConvexPolyhedron.project(hullB, axis, posB, quatB, maxminB)
-    const maxA = maxminA[0]
-    const minA = maxminA[1]
-    const maxB = maxminB[0]
-    const minB = maxminB[1]
+  double? testSepAxis(
+    Vec3 axis,
+    ConvexPolyhedron hullB,
+    Vec3 posA,
+    Quaternion quatA,
+    Vec3 posB,
+    Quaternion quatB 
+  ){
+    final hullA = this;
+    ConvexPolyhedron.project(hullA, axis, posA, quatA, maxminA);
+    ConvexPolyhedron.project(hullB, axis, posB, quatB, maxminB);
+    final maxA = maxminA[0];
+    final minA = maxminA[1];
+    final maxB = maxminB[0];
+    final minB = maxminB[1];
     if (maxA < minB || maxB < minA) {
-      return false // Separated
+      return null; // Separated
     }
-    const d0 = maxA - minB
-    const d1 = maxB - minA
-    const depth = d0 < d1 ? d0 : d1
-    return depth
+    final double d0 = maxA - minB;
+    final d1 = maxB - minA;
+    final double depth = d0 < d1 ? d0 : d1;
+    return depth;
   }
 
   /**
    * calculateLocalInertia
    */
-  void calculateLocalInertia(mass: number, target: Vec3) {
+  @override
+  void calculateLocalInertia(double mass, Vec3 target) {
     // Approximate with box inertia
     // Exact inertia calculation is overkill, but see http://geometrictools.com/Documentation/PolyhedralMassProperties.pdf for the correct way to do it
-    const aabbmax = Vec3()
-    const aabbmin = Vec3()
-    this.computeLocalAABB(aabbmin, aabbmax)
-    const x = aabbmax.x - aabbmin.x
-    const y = aabbmax.y - aabbmin.y
-    const z = aabbmax.z - aabbmin.z
-    target.x = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z)
-    target.y = (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z)
-    target.z = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x)
+    final aabbmax = Vec3();
+    final aabbmin = Vec3();
+    computeLocalAABB(aabbmin, aabbmax);
+    final x = aabbmax.x - aabbmin.x;
+    final y = aabbmax.y - aabbmin.y;
+    final z = aabbmax.z - aabbmin.z;
+    target.x = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z);
+    target.y = (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z);
+    target.z = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x);
   }
 
   /**
    * @param face_i Index of the face
    */
-  num getPlaneConstantOfFace(int face_i) {
-    const f = faces[face_i];
-    const n = faceNormals[face_i];
-    const v = vertices[f[0]];
-    const c = -n.dot(v);
+  double getPlaneConstantOfFace(int face_i) {
+    final f = faces[face_i];
+    final n = faceNormals[face_i];
+    final v = vertices[f[0]];
+    final c = -n.dot(v);
     return c;
   }
 
@@ -428,125 +421,125 @@ class ConvexPolyhedron extends Shape {
    * @param Array result Array to store resulting contact points in. Will be objects with properties: point, depth, normal. These are represented in world coordinates.
    */
   void clipFaceAgainstHull(
-    separatingNormal: Vec3,
-    posA: Vec3,
-    quatA: Quaternion,
-    worldVertsB1: Vec3[],
-    minDist: number,
-    maxDist: number,
-    result: ConvexPolyhedronContactPoint[]
+    Vec3 separatingNormal,
+    Vec3 posA,
+    Quaternion quatA,
+    List<Vec3> worldVertsB1,
+    double minDist,
+    double maxDist,
+    List<ConvexPolyhedronContactPoint> result
   ) {
-    const faceANormalWS = Vec3()
-    const edge0 = Vec3()
-    const WorldEdge0 = Vec3()
-    const worldPlaneAnormal1 = Vec3()
-    const planeNormalWS1 = Vec3()
-    const worldA1 = Vec3()
-    const localPlaneNormal = Vec3()
-    const planeNormalWS = Vec3()
-    const hullA = this
-    const worldVertsB2: Vec3[] = []
-    const pVtxIn = worldVertsB1
-    const pVtxOut = worldVertsB2
+    final faceANormalWS = Vec3();
+    final edge0 = Vec3();
+    final WorldEdge0 = Vec3();
+    final worldPlaneAnormal1 = Vec3();
+    final planeNormalWS1 = Vec3();
+    final worldA1 = Vec3();
+    final localPlaneNormal = Vec3();
+    final planeNormalWS = Vec3();
+    final hullA = this;
+    final List<Vec3> worldVertsB2 = [];
+    final pVtxIn = worldVertsB1;
+    final pVtxOut = worldVertsB2;
 
-    let closestFaceA = -1
-    let dmin = Number.MAX_VALUE
+    int closestFaceA = -1;
+    double dmin = double.infinity;
 
     // Find the face with normal closest to the separating axis
-    for (let face = 0; face < hullA.faces.length; face++) {
-      faceANormalWS.copy(hullA.faceNormals[face])
-      quatA.vmult(faceANormalWS, faceANormalWS)
-      const d = faceANormalWS.dot(separatingNormal)
+    for (int face = 0; face < hullA.faces.length; face++) {
+      faceANormalWS.copy(hullA.faceNormals[face]);
+      quatA.vmult(faceANormalWS, faceANormalWS);
+      final double d = faceANormalWS.dot(separatingNormal);
       if (d < dmin) {
-        dmin = d
-        closestFaceA = face
+        dmin = d;
+        closestFaceA = face;
       }
     }
     if (closestFaceA < 0) {
-      return
+      return;
     }
 
     // Get the face and construct connected faces
-    const polyA = hullA.faces[closestFaceA] as number[] & { connectedFaces: number[] }
-    polyA.connectedFaces = []
-    for (let i = 0; i < hullA.faces.length; i++) {
-      for (let j = 0; j < hullA.faces[i].length; j++) {
+    final polyA = hullA.faces[closestFaceA] as number[] & { connectedFaces: number[] }
+    polyA.connectedFaces = [];
+    for (int i = 0; i < hullA.faces.length; i++) {
+      for (int j = 0; j < hullA.faces[i].length; j++) {
         if (
           /* Sharing a vertex*/
-          polyA.indexOf(hullA.faces[i][j]) !== -1 &&
+          polyA.indexOf(hullA.faces[i][j]) != -1 &&
           /* Not the one we are looking for connections from */
-          i !== closestFaceA &&
+          i != closestFaceA &&
           /* Not already added */
-          polyA.connectedFaces.indexOf(i) === -1
+          polyA.connectedFaces.indexOf(i) == -1
         ) {
-          polyA.connectedFaces.push(i)
+          polyA.connectedFaces.add(i);
         }
       }
     }
 
     // Clip the polygon to the back of the planes of all faces of hull A,
     // that are adjacent to the witness face
-    const numVerticesA = polyA.length
-    for (let i = 0; i < numVerticesA; i++) {
-      const a = hullA.vertices[polyA[i]]
-      const b = hullA.vertices[polyA[(i + 1) % numVerticesA]]
-      a.vsub(b, edge0)
-      WorldEdge0.copy(edge0)
-      quatA.vmult(WorldEdge0, WorldEdge0)
-      posA.vadd(WorldEdge0, WorldEdge0)
-      worldPlaneAnormal1.copy(this.faceNormals[closestFaceA])
-      quatA.vmult(worldPlaneAnormal1, worldPlaneAnormal1)
-      posA.vadd(worldPlaneAnormal1, worldPlaneAnormal1)
-      WorldEdge0.cross(worldPlaneAnormal1, planeNormalWS1)
-      planeNormalWS1.negate(planeNormalWS1)
-      worldA1.copy(a)
-      quatA.vmult(worldA1, worldA1)
-      posA.vadd(worldA1, worldA1)
+    final int numVerticesA = polyA.length;
+    for (int i = 0; i < numVerticesA; i++) {
+      final a = hullA.vertices[polyA[i]];
+      final b = hullA.vertices[polyA[(i + 1) % numVerticesA]];
+      a.vsub(b, edge0);
+      WorldEdge0.copy(edge0);
+      quatA.vmult(WorldEdge0, WorldEdge0);
+      posA.vadd(WorldEdge0, WorldEdge0);
+      worldPlaneAnormal1.copy(faceNormals[closestFaceA]);
+      quatA.vmult(worldPlaneAnormal1, worldPlaneAnormal1);
+      posA.vadd(worldPlaneAnormal1, worldPlaneAnormal1);
+      WorldEdge0.cross(worldPlaneAnormal1, planeNormalWS1);
+      planeNormalWS1.negate(planeNormalWS1);
+      worldA1.copy(a);
+      quatA.vmult(worldA1, worldA1);
+      posA.vadd(worldA1, worldA1);
 
-      const otherFace = polyA.connectedFaces[i]
-      localPlaneNormal.copy(this.faceNormals[otherFace])
-      const localPlaneEq = this.getPlaneConstantOfFace(otherFace)
-      planeNormalWS.copy(localPlaneNormal)
-      quatA.vmult(planeNormalWS, planeNormalWS)
-      const planeEqWS = localPlaneEq - planeNormalWS.dot(posA)
+      final otherFace = polyA.connectedFaces[i];
+      localPlaneNormal.copy(faceNormals[otherFace]);
+      final localPlaneEq = getPlaneConstantOfFace(otherFace);
+      planeNormalWS.copy(localPlaneNormal);
+      quatA.vmult(planeNormalWS, planeNormalWS);
+      final planeEqWS = localPlaneEq - planeNormalWS.dot(posA);
 
       // Clip face against our constructed plane
-      this.clipFaceAgainstPlane(pVtxIn, pVtxOut, planeNormalWS, planeEqWS)
+      clipFaceAgainstPlane(pVtxIn, pVtxOut, planeNormalWS, planeEqWS);
 
       // Throw away all clipped points, but save the remaining until next clip
-      while (pVtxIn.length) {
-        pVtxIn.shift()
+      while (pVtxIn.length > 0) {
+        pVtxIn.sublist(1) ;//.removeAt(0);
       }
-      while (pVtxOut.length) {
-        pVtxIn.push(pVtxOut.shift()!)
+      while(pVtxOut.length > 0) {
+        pVtxIn.add(pVtxOut.removeAt(0));
       }
     }
 
     // only keep contact points that are behind the witness face
-    localPlaneNormal.copy(this.faceNormals[closestFaceA])
+    localPlaneNormal.copy(faceNormals[closestFaceA]);
 
-    const localPlaneEq = this.getPlaneConstantOfFace(closestFaceA)
-    planeNormalWS.copy(localPlaneNormal)
-    quatA.vmult(planeNormalWS, planeNormalWS)
+    final localPlaneEq = getPlaneConstantOfFace(closestFaceA);
+    planeNormalWS.copy(localPlaneNormal);
+    quatA.vmult(planeNormalWS, planeNormalWS);
 
-    const planeEqWS = localPlaneEq - planeNormalWS.dot(posA)
-    for (let i = 0; i < pVtxIn.length; i++) {
-      let depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS // ???
+    final planeEqWS = localPlaneEq - planeNormalWS.dot(posA);
+    for (int i = 0; i < pVtxIn.length; i++) {
+      double depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; // ???
 
       if (depth <= minDist) {
-        console.log(`clamped: depth=${depth} to minDist=${minDist}`)
-        depth = minDist
+        print('clamped: depth=${depth} to minDist=${minDist}');
+        depth = minDist;
       }
 
       if (depth <= maxDist) {
-        const point = pVtxIn[i]
+        final point = pVtxIn[i];
         if (depth <= 1e-6) {
-          const p = {
+          final p = ConvexPolyhedronContactPoint(
             point,
-            normal: planeNormalWS,
+            planeNormalWS,
             depth,
-          }
-          result.push(p)
+          );
+          result.add(p);
         }
       }
     }
@@ -556,90 +549,90 @@ class ConvexPolyhedron extends Shape {
    * Clip a face in a hull against the back of a plane.
    * @param planeConstant The constant in the mathematical plane equation
    */
-  List<Vec3> clipFaceAgainstPlane(inVertices: Vec3[], outVertices: Vec3[], planeNormal: Vec3, planeConstant: number){
-    let n_dot_first
-    let n_dot_last
-    const numVerts = inVertices.length
+  List<Vec3> clipFaceAgainstPlane(List<Vec3> inVertices, List<Vec3> outVertices, Vec3 planeNormal, double planeConstant){
+    double n_dot_first;
+    double n_dot_last;
+    final numVerts = inVertices.length;
 
     if (numVerts < 2) {
-      return outVertices
+      return outVertices;
     }
 
-    let firstVertex = inVertices[inVertices.length - 1]
-    let lastVertex = inVertices[0]
+    Vec3 firstVertex = inVertices[inVertices.length - 1];
+    Vec3 lastVertex = inVertices[0];
 
-    n_dot_first = planeNormal.dot(firstVertex) + planeConstant
+    n_dot_first = planeNormal.dot(firstVertex) + planeConstant;
 
-    for (let vi = 0; vi < numVerts; vi++) {
-      lastVertex = inVertices[vi]
-      n_dot_last = planeNormal.dot(lastVertex) + planeConstant
+    for (int vi = 0; vi < numVerts; vi++) {
+      lastVertex = inVertices[vi];
+      n_dot_last = planeNormal.dot(lastVertex) + planeConstant;
       if (n_dot_first < 0) {
         if (n_dot_last < 0) {
           // Start < 0, end < 0, so output lastVertex
-          const newv = Vec3()
-          newv.copy(lastVertex)
-          outVertices.push(newv)
+          final newv = Vec3();
+          newv.copy(lastVertex);
+          outVertices.add(newv);
         } else {
           // Start < 0, end >= 0, so output intersection
-          const newv = Vec3()
-          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv)
-          outVertices.push(newv)
+          final newv = Vec3();
+          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv);
+          outVertices.add(newv);
         }
       } else {
         if (n_dot_last < 0) {
           // Start >= 0, end < 0 so output intersection and end
-          const newv = Vec3()
-          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv)
-          outVertices.push(newv)
-          outVertices.push(lastVertex)
+          final newv = Vec3();
+          firstVertex.lerp(lastVertex, n_dot_first / (n_dot_first - n_dot_last), newv);
+          outVertices.add(newv);
+          outVertices.add(lastVertex);
         }
       }
-      firstVertex = lastVertex
-      n_dot_first = n_dot_last
+      firstVertex = lastVertex;
+      n_dot_first = n_dot_last;
     }
-    return outVertices
+    return outVertices;
   }
 
   /**
    * Updates `.worldVertices` and sets `.worldVerticesNeedsUpdate` to false.
    */
-  void computeWorldVertices(position: Vec3, quat: Quaternion) {
-    while (this.worldVertices.length < this.vertices.length) {
-      this.worldVertices.push(Vec3())
+  void computeWorldVertices(Vec3 position, Quaternion quat) {
+    while (worldVertices.length < this.vertices.length) {
+      worldVertices.add(Vec3());
     }
 
-    const verts = this.vertices
-    const worldVerts = this.worldVertices
-    for (let i = 0; i !== this.vertices.length; i++) {
-      quat.vmult(verts[i], worldVerts[i])
-      position.vadd(worldVerts[i], worldVerts[i])
+    final verts = vertices;
+    final worldVerts = worldVertices;
+    for (int i = 0; i != vertices.length; i++) {
+      quat.vmult(verts[i], worldVerts[i]);
+      position.vadd(worldVerts[i], worldVerts[i]);
     }
 
-    this.worldVerticesNeedsUpdate = false
+    this.worldVerticesNeedsUpdate = false;
   }
 
-  void computeLocalAABB(aabbmin: Vec3, aabbmax: Vec3) {
-    const vertices = this.vertices
+  void computeLocalAABB(Vec3 aabbmin, Vec3 aabbmax) {
+    final vertices = this.vertices;
 
-    aabbmin.set(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE)
-    aabbmax.set(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE)
+    aabbmin.set(double.infinity, double.infinity, double.infinity);
+    aabbmax.set(-double.infinity, -double.infinity, -double.infinity);
 
-    for (let i = 0; i < this.vertices.length; i++) {
-      const v = vertices[i]
+    for (int i = 0; i < this.vertices.length; i++) {
+      final v = vertices[i];
       if (v.x < aabbmin.x) {
-        aabbmin.x = v.x
+        aabbmin.x = v.x;
       } else if (v.x > aabbmax.x) {
-        aabbmax.x = v.x
+        aabbmax.x = v.x;
       }
       if (v.y < aabbmin.y) {
-        aabbmin.y = v.y
+        aabbmin.y = v.y;
       } else if (v.y > aabbmax.y) {
-        aabbmax.y = v.y
+        aabbmax.y = v.y;
       }
       if (v.z < aabbmin.z) {
-        aabbmin.z = v.z
+        aabbmin.z = v.z;
       } else if (v.z > aabbmax.z) {
-        aabbmax.z = v.z
+        aabbmax.z = v.z;
       }
     }
   }
@@ -647,94 +640,98 @@ class ConvexPolyhedron extends Shape {
   /**
    * Updates `worldVertices` and sets `worldVerticesNeedsUpdate` to false.
    */
-  void computeWorldFaceNormals(quat: Quaternion) {
-    const N = this.faceNormals.length
-    while (this.worldFaceNormals.length < N) {
-      this.worldFaceNormals.push(Vec3())
+  void computeWorldFaceNormals(Quaternion quat) {
+    final N = faceNormals.length;
+    while (worldFaceNormals.length < N) {
+      worldFaceNormals.add(Vec3());
     }
 
-    const normals = this.faceNormals
-    const worldNormals = this.worldFaceNormals
-    for (let i = 0; i !== N; i++) {
-      quat.vmult(normals[i], worldNormals[i])
+    final normals = faceNormals;
+    final worldNormals = worldFaceNormals;
+    for (int i = 0; i != N; i++) {
+      quat.vmult(normals[i], worldNormals[i]);
     }
 
-    this.worldFaceNormalsNeedsUpdate = false
+    worldFaceNormalsNeedsUpdate = false;
   }
 
   /**
    * updateBoundingSphereRadius
    */
+  @override
   void updateBoundingSphereRadius() {
     // Assume points are distributed with local (0,0,0) as center
-    let max2 = 0
-    const verts = this.vertices
-    for (let i = 0; i !== verts.length; i++) {
-      const norm2 = verts[i].lengthSquared()
+    double max2 = 0;
+    final verts = vertices;
+    for (int i = 0; i != verts.length; i++) {
+      final norm2 = verts[i].lengthSquared();
       if (norm2 > max2) {
-        max2 = norm2
+        max2 = norm2;
       }
     }
-    this.boundingSphereRadius = Math.sqrt(max2)
+    boundingSphereRadius = math.sqrt(max2);
   }
 
   /**
    * calculateWorldAABB
    */
-  void calculateWorldAABB(pos: Vec3, quat: Quaternion, min: Vec3, max: Vec3) {
-    const verts = this.vertices
-    let minx: number | undefined
-    let miny: number | undefined
-    let minz: number | undefined
-    let maxx: number | undefined
-    let maxy: number | undefined
-    let maxz: number | undefined
-    let tempWorldVertex = Vec3()
-    for (let i = 0; i < verts.length; i++) {
-      tempWorldVertex.copy(verts[i])
-      quat.vmult(tempWorldVertex, tempWorldVertex)
-      pos.vadd(tempWorldVertex, tempWorldVertex)
-      const v = tempWorldVertex
-      if (minx === undefined || v.x < minx) {
-        minx = v.x
+  @override
+  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
+    final verts = vertices;
+    double? minx;
+    double? miny;
+    double? minz;
+    double? maxx;
+    double? maxy;
+    double? maxz;
+    Vec3 tempWorldVertex = Vec3();
+    for (int i = 0; i < verts.length; i++) {
+      tempWorldVertex.copy(verts[i]);
+      quat.vmult(tempWorldVertex, tempWorldVertex);
+      pos.vadd(tempWorldVertex, tempWorldVertex);
+      final v = tempWorldVertex;
+      if (minx == null || v.x < minx) {
+        minx = v.x;
       }
 
-      if (maxx === undefined || v.x > maxx) {
-        maxx = v.x
+      if (maxx == null || v.x > maxx) {
+        maxx = v.x;
       }
 
-      if (miny === undefined || v.y < miny) {
-        miny = v.y
+      if (miny == null || v.y < miny) {
+        miny = v.y;
       }
 
-      if (maxy === undefined || v.y > maxy) {
-        maxy = v.y
+      if (maxy == null || v.y > maxy) {
+        maxy = v.y;
       }
 
-      if (minz === undefined || v.z < minz) {
-        minz = v.z
+      if (minz == null || v.z < minz) {
+        minz = v.z;
       }
 
-      if (maxz === undefined || v.z > maxz) {
-        maxz = v.z
+      if (maxz == null || v.z > maxz) {
+        maxz = v.z;
       }
     }
-    min.set(minx!, miny!, minz!)
-    max.set(maxx!, maxy!, maxz!)
+    min.set(minx!, miny!, minz!);
+    max.set(maxx!, maxy!, maxz!);
   }
 
   /**
    * Get approximate convex volume
    */
-  num volume() {
-    return (4.0 * Math.PI * boundingSphereRadius) / 3.0;
+  @override
+  double volume() {
+    return (4.0 * math.pi * boundingSphereRadius) / 3.0;
   }
 
   /**
    * Get an average of all the vertices positions
    */
-  Vec3 getAveragePointLocal([Vec3 target = Vec3()]) {
-    const verts = this.vertices;
+  Vec3 getAveragePointLocal([Vec3? target]) {
+    target ??= Vec3();
+    final verts = this.vertices;
     for (int i = 0; i < verts.length; i++) {
       target.vadd(verts[i], target);
     }
@@ -745,21 +742,21 @@ class ConvexPolyhedron extends Shape {
   /**
    * Transform all local points. Will change the .vertices
    */
-  void transformAllPoints(offset: Vec3, quat: Quaternion) {
-    const n = this.vertices.length
-    const verts = this.vertices
+  void transformAllPoints([Vec3? offset, Quaternion? quat]) {
+    int n = vertices.length;
+    final verts = vertices;
 
     // Apply rotation
-    if (quat) {
+    if (quat != null) {
       // Rotate vertices
-      for (let i = 0; i < n; i++) {
-        const v = verts[i]
-        quat.vmult(v, v)
+      for (int i = 0; i < n; i++) {
+        final v = verts[i];
+        quat.vmult(v, v);
       }
       // Rotate face normals
-      for (let i = 0; i < this.faceNormals.length; i++) {
-        const v = this.faceNormals[i]
-        quat.vmult(v, v)
+      for (int i = 0; i < this.faceNormals.length; i++) {
+        final v = faceNormals[i];
+        quat.vmult(v, v);
       }
       /*
             // Rotate edges
@@ -770,10 +767,10 @@ class ConvexPolyhedron extends Shape {
     }
 
     // Apply offset
-    if (offset) {
-      for (let i = 0; i < n; i++) {
-        const v = verts[i]
-        v.vadd(offset, v)
+    if (offset != null) {
+      for (int i = 0; i < n; i++) {
+        final v = verts[i];
+        v.vadd(offset, v);
       }
     }
   }
@@ -784,34 +781,34 @@ class ConvexPolyhedron extends Shape {
    * of all the vectors from it to those other points are on less than one half of a sphere around it.
    * @param p A point given in local coordinates
    */
-  pointIsInside(p: Vec3): 1 | -1 | false {
-    const verts = this.vertices
-    const faces = this.faces
-    const normals = this.faceNormals
-    const positiveResult = null
-    const pointInside = Vec3()
-    this.getAveragePointLocal(pointInside)
+  bool pointIsInside(Vec3 p){
+    final verts = vertices;
+    final faces = this.faces;
+    final normals = faceNormals;
+    bool? positiveResult = null;
+    final pointInside = Vec3();
+    getAveragePointLocal(pointInside);
 
-    for (let i = 0; i < this.faces.length; i++) {
-      let n = normals[i]
-      const v = verts[faces[i][0]] // We only need one point in the face
+    for (int i = 0; i < this.faces.length; i++) {
+      Vec3 n = normals[i];
+      final v = verts[faces[i][0]]; // We only need one point in the face
 
       // This dot product determines which side of the edge the point is
-      const vToP = Vec3()
-      p.vsub(v, vToP)
-      const r1 = n.dot(vToP)
+      final vToP = Vec3();
+      p.vsub(v, vToP);
+      final r1 = n.dot(vToP);
 
-      const vToPointInside = Vec3()
-      pointInside.vsub(v, vToPointInside)
-      const r2 = n.dot(vToPointInside)
+      final vToPointInside = Vec3();
+      pointInside.vsub(v, vToPointInside);
+      final r2 = n.dot(vToPointInside);
 
       if ((r1 < 0 && r2 > 0) || (r1 > 0 && r2 < 0)) {
-        return false // Encountered some other sign. Exit.
+        return false; // Encountered some other sign. Exit.
       }
     }
 
     // If we got here, all dot products were of the same sign.
-    return positiveResult ? 1 : -1
+    return positiveResult != null ? true : false;
   }
 
   /**
@@ -819,54 +816,52 @@ class ConvexPolyhedron extends Shape {
    * Results are saved in the array maxmin.
    * @param result result[0] and result[1] will be set to maximum and minimum, respectively.
    */
-  static void project(shape: ConvexPolyhedron, axis: Vec3, pos: Vec3, quat: Quaternion, result: number[]) {
-    const n = shape.vertices.length
-    const worldVertex = project_worldVertex
-    const localAxis = project_localAxis
-    let max = 0
-    let min = 0
-    const localOrigin = project_localOrigin
-    const vs = shape.vertices
+  static void project(ConvexPolyhedron shape, Vec3 axis, Vec3 pos, Quaternion quat, List<double> result) {
+    final int n = shape.vertices.length;
+    final worldVertex = project_worldVertex;
+    final localAxis = project_localAxis;
+    double max = 0;
+    double min = 0;
+    final localOrigin = project_localOrigin;
+    final vs = shape.vertices;
 
-    localOrigin.setZero()
+    localOrigin.setZero();
 
     // Transform the axis to local
-    Transform.vectorToLocalFrame(pos, quat, axis, localAxis)
-    Transform.pointToLocalFrame(pos, quat, localOrigin, localOrigin)
-    const add = localOrigin.dot(localAxis)
+    Transform.vectorToLocalFrame(pos, quat, axis, localAxis);
+    Transform.pointToLocalFrame(pos, quat, localOrigin, localOrigin);
+    final add = localOrigin.dot(localAxis);
 
-    min = max = vs[0].dot(localAxis)
+    min = max = vs[0].dot(localAxis);
 
-    for (let i = 1; i < n; i++) {
-      const val = vs[i].dot(localAxis)
-
+    for (int i = 1; i < n; i++) {
+      final val = vs[i].dot(localAxis);
       if (val > max) {
-        max = val
+        max = val;
       }
-
       if (val < min) {
-        min = val
+        min = val;
       }
     }
 
-    min -= add
-    max -= add
+    min -= add;
+    max -= add;
 
     if (min > max) {
       // Inconsistent - swap
-      const temp = min
-      min = max
-      max = temp
+      final temp = min;
+      min = max;
+      max = temp;
     }
     // Output
-    result[0] = max
-    result[1] = min
+    result[0] = max;
+    result[1] = min;
   }
 }
 
-List<num> maxminA = const [];
-List<num> maxminB = const [];
+List<double> maxminA = const [];
+List<double> maxminB = const [];
 
-const project_worldVertex = Vec3();
-const project_localAxis = Vec3();
-const project_localOrigin = Vec3();
+final project_worldVertex = Vec3();
+final project_localAxis = Vec3();
+final project_localOrigin = Vec3();

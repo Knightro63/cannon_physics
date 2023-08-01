@@ -1,94 +1,87 @@
-import { PointToPointConstraint } from '../constraints/PointToPointConstraint'
-import { RotationalEquation } from '../equations/RotationalEquation'
-import { Vec3 } from '../math/Vec3'
-import type { Body } from '../objects/Body'
-import type { RotationalMotorEquation } from '../equations/RotationalMotorEquation'
-
-export type LockConstraintOptions = ConstructorParameters<typeof LockConstraint>[2]
+import '../constraints/point_to_point_constraint.dart';
+import '../equations/rotational_equation.dart';
+import '../math/vec3.dart';
+import '../objects/body.dart';
+import '../equations/rotational_motor_equation.dart';
 
 /**
  * Lock constraint. Will remove all degrees of freedom between the bodies.
  */
-export class LockConstraint extends PointToPointConstraint {
-  xA: Vec3
-  xB: Vec3
-  yA: Vec3
-  yB: Vec3
-  zA: Vec3
-  zB: Vec3
+class LockConstraint extends PointToPointConstraint {
+  late Vec3 xA;
+  late Vec3 xB;
+  late Vec3 yA;
+  late Vec3 yB;
+  late Vec3 zA;
+  late Vec3 zB;
 
-  rotationalEquation1: RotationalEquation
-  rotationalEquation2: RotationalEquation
-  rotationalEquation3: RotationalEquation
-  motorEquation?: RotationalMotorEquation
+  late RotationalEquation rotationalEquation1;
+  late RotationalEquation rotationalEquation2;
+  late RotationalEquation rotationalEquation3;
+  late RotationalMotorEquation? motorEquation;
 
-  constructor(
-    bodyA: Body,
-    bodyB: Body,
-    options: {
-      /**
-       * The maximum force that should be applied to constrain the bodies.
-       * @default 1e6
-       */
-      maxForce?: number
-    } = {}
-  ) {
-    const maxForce = typeof options.maxForce !== 'undefined' ? options.maxForce : 1e6
+  LockConstraint(
+    Body bodyA,
+    Body bodyB,
+    {
+      double maxForce = 1e6
+    }
+  ):super(bodyA, bodyB, Vec3(),Vec3(), maxForce) {
 
-    // Set pivot point in between
-    const pivotA = new Vec3()
-    const pivotB = new Vec3()
-    const halfWay = new Vec3()
-    bodyA.position.vadd(bodyB.position, halfWay)
-    halfWay.scale(0.5, halfWay)
-    bodyB.pointToLocalFrame(halfWay, pivotB)
-    bodyA.pointToLocalFrame(halfWay, pivotA)
+    final halfWay = Vec3();
+    bodyA.position.vadd(bodyB.position, halfWay);
+    halfWay.scale(0.5, halfWay);
+    bodyB.pointToLocalFrame(halfWay, pivotB);
+    bodyA.pointToLocalFrame(halfWay, pivotA);
 
     // The point-to-point constraint will keep a point shared between the bodies
-    super(bodyA, pivotA, bodyB, pivotB, maxForce)
+    
 
     // Store initial rotation of the bodies as unit vectors in the local body spaces
-    this.xA = bodyA.vectorToLocalFrame(Vec3.UNIT_X)
-    this.xB = bodyB.vectorToLocalFrame(Vec3.UNIT_X)
-    this.yA = bodyA.vectorToLocalFrame(Vec3.UNIT_Y)
-    this.yB = bodyB.vectorToLocalFrame(Vec3.UNIT_Y)
-    this.zA = bodyA.vectorToLocalFrame(Vec3.UNIT_Z)
-    this.zB = bodyB.vectorToLocalFrame(Vec3.UNIT_Z)
+    xA = bodyA.vectorToLocalFrame(Vec3.unitX);
+    xB = bodyB.vectorToLocalFrame(Vec3.unitX);
+    yA = bodyA.vectorToLocalFrame(Vec3.unitY);
+    yB = bodyB.vectorToLocalFrame(Vec3.unitY);
+    zA = bodyA.vectorToLocalFrame(Vec3.unitZ);
+    zB = bodyB.vectorToLocalFrame(Vec3.unitZ);
 
     // ...and the following rotational equations will keep all rotational DOF's in place
-    const r1 = (this.rotationalEquation1 = new RotationalEquation(bodyA, bodyB, options))
-    const r2 = (this.rotationalEquation2 = new RotationalEquation(bodyA, bodyB, options))
-    const r3 = (this.rotationalEquation3 = new RotationalEquation(bodyA, bodyB, options))
+    rotationalEquation1 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    final r1 = rotationalEquation1;
+    rotationalEquation2 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    final r2 = rotationalEquation2;
+    rotationalEquation3 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    final r3 = rotationalEquation3;
 
-    this.equations.push(r1, r2, r3)
+    equations.add(r1);
+    equations.add(r2);
+    equations.add(r3);
   }
 
   /**
    * update
    */
-  update(): void {
-    const bodyA = this.bodyA
-    const bodyB = this.bodyB
-    const motor = this.motorEquation
-    const r1 = this.rotationalEquation1
-    const r2 = this.rotationalEquation2
-    const r3 = this.rotationalEquation3
-    const worldAxisA = LockConstraint_update_tmpVec1
-    const worldAxisB = LockConstraint_update_tmpVec2
+  @override
+  void update(){
+    final bodyA = this.bodyA;
+    final bodyB = this.bodyB;
+    final r1 = rotationalEquation1;
+    final r2 = rotationalEquation2;
+    final r3 = rotationalEquation3;
 
-    super.update()
+    super.update();
 
     // These vector pairs must be orthogonal
-    bodyA.vectorToWorldFrame(this.xA, r1.axisA)
-    bodyB.vectorToWorldFrame(this.yB, r1.axisB)
+    bodyA.vectorToWorldFrame(xA, r1.axisA);
+    bodyB.vectorToWorldFrame(yB, r1.axisB);
 
-    bodyA.vectorToWorldFrame(this.yA, r2.axisA)
-    bodyB.vectorToWorldFrame(this.zB, r2.axisB)
+    bodyA.vectorToWorldFrame(yA, r2.axisA);
+    bodyB.vectorToWorldFrame(zB, r2.axisB);
 
-    bodyA.vectorToWorldFrame(this.zA, r3.axisA)
-    bodyB.vectorToWorldFrame(this.xB, r3.axisB)
+    bodyA.vectorToWorldFrame(zA, r3.axisA);
+    bodyB.vectorToWorldFrame(xB, r3.axisB);
   }
 }
 
-const LockConstraint_update_tmpVec1 = new Vec3()
-const LockConstraint_update_tmpVec2 = new Vec3()
+final LockConstraint_update_tmpVec1 = Vec3();
+final LockConstraint_update_tmpVec2 = Vec3();

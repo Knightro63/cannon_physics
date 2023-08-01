@@ -13,11 +13,11 @@ class ConeTwistConstraint extends PointToPointConstraint {
   /**
    * The axis direction for the constraint of the body A.
    */
-  Vec3 axisA;
+  late Vec3 axisA;
   /**
    * The axis direction for the constraint of the body B.
    */
-  Vec3 axisB;
+  late Vec3 axisB;
   /**
    * The aperture angle of the cone.
    */
@@ -26,8 +26,8 @@ class ConeTwistConstraint extends PointToPointConstraint {
    * The twist angle of the joint.
    */
   double twistAngle;
-  ConeEquation coneEquation;
-  RotationalEquation twistEquation;
+  late ConeEquation coneEquation;
+  late RotationalEquation twistEquation;
 
   ConeTwistConstraint(
     Body bodyA,
@@ -40,15 +40,15 @@ class ConeTwistConstraint extends PointToPointConstraint {
       /**
        * The pivot point for bodyB.
        */
-      Vec3? pivotB?,
+      Vec3? pivotB,
       /**
        * The axis direction for the constraint of the body A.
        */
-      Vec3? axisA?,
+      Vec3? axisA,
       /**
        * The axis direction for the constraint of the body B.
        */
-      Vec3? axisB?,
+      Vec3? axisB,
       /**
        * The aperture angle of the cone.
        * @default 0
@@ -70,54 +70,55 @@ class ConeTwistConstraint extends PointToPointConstraint {
        */
       bool collideConnected = false
     }
-  ) {
+  ):super(bodyA, bodyB,pivotA, pivotB, maxForce){
 
     // Set pivot point in between
-    const pivotA = options.pivotA ? options.pivotA.clone() :Vec3()
-    const pivotB = options.pivotB ? options.pivotB.clone() :Vec3()
+    this.pivotA = pivotA?.clone() ?? Vec3();
+    this.pivotB = pivotB?.clone() ?? Vec3();
 
-    super(bodyA, pivotA, bodyB, pivotB, maxForce)
+    this.axisA = axisA?.clone() ?? Vec3();
+    this.axisB = axisB?.clone() ?? Vec3();
 
-    this.axisA = options.axisA ? options.axisA.clone() :Vec3()
-    this.axisB = options.axisB ? options.axisB.clone() :Vec3()
-
-    const c = (this.coneEquation =ConeEquation(bodyA, bodyB, options))
-    const t = (this.twistEquation =RotationalEquation(bodyA, bodyB, options))
+    coneEquation = ConeEquation(bodyA, bodyB, maxForce: maxForce, angle: angle, axisA: this.axisA, axisB: this.axisB);
+    final c = coneEquation;
+    twistEquation = RotationalEquation(bodyA, bodyB, maxForce: maxForce, axisA: this.axisA, axisB: this.axisB);
+    final t = twistEquation;
 
     // Make the cone equation push the bodies toward the cone axis, not outward
-    c.maxForce = 0
-    c.minForce = -maxForce
+    c.maxForce = 0;
+    c.minForce = -maxForce;
 
     // Make the twist equation add torque toward the initial position
-    t.maxForce = 0
-    t.minForce = -maxForce
+    t.maxForce = 0;
+    t.minForce = -maxForce;
 
-    this.equations.push(c, t)
+    equations.add(c);
+    equations.add(t);
   }
-
+  @override
   void update() {
-    const bodyA = this.bodyA;
-    const bodyB = this.bodyB;
-    const cone = this.coneEquation;
-    const twist = this.twistEquation;
+    final bodyA = this.bodyA;
+    final bodyB = this.bodyB;
+    final cone = coneEquation;
+    final twist = twistEquation;
 
     super.update();
 
     // Update the axes to the cone constraint
-    bodyA.vectorToWorldFrame(this.axisA, cone.axisA);
-    bodyB.vectorToWorldFrame(this.axisB, cone.axisB);
+    bodyA.vectorToWorldFrame(axisA, cone.axisA);
+    bodyB.vectorToWorldFrame(axisB, cone.axisB);
 
     // Update the world axes in the twist constraint
-    this.axisA.tangents(twist.axisA, twist.axisA);
+    axisA.tangents(twist.axisA, twist.axisA);
     bodyA.vectorToWorldFrame(twist.axisA, twist.axisA);
 
-    this.axisB.tangents(twist.axisB, twist.axisB);
+    axisB.tangents(twist.axisB, twist.axisB);
     bodyB.vectorToWorldFrame(twist.axisB, twist.axisB);
 
-    cone.angle = this.angle;
-    twist.maxAngle = this.twistAngle;
+    cone.angle = angle;
+    twist.maxAngle = twistAngle;
   }
 }
 
-const ConeTwistConstraint_update_tmpVec1 =Vec3();
-const ConeTwistConstraint_update_tmpVec2 =Vec3();
+final ConeTwistConstraint_update_tmpVec1 =Vec3();
+final ConeTwistConstraint_update_tmpVec2 =Vec3();

@@ -2,21 +2,19 @@
  * Base class for objects that dispatches events.
  */
 class EventTarget {
-  Map<String,List<Function>>? _listeners;//private _listeners: Record<string, Function[]> | null;
+  Map<String,Function>? _listeners;//private _listeners: Record<string, Function[]> | null;
 
   /**
    * Add an event listener
    * @return The self object, for chainability.
    */
-  EventTarget addEventListener(String type, void Function() listener) {
-    if (_listeners == null) {
-      _listeners = {};
-    }
+  EventTarget addEventListener(String type, Function listener) {
+    _listeners ??= {};
     final listeners = _listeners;
     if (listeners?[type] == null) {
       listeners![type] = [];
     }
-    if (!listeners![type].contains(listener)) {
+    if (!listeners![type]!.contains(listener)) {
       listeners[type] = listener;
     }
     return this;
@@ -30,7 +28,7 @@ class EventTarget {
       return false;
     }
     final listeners = _listeners;
-    if (listeners[type] != null && listeners[type].contains(listener)) {
+    if (listeners![type] != null && listeners[type].contains(listener)) {
       return true;
     }
     return false;
@@ -40,7 +38,7 @@ class EventTarget {
    * Check if any event listener of the given type is added
    */
   bool hasAnyEventListener(String type){
-    if (this._listeners == null) {
+    if (_listeners == null) {
       return false;
     }
     final listeners = _listeners;
@@ -51,7 +49,7 @@ class EventTarget {
    * Remove an event listener
    * @return The self object, for chainability.
    */
-  EventTarget removeEventListener(String type, void Function() listener){
+  EventTarget removeEventListener(String type, Function listener){
     if (_listeners == null) {
       return this;
     }

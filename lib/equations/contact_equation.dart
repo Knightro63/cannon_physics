@@ -6,7 +6,11 @@ import '../objects/body.dart';
  * Contact/non-penetration constraint equation
  */
 class ContactEquation extends Equation {
-  ContactEquation(Body bodyA, Body bodyB, [double maxForce = 1e6]):super(bodyA, bodyB, 0, maxForce);
+  ContactEquation(
+    Body bodyA, 
+    Body bodyB, 
+    [double maxForce = 1e6]
+  ):super(bodyA, bodyB, 0, maxForce);
 
   /**
    * "bounciness": u1 = -e*u0
@@ -35,27 +39,24 @@ class ContactEquation extends Equation {
   final ContactEquation_getImpactVelocityAlongNormal_xj = Vec3();
   final ContactEquation_getImpactVelocityAlongNormal_relVel = Vec3();
 
-  double computeB(num h) {
-    const a = this.a;
-    const b = this.b;
-    const bi = this.bi;
-    const bj = this.bj;
-    const ri = this.ri;
-    const rj = this.rj;
-    const rixn = ContactEquation_computeB_temp1;
-    const rjxn = ContactEquation_computeB_temp2;
-    const vi = bi.velocity;
-    const wi = bi.angularVelocity;
-    const fi = bi.force;
-    const taui = bi.torque;
-    const vj = bj.velocity;
-    const wj = bj.angularVelocity;
-    const fj = bj.force;
-    const tauj = bj.torque;
-    const penetrationVec = ContactEquation_computeB_temp3;
-    const GA = this.jacobianElementA;
-    const GB = this.jacobianElementB;
-    const n = this.ni;
+  @override
+  double computeB(double h) {
+    final a = this.a;
+    final b = this.b;
+    final bi = this.bi;
+    final bj = this.bj;
+    final ri = this.ri;
+    final rj = this.rj;
+    final rixn = ContactEquation_computeB_temp1;
+    final rjxn = ContactEquation_computeB_temp2;
+    final vi = bi.velocity;
+    final wi = bi.angularVelocity;
+    final vj = bj.velocity;
+    final wj = bj.angularVelocity;
+    final penetrationVec = ContactEquation_computeB_temp3;
+    final GA = jacobianElementA;
+    final GB = jacobianElementB;
+    final n = ni;
 
     // Caluclate cross products
     ri.cross(n, rixn);
@@ -74,12 +75,12 @@ class ContactEquation extends Equation {
     penetrationVec.vsub(bi.position, penetrationVec);
     penetrationVec.vsub(ri, penetrationVec);
 
-    const g = n.dot(penetrationVec);
+    final g = n.dot(penetrationVec);
 
     // Compute iteration
-    const ePlusOne = this.restitution + 1;
-    const GW = ePlusOne * vj.dot(n) - ePlusOne * vi.dot(n) + wj.dot(rjxn) - wi.dot(rixn);
-    const GiMf = this.computeGiMf();
+    final ePlusOne = restitution + 1;
+    final GW = ePlusOne * vj.dot(n) - ePlusOne * vi.dot(n) + wj.dot(rjxn) - wi.dot(rixn);
+    final GiMf = computeGiMf();
 
     return (-g * a - GW * b - h * GiMf);
 
@@ -89,11 +90,11 @@ class ContactEquation extends Equation {
    * Get the current relative velocity in the contact point.
    */
   double getImpactVelocityAlongNormal(){
-    const vi = ContactEquation_getImpactVelocityAlongNormal_vi;
-    const vj = ContactEquation_getImpactVelocityAlongNormal_vj;
-    const xi = ContactEquation_getImpactVelocityAlongNormal_xi;
-    const xj = ContactEquation_getImpactVelocityAlongNormal_xj;
-    const relVel = ContactEquation_getImpactVelocityAlongNormal_relVel;
+    final vi = ContactEquation_getImpactVelocityAlongNormal_vi;
+    final vj = ContactEquation_getImpactVelocityAlongNormal_vj;
+    final xi = ContactEquation_getImpactVelocityAlongNormal_xi;
+    final xj = ContactEquation_getImpactVelocityAlongNormal_xj;
+    final relVel = ContactEquation_getImpactVelocityAlongNormal_relVel;
 
     bi.position.vadd(ri, xi);
     bj.position.vadd(rj, xj);

@@ -1,7 +1,7 @@
 import '../solver/solver.dart';
 import '../objects/body.dart';
 import '../equations/equation.dart';
-import '../world/world.dart';
+import '../world/world.dart' hide Body;
 import './gs_solver.dart';
 
 //type SplitSolverNode = { body: Body | null; children: SplitSolverNode[]; eqs: Equation[]; visited: boolean }

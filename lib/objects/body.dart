@@ -440,9 +440,8 @@ void updateSolveMassProperties(){
   /**
    * Convert a world vector to local body frame.
    */
-  Vec3 vectorToLocalFrame(Vec3 worldVector, Vec3 result){
-    quaternion.conjugate().vmult(worldVector, result);
-    return result;
+  Vec3 vectorToLocalFrame(Vec3 worldVector,[Vec3? result]){
+    return quaternion.conjugate().vmult(worldVector, result);
   }
 
   /**
@@ -457,9 +456,8 @@ void updateSolveMassProperties(){
   /**
    * Convert a local body point to world frame.
    */
-  Vec3 vectorToWorldFrame(Vec3 localVector, Vec3 result){
-    quaternion.vmult(localVector, result);
-    return result;
+  Vec3 vectorToWorldFrame(Vec3 localVector, [Vec3? result]){
+    return quaternion.vmult(localVector, result);
   }
 
   /**

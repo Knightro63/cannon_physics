@@ -1,6 +1,7 @@
-import { ConvexPolyhedron } from '../shapes/ConvexPolyhedron'
-import { Vec3 } from '../math/Vec3'
-import { Shape } from './Shape'
+import 'dart:math' as math;
+import '../shapes/convex_polyhedron.dart';
+import '../math/vec3.dart';
+import './shape.dart';
 
 /**
  * Cylinder class.
@@ -13,15 +14,15 @@ import { Shape } from './Shape'
  *     const cylinderBody = new CANNON.Body({ mass: 1, shape: cylinderShape })
  *     world.addBody(cylinderBody)
  */
-export class Cylinder extends ConvexPolyhedron {
+class Cylinder extends ConvexPolyhedron {
   /** The radius of the top of the Cylinder. */
-  radiusTop: number
+  double radiusTop;
   /** The radius of the bottom of the Cylinder. */
-  radiusBottom: number
+  double radiusBottom;
   /** The height of the Cylinder. */
-  height: number
+  double height;
   /** The number of segments to build the cylinder out of. */
-  numSegments: number
+  int numSegments;
 
   /**
    * @param radiusTop The radius of the top of the Cylinder.
@@ -29,70 +30,63 @@ export class Cylinder extends ConvexPolyhedron {
    * @param height The height of the Cylinder.
    * @param numSegments The number of segments to build the cylinder out of.
    */
-  constructor(radiusTop: number = 1, radiusBottom: number = 1, height: number = 1, numSegments: number = 8) {
+  Cylinder({this.radiusTop = 1, this.radiusBottom = 1, this.height = 1, this.numSegments = 8}):super() {
     if (radiusTop < 0) {
-      throw new Error('The cylinder radiusTop cannot be negative.')
+      throw('The cylinder radiusTop cannot be negative.');
     }
 
     if (radiusBottom < 0) {
-      throw new Error('The cylinder radiusBottom cannot be negative.')
+      throw('The cylinder radiusBottom cannot be negative.');
     }
 
-    const N = numSegments
-    const vertices = []
-    const axes = []
-    const faces = []
-    const bottomface = []
-    const topface = []
-    const cos = Math.cos
-    const sin = Math.sin
+    final int N = numSegments;
+    final List<int> bottomface = [];
+    final topface = [];
 
     // First bottom point
-    vertices.push(new Vec3(-radiusBottom * sin(0), -height * 0.5, radiusBottom * cos(0)))
-    bottomface.push(0)
+    vertices.add(Vec3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
+    bottomface.add(0);
 
     // First top point
-    vertices.push(new Vec3(-radiusTop * sin(0), height * 0.5, radiusTop * cos(0)))
-    topface.push(1)
+    vertices.add(Vec3(-radiusTop * math.sin(0), height * 0.5, radiusTop * math.cos(0)));
+    topface.add(1);
 
-    for (let i = 0; i < N; i++) {
-      const theta = ((2 * Math.PI) / N) * (i + 1)
-      const thetaN = ((2 * Math.PI) / N) * (i + 0.5)
+    for (int i = 0; i < N; i++) {
+      final theta = ((2 * math.pi) / N) * (i + 1);
+      final thetaN = ((2 * math.pi) / N) * (i + 0.5);
       if (i < N - 1) {
         // Bottom
-        vertices.push(new Vec3(-radiusBottom * sin(theta), -height * 0.5, radiusBottom * cos(theta)))
-        bottomface.push(2 * i + 2)
+        vertices.add(Vec3(-radiusBottom * math.sin(theta), -height * 0.5, radiusBottom * math.cos(theta)));
+        bottomface.add(2 * i + 2);
         // Top
-        vertices.push(new Vec3(-radiusTop * sin(theta), height * 0.5, radiusTop * cos(theta)))
-        topface.push(2 * i + 3)
+        vertices.add(Vec3(-radiusTop * math.sin(theta), height * 0.5, radiusTop * math.cos(theta)));
+        topface.add(2 * i + 3);
 
         // Face
-        faces.push([2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2])
+        faces.add([2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2]);
       } else {
-        faces.push([2 * i, 2 * i + 1, 1, 0]) // Connect
+        faces.add([2 * i, 2 * i + 1, 1, 0]); // Connect
       }
 
       // Axis: we can cut off half of them if we have even number of segments
-      if (N % 2 === 1 || i < N / 2) {
-        axes.push(new Vec3(-sin(thetaN), 0, cos(thetaN)))
+      if (N % 2 == 1 || i < N / 2) {
+        axes.add(Vec3(-math.sin(thetaN), 0, math.cos(thetaN)));
       }
     }
-    faces.push(bottomface)
-    axes.push(new Vec3(0, 1, 0))
+    faces.add(bottomface);
+    axes.add(Vec3(0, 1, 0));
 
     // Reorder top face
-    const temp = []
-    for (let i = 0; i < topface.length; i++) {
-      temp.push(topface[topface.length - i - 1])
+    final List<int> temp = [];
+    for (int i = 0; i < topface.length; i++) {
+      temp.add(topface[topface.length - i - 1]);
     }
-    faces.push(temp)
+    faces.add(temp);
 
-    super({ vertices, faces, axes })
-
-    this.type = Shape.types.CYLINDER
-    this.radiusTop = radiusTop
-    this.radiusBottom = radiusBottom
-    this.height = height
-    this.numSegments = numSegments
+    this.type = ShapeType.cylinder;
+    this.radiusTop = radiusTop;
+    this.radiusBottom = radiusBottom;
+    this.height = height;
+    this.numSegments = numSegments;
   }
 }

@@ -1,41 +1,32 @@
-import { Equation } from '../equations/Equation'
-import { Vec3 } from '../math/Vec3'
-import type { Body } from '../objects/Body'
+import '../equations/equation.dart';
+import '../math/vec3.dart';
+import '../objects/body.dart';
 
 /**
  * Rotational motor constraint. Tries to keep the relative angular velocity of the bodies to a given value.
  */
-export class RotationalMotorEquation extends Equation {
+class RotationalMotorEquation extends Equation {
   /**
    * World oriented rotational axis.
    */
-  axisA: Vec3
+  Vec3 axisA = Vec3();
   /**
    * World oriented rotational axis.
    */
-  axisB: Vec3
+  Vec3 axisB = Vec3();
   /**
    * Motor velocity.
    */
-  targetVelocity: number
+  double targetVelocity = 0;
 
-  constructor(bodyA: Body, bodyB: Body, maxForce = 1e6) {
-    super(bodyA, bodyB, -maxForce, maxForce)
-
-    this.axisA = new Vec3()
-    this.axisB = new Vec3()
-    this.targetVelocity = 0
-  }
-
-  computeB(h: number): number {
-    const a = this.a
-    const b = this.b
-    const bi = this.bi
-    const bj = this.bj
-    const axisA = this.axisA
-    const axisB = this.axisB
-    const GA = this.jacobianElementA
-    const GB = this.jacobianElementB
+  RotationalMotorEquation(Body bodyA, Body bodyB, [double maxForce = 1e6]):super(bodyA, bodyB, -maxForce, maxForce);
+  @override
+  double computeB(double h){
+    final b = this.b;
+    final axisA = this.axisA;
+    final axisB = this.axisB;
+    final GA = jacobianElementA;
+    final GB = jacobianElementB;
 
     // g = 0
     // gdot = axisA * wi - axisB * wj
@@ -43,14 +34,14 @@ export class RotationalMotorEquation extends Equation {
     // =>
     // G = [0 axisA 0 -axisB]
 
-    GA.rotational.copy(axisA)
-    axisB.negate(GB.rotational)
+    GA.rotational.copy(axisA);
+    axisB.negate(GB.rotational);
 
-    const GW = this.computeGW() - this.targetVelocity
-    const GiMf = this.computeGiMf()
+    final GW = computeGW() - targetVelocity;
+    final GiMf = computeGiMf();
 
-    const B = -GW * b - h * GiMf
+    final B = -GW * b - h * GiMf;
 
-    return B
+    return B;
   }
 }

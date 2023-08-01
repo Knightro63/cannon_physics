@@ -33,9 +33,9 @@ class Box extends Shape {
    * Updates the local convex polyhedron representation used for some collisions.
    */
   void updateConvexPolyhedronRepresentation(){
-    num sx = halfExtents.x;
-    num sy = this.halfExtents.y;
-    num sz = this.halfExtents.z;
+    double sx = halfExtents.x;
+    double sy = this.halfExtents.y;
+    double sz = this.halfExtents.z;
 
     List<Vec3> vertices = [
       Vec3(-sx, -sy, -sz),
@@ -59,7 +59,7 @@ class Box extends Shape {
 
     final List<Vec3> axes = [Vec3(0, 0, 1), Vec3(0, 1, 0), Vec3(1, 0, 0)];
 
-    final ConvexPolyhedron h = ConvexPolyhedron(vertices, faces, axes );
+    final ConvexPolyhedron h = ConvexPolyhedron(vertices:vertices, faces:faces, axes:axes );
     this.convexPolyhedronRepresentation = h;
     h.material = this.material;
   }
@@ -107,13 +107,15 @@ class Box extends Shape {
   /**
    * Returns the volume of the box.
    */
-  num volume() {
+  @override
+  double volume() {
     return 8.0 * halfExtents.x * halfExtents.y * halfExtents.z;
   }
 
   /**
    * updateBoundingSphereRadius
    */
+  @override
   void updateBoundingSphereRadius() {
     boundingSphereRadius = halfExtents.length();
   }
@@ -123,7 +125,7 @@ class Box extends Shape {
    */
   void forEachWorldCorner(Vec3 pos, Quaternion quat, void Function(num x, num y, num z) callback) {
     final Vec3 e = halfExtents;
-    final List<List<num>> corners = [
+    final List<List<double>> corners = [
       [e.x, e.y, e.z],
       [-e.x, e.y, e.z],
       [-e.x, -e.y, e.z],
@@ -164,9 +166,9 @@ class Box extends Shape {
       final Vec3 wc = worldCornersTemp[i];
       quat.vmult(wc, wc);
       pos.vadd(wc, wc);
-      num x = wc.x;
-      num y = wc.y;
-      num z = wc.z;
+      double x = wc.x;
+      double y = wc.y;
+      double z = wc.z;
       if (x > max.x) {
         max.x = x;
       }

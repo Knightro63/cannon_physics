@@ -23,15 +23,15 @@ class PointToPointConstraint extends Constraint {
   /**
    * Pivot, defined locally in bodyA.
    */
-  Vec3 pivotA;
+  late Vec3 pivotA;
   /**
    * Pivot, defined locally in bodyB.
    */
-  Vec3 pivotB;
+  late Vec3 pivotB;
 
-  ContactEquation equationX;
-  ContactEquation equationY;
-  ContactEquation equationZ;
+  late ContactEquation equationX;
+  late ContactEquation equationY;
+  late ContactEquation equationZ;
 
   /**
    * @param pivotA The point relative to the center of mass of bodyA which bodyA is constrained to.
@@ -41,17 +41,26 @@ class PointToPointConstraint extends Constraint {
    */
   PointToPointConstraint(
     Body bodyA,
-    this.pivotA,
     Body bodyB,
-    this.pivotB,
-    double maxForce = 1e6
+    [
+      Vec3? pivotA,
+      Vec3? pivotB,
+      double maxForce = 1e6
+    ]
   ):super(bodyA, bodyB) {
-    const x = (this.equationX = ContactEquation(bodyA, bodyB));
-    const y = (this.equationY = ContactEquation(bodyA, bodyB));
-    const z = (this.equationZ = ContactEquation(bodyA, bodyB));
+    this.pivotA = pivotA ?? Vec3();
+    this.pivotB = pivotB ?? Vec3();
+    equationX = ContactEquation(bodyA, bodyB);
+    final x = equationX;
+    equationY = ContactEquation(bodyA, bodyB);
+    final y = equationY;
+    equationZ = ContactEquation(bodyA, bodyB);
+    final z = equationZ;
 
     // Equations to be fed to the solver
-    this.equations.push(x, y, z);
+    equations.add(x);
+    equations.add(y);
+    equations.add(z);
 
     // Make the equations bidirectional
     x.minForce = y.minForce = z.minForce = -maxForce;
@@ -61,17 +70,17 @@ class PointToPointConstraint extends Constraint {
     y.ni.set(0, 1, 0);
     z.ni.set(0, 0, 1);
   }
-
+  @override
   void update() {
-    const bodyA = this.bodyA;
-    const bodyB = this.bodyB;
-    const x = this.equationX;
-    const y = this.equationY;
-    const z = this.equationZ;
+    final bodyA = this.bodyA;
+    final bodyB = this.bodyB;
+    final x = equationX;
+    final y = equationY;
+    final z = equationZ;
 
     // Rotate the pivots to world space
-    bodyA.quaternion.vmult(this.pivotA, x.ri);
-    bodyB.quaternion.vmult(this.pivotB, x.rj);
+    bodyA.quaternion.vmult(pivotA, x.ri);
+    bodyB.quaternion.vmult(pivotB, x.rj);
 
     y.ri.copy(x.ri);
     y.rj.copy(x.rj);
