@@ -3,27 +3,16 @@ import '../math/quaternion.dart';
 import '../objects/body.dart';
 import '../material/material.dart';
 
-/**
- * The available shape types.
- */
+/// The available shape types.
 enum ShapeType{
-  /** SPHERE */
   sphere,
-  /** PLANE */
   plane,
-  /** BOX */
   box,
-  /** COMPOUND */
   compound,
-  /** CONVEXPOLYHEDRON */
   convexpolyhedron,
-  /** HEIGHTFIELD */
   heightfield,
-  /** PARTICLE */
   particle,
-  /** CYLINDER */
   cylinder,
-  /** TRIMESH */
   trimesh,
 }
 
@@ -34,49 +23,27 @@ enum ShapeType{
 
 //export type ShapeOptions = ConstructorParameters<typeof Shape>[0]
 
-/**
- * Base class for shapes
- */
+/// Base class for shapes
 class Shape {
-  /**
-   * Identifier of the Shape.
-   */
+  /// Identifier of the Shape.
   late int id;
 
-  /**
-   * The type of this shape. Must be set to an int > 0 by subclasses.
-   */
+  ///The type of this shape. Must be set to an int > 0 by subclasses.
   ShapeType type = ShapeType.sphere;
 
-  /**
-   * The local bounding sphere radius of this shape.
-   */
+  /// The local bounding sphere radius of this shape.
   double boundingSphereRadius;
 
-  /**
-   * Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled.
-   * @default true
-   */
+  /// Whether to produce contact forces when in contact with other bodies. Note that contacts will be generated, but they will be disabled.
   bool collisionResponse;
 
-  /**
-   * @default 1
-   */
   int collisionFilterGroup;
-
-  /**
-   * @default -1
-   */
   int collisionFilterMask;
 
-  /**
-   * Optional material of the shape that regulates contact properties.
-   */
+  /// Optional material of the shape that regulates contact properties.
   Material? material;
 
-  /**
-   * The body to which the shape is added to.
-   */
+  /// The body to which the shape is added to.
   Body? body;
 
   static int idCounter = 0;
@@ -108,36 +75,28 @@ class Shape {
     this.material,
     this.body
   }) {
-    this.id = Shape.idCounter++;
+    id = Shape.idCounter++;
   }
 
-  /**
-   * Computes the bounding sphere radius.
-   * The result is stored in the property `.boundingSphereRadius`
-   */
+  /// Computes the bounding sphere radius.
+  /// The result is stored in the property `.boundingSphereRadius`
   void updateBoundingSphereRadius() {
-    throw'computeBoundingSphereRadius() not implemented for shape type ${this.type}';
+    throw'computeBoundingSphereRadius() not implemented for shape type $type';
   }
 
-  /**
-   * Get the volume of this shape
-   */
+  /// Get the volume of this shape
   double volume() {
-    throw 'volume() not implemented for shape type ${this.type}';
+    throw 'volume() not implemented for shape type $type';
   }
 
-  /**
-   * Calculates the inertia in the local frame for this shape.
-   * @see http://en.wikipedia.org/wiki/List_of_moments_of_inertia
-   */
+  /// Calculates the inertia in the local frame for this shape.
+  /// @see http://en.wikipedia.org/wiki/List_of_moments_of_inertia
   void calculateLocalInertia(double mass, Vec3 target) {
-    throw 'calculateLocalInertia() not implemented for shape type ${this.type}';
+    throw 'calculateLocalInertia() not implemented for shape type $type';
   }
 
-  /**
-   * @todo use abstract for these kind of methods
-   */
+  /// @todo use abstract for these kind of methods
   void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
-    throw'calculateWorldAABB() not implemented for shape type ${this.type}';
+    throw'calculateWorldAABB() not implemented for shape type $type';
   }
 }

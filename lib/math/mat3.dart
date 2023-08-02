@@ -1,23 +1,20 @@
 import 'vec3.dart';
 import 'quaternion.dart';
 
-final reverse_eqns = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-/**
- * A 3x3 matrix.
- * Authored by {@link http://github.com/schteppe/ schteppe}
- */
+
+
+/// A 3x3 matrix.
+/// Authored by {@link http://github.com/schteppe/ schteppe}
 class Mat3 {
   Mat3([this.elements = const [0, 0, 0, 0, 0, 0, 0, 0, 0]]);
-  /**
-   * A vector of length 9, containing all matrix elements.
-   */
+
+  final _reverseEqns = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  /// A vector of length 9, containing all matrix elements.
   List<double> elements;
 
-  /**
-   * Sets the matrix to identity
-   * @todo Should perhaps be renamed to `setIdentity()` to be more clear.
-   * @todo Create another function that immediately creates an identity matrix eg. `eye()`
-   */
+  /// Sets the matrix to identity
+  /// @todo Should perhaps be renamed to `setIdentity()` to be more clear.
+  /// @todo Create another function that immediately creates an identity matrix eg. `eye()`
   void identity(){
     final e = elements;
     e[0] = 1;
@@ -33,9 +30,7 @@ class Mat3 {
     e[8] = 1;
   }
 
-  /**
-   * Set all elements to zero
-   */
+  /// et all elements to zero
   void setZero(){
     final e = elements;
     e[0] = 0;
@@ -49,9 +44,7 @@ class Mat3 {
     e[8] = 0;
   }
 
-  /**
-   * Sets the matrix diagonal elements from a Vec3
-   */
+  /// Sets the matrix diagonal elements from a Vec3
   void setTrace(Vec3 vector){
     final e = elements;
     e[0] = vector.x;
@@ -59,9 +52,7 @@ class Mat3 {
     e[8] = vector.z;
   }
 
-  /**
-   * Gets the matrix diagonal elements
-   */
+  /// Gets the matrix diagonal elements
   Vec3 getTrace([Vec3? target]) {
     target ??= Vec3();
     final e = elements;
@@ -71,11 +62,9 @@ class Mat3 {
     return target;
   }
 
-  /**
-   * Matrix-Vector multiplication
-   * @param v The vector to multiply with
-   * @param target Optional, target to save the result in.
-   */
+  /// Matrix-Vector multiplication
+  /// @param v The vector to multiply with
+  /// @param target Optional, target to save the result in.
   Vec3 vmult(Vec3 v, Vec3? target){
     target ??= Vec3();
     final e = elements;
@@ -89,19 +78,15 @@ class Mat3 {
     return target;
   }
 
-  /**
-   * Matrix-scalar multiplication
-   */
+  /// Matrix-scalar multiplication
   void smult(double s) {
     for (int i = 0; i < elements.length; i++) {
       elements[i] *= s;
     }
   }
 
-  /**
-   * Matrix multiplication
-   * @param matrix Matrix to multiply with from left side.
-   */
+  /// Matrix multiplication
+  /// @param matrix Matrix to multiply with from left side.
   Mat3 mmult(Mat3 matrix, [Mat3? target]) {
     target ??= Mat3();
     final A = elements;
@@ -143,9 +128,7 @@ class Mat3 {
     return target;
   }
 
-  /**
-   * Scale each column of the matrix
-   */
+  /// Scale each column of the matrix
   Mat3 scale(Vec3 vector,[Mat3? target]) {
     target ??= Mat3();
     final e = elements;
@@ -158,18 +141,16 @@ class Mat3 {
     return target;
   }
 
-  /**
-   * Solve Ax=b
-   * @param b The right hand side
-   * @param target Optional. Target vector to save in.
-   * @return The solution x
-   * @todo should reuse arrays
-   */
+  /// Solve Ax=b
+  /// @param b The right hand side
+  /// @param target Optional. Target vector to save in.
+  /// @return The solution x
+  /// @todo should reuse arrays
   Vec3 solve(Vec3 b,[ Vec3? target]) {
     target ??= Vec3();
     // finalruct equations
-    final nr = 3; // num rows
-    final nc = 4; // num cols
+    const nr = 3; // num rows
+    const nc = 4; // num cols
     final eqns = [];
     int i;
     int j;
@@ -232,16 +213,14 @@ class Mat3 {
       target.y == double.infinity ||
       target.z == double.infinity
     ) {
-      throw('Could not solve equation! Got x=[${target.toString()}], b=[${b.toString()}], A=[${this.toString()}]');
+      throw('Could not solve equation! Got x=[${target.toString()}], b=[${b.toString()}], A=[${toString()}]');
     }
 
     return target;
   }
 
-  /**
-   * Get an element in the matrix by index. Index starts at 0, not 1!!!
-   * @param value If provided, the matrix element will be set to this value.
-   */
+  /// Get an element in the matrix by index. Index starts at 0, not 1!!!
+  /// @param value If provided, the matrix element will be set to this value.
   double? e(int row, int column, [double? value]){
     if (value == null) {
       return elements[column + 3 * row];
@@ -252,9 +231,7 @@ class Mat3 {
     }
   }
 
-  /**
-   * Copy another matrix into this matrix object.
-   */
+  /// Copy another matrix into this matrix object.
   Mat3 copy(Mat3 matrix) {
     for (int i = 0; i < matrix.elements.length; i++) {
       elements[i] = matrix.elements[i];
@@ -262,9 +239,7 @@ class Mat3 {
     return this;
   }
 
-  /**
-   * Returns a string representation of the matrix.
-   */
+  /// Returns a string representation of the matrix.
   @override
   String toString() {
     String r = '';
@@ -275,17 +250,15 @@ class Mat3 {
     return r;
   }
 
-  /**
-   * reverse the matrix
-   * @param target Target matrix to save in.
-   * @return The solution x
-   */
+  /// reverse the matrix
+  /// @param target Target matrix to save in.
+  /// @return The solution x
   Mat3 reverse([Mat3? target]) {
     target ??= Mat3();
     // finalruct equations
     const nr = 3; // num rows
     const nc = 6; // num cols
-    List<num> eqns = reverse_eqns;
+    List<num> eqns = _reverseEqns;
     int i;
     int j;
     for (i = 0; i < 3; i++) {
@@ -361,7 +334,7 @@ class Mat3 {
       for (j= 2; j > 0;j--) {
         p = eqns[nr + j + nc * i];
         if (p.isNaN || p == double.infinity) {
-          throw ('Could not reverse! A=[${this.toString()}]');
+          throw ('Could not reverse! A=[${toString()}]');
         }
         target.e(i, j, p.toDouble());
       } 
@@ -370,9 +343,7 @@ class Mat3 {
     return target;
   }
 
-  /**
-   * Set the matrix from a quaterion
-   */
+  /// Set the matrix from a quaterion
   Mat3 setRotationFromQuaternion(Quaternion q){
     final x = q.x;
     final y = q.y;
@@ -407,11 +378,9 @@ class Mat3 {
     return this;
   }
 
-  /**
-   * Transpose the matrix
-   * @param target Optional. Where to store the result.
-   * @return The target Mat3, or a new Mat3 if target was omitted.
-   */
+  /// Transpose the matrix
+  /// @param target Optional. Where to store the result.
+  /// @return The target Mat3, or a new Mat3 if target was omitted.
   Mat3 transpose([Mat3? target]) {
     target ??= Mat3();
     final M = elements;

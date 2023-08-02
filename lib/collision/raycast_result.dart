@@ -2,54 +2,39 @@ import '../math/vec3.dart';
 import '../objects/body.dart';
 import  '../shapes/shape.dart';
 
-/**
- * Storage for Ray casting data
- */
+/// Storage for Ray casting data
 class RaycastResult {
-  /**
-   * rayFromWorld
-   */
+  /// rayFromWorld
   Vec3 rayFromWorld = Vec3();
-  /**
-   * rayToWorld
-   */
+
+  /// rayToWorld
   Vec3 rayToWorld = Vec3();
-  /**
-   * hitNormalWorld
-   */
+
+  /// hitNormalWorld
   Vec3 hitNormalWorld = Vec3();
-  /**
-   * hitPointWorld
-   */
+
+  /// hitPointWorld
   Vec3 hitPointWorld = Vec3();
-  /**
-   * hasHit
-   */
+
+  /// hasHit
   bool hasHit = false;
-  /**
-   * shape
-   */
+
+  /// shape
   Shape? shape;
-  /**
-   * body
-   */
+
+  /// body
   Body? body;
-  /**
-   * The index of the hit triangle, if the hit shape was a trimesh
-   */
+  
+  /// The index of the hit triangle, if the hit shape was a trimesh
   int hitFaceIndex = -1;
-  /**
-   * Distance to the hit. Will be set to -1 if there was no hit
-   */
+
+  /// Distance to the hit. Will be set to -1 if there was no hit
   double distance = -1;
-  /**
-   * If the ray should stop traversing the bodies
-   */
+
+  /// If the ray should stop traversing the bodies
   bool shouldStop = false;
 
-  /**
-   * Reset all result data.
-   */
+  /// Reset all result data.
   void reset() {
     rayFromWorld.setZero();
     rayToWorld.setZero();
@@ -63,16 +48,12 @@ class RaycastResult {
     shouldStop = false;
   }
 
-  /**
-   * abort
-   */
+  /// abort
   void abort() {
     shouldStop = true;
   }
 
-  /**
-   * Set result data.
-   */
+  /// Set result data.
   void set(
     Vec3 rayFromWorld,
     Vec3 rayToWorld,

@@ -3,6 +3,7 @@ import '../math/transform.dart';
 import '../collision/raycast_result.dart';
 import '../objects/body.dart';
 
+final chassisVelocityAtContactPoint = Vec3();
 
 class WheelRaycastResult extends RaycastResult{
   WheelRaycastResult():super();
@@ -12,177 +13,56 @@ class WheelRaycastResult extends RaycastResult{
   double groundObject = 0;
 }
 
-/**
- * WheelInfo
- */
+/// WheelInfo
 class WheelInfo {
-  /**
-   * Max travel distance of the suspension, in meters.
-   * @default 1
-   */
+  /// Max travel distance of the suspension, in meters.
   double maxSuspensionTravel;
-  /**
-   * Speed to apply to the wheel rotation when the wheel is sliding.
-   * @default -0.1
-   */
+  /// Speed to apply to the wheel rotation when the wheel is sliding.
   double customSlidingRotationalSpeed;
-  /**
-   * If the customSlidingRotationalSpeed should be used.
-   * @default false
-   */
+  /// If the customSlidingRotationalSpeed should be used.
   bool useCustomSlidingRotationalSpeed;
-  /**
-   * sliding
-   */
   bool sliding = false;
-  /**
-   * Connection point, defined locally in the chassis body frame.
-   */
+
+  /// Connection point, defined locally in the chassis body frame.
   late Vec3 chassisConnectionPointLocal;
-  /**
-   * chassisConnectionPointWorld
-   */
+
   late Vec3 chassisConnectionPointWorld; 
-  /**
-   * directionLocal
-   */
   late Vec3 directionLocal;
-  /**
-   * directionWorld
-   */
   late Vec3 directionWorld;
-  /**
-   * axleLocal
-   */
   late Vec3 axleLocal;
-  /**
-   * axleWorld
-   */
   late Vec3 axleWorld;
-  /**
-   * suspensionRestLength
-   * @default 1
-   */
+
   double suspensionRestLength;
-  /**
-   * suspensionMaxLength
-   * @default 2
-   */
   double suspensionMaxLength;
-  /**
-   * radius
-   * @default 1
-   */
   double radius;
-  /**
-   * suspensionStiffness
-   * @default 100
-   */
   double suspensionStiffness;
-  /**
-   * dampingCompression
-   * @default 10
-   */
   double dampingCompression;
-  /**
-   * dampingRelaxation
-   * @default 10
-   */
   double dampingRelaxation;
-  /**
-   * frictionSlip
-   * @default 10.5
-   */
   double frictionSlip;
-  /** forwardAcceleration */
   double forwardAcceleration;
-  /** sideAcceleration */
   double sideAcceleration;
-  /**
-   * steering
-   * @default 0
-   */
   double steering;
-  /**
-   * Rotation value, in radians.
-   * @default 0
-   */
+
+  /// Rotation value, in radians.
   double rotation;
-  /**
-   * deltaRotation
-   * @default 0
-   */
   double deltaRotation;
-  /**
-   * rollInfluence
-   * @default 0.01
-   */
   double rollInfluence;
-  /**
-   * maxSuspensionForce
-   */
   double maxSuspensionForce;
-  /**
-   * engineForce
-   */
   double engineForce = 0;
-  /**
-   * brake
-   */
   double brake = 0;
-  /**
-   * isFrontWheel
-   * @default true
-   */
   bool isFrontWheel;
-  /**
-   * clippedInvContactDotSuspension
-   * @default 1
-   */
   double clippedInvContactDotSuspension;
-  /**
-   * suspensionRelativeVelocity
-   * @default 0
-   */
   double suspensionRelativeVelocity;
-  /**
-   * suspensionForce
-   * @default 0
-   */
   double suspensionForce;
-  /**
-   * slipInfo
-   */
   double slipInfo;
-  /**
-   * skidInfo
-   * @default 0
-   */
   double skidInfo;
-  /**
-   * suspensionLength
-   * @default 0
-   */
   double suspensionLength;
-  /**
-   * sideImpulse
-   */
   double sideImpulse = 0;
-  /**
-   * forwardImpulse
-   */
   double forwardImpulse = 0;
-  /**
-   * The result from raycasting.
-   */
+  /// The result from raycasting.
   WheelRaycastResult raycastResult = WheelRaycastResult();
-  /**
-   * Wheel world transform.
-   */
+  /// Wheel world transform.
   Transform worldTransform = Transform();
-  /**
-   * isInContact
-   */
   bool isInContact = false;
 
   WheelInfo({
@@ -225,14 +105,18 @@ class WheelInfo {
     this.axleWorld = axleWorld?.clone() ?? Vec3();
   }
 
+
+  
+  final _relpos = Vec3();
+
   void updateWheel(Body chassis) {
     final raycastResult = this.raycastResult;
 
     if (isInContact) {
       final project = raycastResult.hitNormalWorld.dot(raycastResult.directionWorld!);
-      raycastResult.hitPointWorld.vsub(chassis.position, relpos);
-      chassis.getVelocityAtWorldPoint(relpos, chassis_velocity_at_contactPoint);
-      final projVel = raycastResult.hitNormalWorld.dot(chassis_velocity_at_contactPoint);
+      raycastResult.hitPointWorld.vsub(chassis.position, _relpos);
+      chassis.getVelocityAtWorldPoint(_relpos, chassisVelocityAtContactPoint);
+      final projVel = raycastResult.hitNormalWorld.dot(chassisVelocityAtContactPoint);
       if (project >= -0.1) {
         suspensionRelativeVelocity = 0.0;
         clippedInvContactDotSuspension = 1.0 / 0.1;
@@ -250,6 +134,3 @@ class WheelInfo {
     }
   }
 }
-
-final chassis_velocity_at_contactPoint = Vec3();
-final relpos = Vec3();

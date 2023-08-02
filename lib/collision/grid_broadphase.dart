@@ -5,53 +5,37 @@ import '../shapes/shape.dart';
 import '../objects/body.dart';
 import '../shapes/sphere.dart';
 import '../shapes/plane.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 
 /**
  * Axis aligned uniform grid broadphase.
  * @todo Needs support for more than just planes and spheres.
  */
 class GridBroadphase extends Broadphase {
-  /**
-   * Number of boxes along x
-   */
+  /// Number of boxes along x
   int nx;
 
-  /**
-   * Number of boxes along y
-   */
+  /// Number of boxes along y
   int ny;
 
-  /**
-   * Number of boxes along z
-   */
+  /// Number of boxes along z
   int nz;
 
-  /**
-   * aabbMin
-   */
+  /// aabbMin
   late Vec3 aabbMin;
 
-  /**
-   * aabbMax
-   */
+  /// aabbMax
   late Vec3 aabbMax;
 
-  /**
-   * bins
-   */
+  /// bins
   List<List<Body>> bins = [];
 
-  /**
-   * binLengths
-   */
+  /// binLengths
   List<int> binLengths = [];
 
-  /**
-   * @param nx Number of boxes along x.
-   * @param ny Number of boxes along y.
-   * @param nz Number of boxes along z.
-   */
+  /// [nx] Number of boxes along x.
+  /// [ny] Number of boxes along y.
+  /// [nz] Number of boxes along z.
   GridBroadphase([
     Vec3? aabbMin,// = Vec3(100, 100, 100), 
     Vec3? aabbMax,// = Vec3(-100, -100, -100), 
@@ -73,9 +57,10 @@ class GridBroadphase extends Broadphase {
     }
   }
 
-  /**
-   * Get all the collision pairs in the physics world
-   */
+  final _gridBroadphaseCollisionPairsD = Vec3();
+  //final _gridBroadphaseCollisionPairsBinPos = Vec3();
+
+  /// Get all the collision pairs in the physics world
   @override
   void collisionPairs(World world, List<Body> pairs1, List<Body> pairs2) {
     final N = world.bodies.length;
@@ -106,10 +91,10 @@ class GridBroadphase extends Broadphase {
     final binRadius = math.sqrt(binsizeX * binsizeX + binsizeY * binsizeY + binsizeZ * binsizeZ) * 0.5;
     final bins = this.bins;
     final binLengths = this.binLengths;
-    final Nbins = this.bins.length;
+    final nBins = this.bins.length;
 
     // Reset bins
-    for (int i = 0; i != Nbins; i++) {
+    for (int i = 0; i != nBins; i++) {
       binLengths[i] = 0;
     }
 
@@ -202,7 +187,7 @@ class GridBroadphase extends Broadphase {
           final yreset = ymin + binsizeY * 0.5 - bi.position.y;
           final zreset = zmin + binsizeZ * 0.5 - bi.position.z;
 
-          final d = GridBroadphase_collisionPairs_d;
+          final d = _gridBroadphaseCollisionPairsD;
           d.set(xreset, yreset, zreset);
 
           for (int xi = 0, xoff = 0; xi != nx; xi++, xoff += xstep, d.y = yreset, d.x += binsizeX) {
@@ -237,7 +222,7 @@ class GridBroadphase extends Broadphase {
     }
 
     // Check each bin
-    for (int i = 0; i != Nbins; i++) {
+    for (int i = 0; i != nBins; i++) {
       final binLength = binLengths[i];
       //Skip bins with no potential collisions
       if (binLength > 1) {
@@ -271,6 +256,3 @@ class GridBroadphase extends Broadphase {
     makePairsUnique(pairs1, pairs2);
   }
 }
-
-final GridBroadphase_collisionPairs_d = Vec3();
-final GridBroadphase_collisionPairs_binPos = Vec3();

@@ -1,43 +1,29 @@
 import '../equations/equation.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 
-/**
- * Constraint equation solver base class.
- */
+/// Constraint equation solver base class.
 class Solver {
-  /**
-   * All equations to be solved
-   */
+  /// All equations to be solved
   List<Equation> equations;
 
-  /**
-   * @todo remove useless constructor
-   */
+  /// @todo remove useless constructor
   Solver({
     this.equations = const []
   });
 
-  /**
-   * Should be implemented in subclasses!
-   * @todo use abstract
-   * @return number of iterations performed
-   */
+  /// Should be implemented in subclasses!
+  /// @todo use abstract
+  /// @return number of iterations performed
   int solve(double dt, World world){
     return 0;
   }
 
-  /**
-   * Add an equation
-   */
   void addEquation(Equation eq) {
     if (eq.enabled && !eq.bi.isTrigger && !eq.bj.isTrigger) {
       equations.add(eq);
     }
   }
 
-  /**
-   * Remove an equation
-   */
   void removeEquation(Equation eq) {
     final eqs = equations;
     int i = eqs.indexOf(eq);
@@ -45,10 +31,7 @@ class Solver {
       eqs.removeAt(i);
     }
   }
-
-  /**
-   * Add all equations
-   */
+  
   void removeAllEquations() {
     equations.length = 0;
   }

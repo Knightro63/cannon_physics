@@ -4,17 +4,12 @@ import '../constraints/point_to_point_constraint.dart';
 import '../equations/rotational_equation.dart';
 import '../equations/rotational_motor_equation.dart';
 
-/**
- * Hinge constraint. Think of it as a door hinge. It tries to keep the door in the correct place and with the correct orientation.
- */
+/// Hinge constraint. Think of it as a door hinge. It tries to keep the door in the correct place and with the correct orientation.
 class HingeConstraint extends PointToPointConstraint {
-  /**
-   * Rotation axis, defined locally in bodyA.
-   */
+  /// Rotation axis, defined locally in bodyA.
   late Vec3 axisA;
-  /**
-   * Rotation axis, defined locally in bodyB.
-   */
+
+  /// Rotation axis, defined locally in bodyB.
   late Vec3 axisB;
 
   late RotationalEquation rotationalEquation1;
@@ -55,38 +50,31 @@ class HingeConstraint extends PointToPointConstraint {
     equations.add(motor);
   }
 
-  /**
-   * enableMotor
-   */
+  final _hingeConstraintUpdateTmpVec1 = Vec3();
+  final _hingeConstraintUpdateTmpVec2 = Vec3();
+
+  /// enableMotor
   void enableMotor() {
     motorEquation.enabled = true;
   }
 
-  /**
-   * disableMotor
-   */
+  /// disableMotor
   void disableMotor() {
     motorEquation.enabled = false;
   }
 
-  /**
-   * setMotorSpeed
-   */
+  /// setMotorSpeed
   void setMotorSpeed(double speed) {
     motorEquation.targetVelocity = speed;
   }
 
-  /**
-   * setMotorMaxForce
-   */
+  /// setMotorMaxForce
   void setMotorMaxForce(double maxForce) {
     motorEquation.maxForce = maxForce;
     motorEquation.minForce = -maxForce;
   }
 
-  /**
-   * update
-   */
+  /// update
   @override
   void update() {
     final bodyA = this.bodyA;
@@ -94,8 +82,8 @@ class HingeConstraint extends PointToPointConstraint {
     final motor = motorEquation;
     final r1 = rotationalEquation1;
     final r2 = rotationalEquation2;
-    final worldAxisA = HingeConstraint_update_tmpVec1;
-    final worldAxisB = HingeConstraint_update_tmpVec2;
+    final worldAxisA = _hingeConstraintUpdateTmpVec1;
+    final worldAxisB = _hingeConstraintUpdateTmpVec2;
 
     final axisA = this.axisA;
     final axisB = this.axisB;
@@ -116,6 +104,3 @@ class HingeConstraint extends PointToPointConstraint {
     }
   }
 }
-
-final HingeConstraint_update_tmpVec1 = Vec3();
-final HingeConstraint_update_tmpVec2 = Vec3();

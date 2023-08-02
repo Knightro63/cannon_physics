@@ -4,32 +4,20 @@ import '../objects/body.dart';
 import '../shapes/sphere.dart';
 import '../shapes/box.dart';
 import '../constraints/hinge_constraint.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 
-/**
- * Simple vehicle helper class with spherical rigid body wheels.
- */
+/// Simple vehicle helper class with spherical rigid body wheels.
 class RigidVehicle {
-  /**
-   * The bodies of the wheels.
-   */
+  /// The bodies of the wheels.
   List<Body> wheelBodies = [];
   late Vec3 coordinateSystem;
-  /**
-   * The chassis body.
-   */
+  /// The chassis body.
   late Body chassisBody;
-  /**
-   * The constraints.
-   */
+  /// The constraints.
   List<HingeConstraint> constraints = [];//: (HingeConstraint & { motorTargetVelocity?: number })[];
-  /**
-   * The wheel axes.
-   */
+  /// The wheel axes.
   List<Vec3> wheelAxes = [];
-  /**
-   * The wheel forces.
-   */
+  /// The wheel forces.
   List<double> wheelForces = [];
 
   RigidVehicle({
@@ -40,9 +28,10 @@ class RigidVehicle {
     this.chassisBody = chassisBody ?? Body(mass: 1, shape: Box(Vec3(5, 0.5, 2)));
   }
 
-  /**
-   * Add a wheel
-   */
+  final _torque = Vec3();
+  final _worldAxis = Vec3();
+
+  /// Add a wheel
   int addWheel({
     Body? body,
     Vec3? position,
@@ -80,10 +69,8 @@ class RigidVehicle {
     return wheelBodies.length - 1;
   }
 
-  /**
-   * Set the steering value of a wheel.
-   * @todo check coordinateSystem
-   */
+  /// Set the steering value of a wheel.
+  /// @todo check coordinateSystem
   void setSteeringValue(double value, int wheelIndex) {
     // Set angle of the hinge axis
     final axis = wheelAxes[wheelIndex];
@@ -95,46 +82,36 @@ class RigidVehicle {
     constraints[wheelIndex].axisA.set(-c * x + s * z, 0, s * x + c * z);
   }
 
-  /**
-   * Set the target rotational speed of the hinge constraint.
-   */
+  /// Set the target rotational speed of the hinge constraint.
   void setMotorSpeed(double value, int wheelIndex) {
     final hingeConstraint = constraints[wheelIndex];
     hingeConstraint.enableMotor();
     hingeConstraint.motorTargetVelocity = value;
   }
 
-  /**
-   * Set the target rotational speed of the hinge constraint.
-   */
+  /// Set the target rotational speed of the hinge constraint.
   void disableMotor(int wheelIndex) {
     final hingeConstraint = constraints[wheelIndex];
     hingeConstraint.disableMotor();
   }
 
-  /**
-   * Set the wheel force to apply on one of the wheels each time step
-   */
+  /// Set the wheel force to apply on one of the wheels each time step
   void setWheelForce(double value, int wheelIndex) {
     wheelForces[wheelIndex] = value;
   }
 
-  /**
-   * Apply a torque on one of the wheels.
-   */
+  /// Apply a torque on one of the wheels.
   void applyWheelForce(double value, int wheelIndex) {
     final axis = wheelAxes[wheelIndex];
     final wheelBody = wheelBodies[wheelIndex];
     final bodyTorque = wheelBody.torque;
 
-    axis.scale(value, torque);
-    wheelBody.vectorToWorldFrame(torque, torque);
-    bodyTorque.vadd(torque, bodyTorque);
+    axis.scale(value, _torque);
+    wheelBody.vectorToWorldFrame(_torque, _torque);
+    bodyTorque.vadd(_torque, bodyTorque);
   }
 
-  /**
-   * Add the vehicle including its constraints to the world.
-   */
+  /// Add the vehicle including its constraints to the world.
   void addToWorld(World world) {
     final constraints = this.constraints;
      wheelBodies.addAll([chassisBody]);
@@ -158,9 +135,7 @@ class RigidVehicle {
     }
   }
 
-  /**
-   * Remove the vehicle including its constraints from the world.
-   */
+  /// Remove the vehicle including its constraints from the world.
   void removeFromWorld(World world) {
     final constraints = this.constraints;
     wheelBodies.addAll([chassisBody]);
@@ -175,17 +150,12 @@ class RigidVehicle {
     }
   }
 
-  /**
-   * Get current rotational velocity of a wheel
-   */
+  /// Get current rotational velocity of a wheel
   double getWheelSpeed(int wheelIndex){
     final axis = wheelAxes[wheelIndex];
     final wheelBody = wheelBodies[wheelIndex];
     final w = wheelBody.angularVelocity;
-    chassisBody.vectorToWorldFrame(axis, worldAxis);
-    return w.dot(worldAxis);
+    chassisBody.vectorToWorldFrame(axis, _worldAxis);
+    return w.dot(_worldAxis);
   }
 }
-
-final torque = Vec3();
-final worldAxis = Vec3();

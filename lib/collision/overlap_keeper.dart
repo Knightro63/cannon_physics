@@ -2,9 +2,7 @@ class OverlapKeeper {
   List<int> current = [];
   List<int> previous = [];
 
-  /**
-   * getKey
-   */
+  /// getKey
   int getKey(int i, int j) {
     if (j < i) {
       final temp = j;
@@ -14,9 +12,7 @@ class OverlapKeeper {
     return (i << 16) | j;
   }
 
-  /**
-   * set
-   */
+  /// set
   void set(int i,int j){
     // Insertion sort. This way the diff will have linear complexity.
     final key = getKey(i, j);
@@ -34,9 +30,7 @@ class OverlapKeeper {
     current[index] = key;
   }
 
-  /**
-   * tick
-   */
+  /// tick
   void tick() {
     final tmp = current;
     current = previous;
@@ -44,9 +38,7 @@ class OverlapKeeper {
     current.length = 0;
   }
 
-  /**
-   * getDiff
-   */
+  /// getDiff
   void getDiff(List<int> additions, List<int> removals) {
     final a = current;
     final b = previous;
@@ -63,7 +55,7 @@ class OverlapKeeper {
       found = keyA == b[j];
 
       if (!found) {
-        unpackAndPush(additions, keyA);
+        _unpackAndPush(additions, keyA);
       }
     }
     j = 0;
@@ -76,13 +68,12 @@ class OverlapKeeper {
       found = a[j] == keyB;
 
       if (!found) {
-        unpackAndPush(removals, keyB);
+        _unpackAndPush(removals, keyB);
       }
     }
   }
-}
-
-void unpackAndPush(List<int> array, int key) {
-  array.add((key & 0xffff0000) >> 16);
-  array.add(key & 0x0000ffff);
+  void _unpackAndPush(List<int> array, int key) {
+    array.add((key & 0xffff0000) >> 16);
+    array.add(key & 0x0000ffff);
+  }
 }

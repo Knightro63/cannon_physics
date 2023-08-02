@@ -3,39 +3,31 @@ import '../math/vec3.dart';
 import '../shapes/convex_polyhedron.dart';
 import '../math/quaternion.dart';
 
-/**
- * A 3d box shape.
- * @example
- *     const size = 1
- *     const halfExtents = CANNON.Vec3(size, size, size)
- *     const boxShape = CANNON.Box(halfExtents)
- *     const boxBody = CANNON.Body({ mass: 1, shape: boxShape })
- *     world.addBody(boxBody)
- */
+/// A 3d box shape.
+/// @example
+///     const size = 1
+///     const halfExtents = CANNON.Vec3(size, size, size)
+///     const boxShape = CANNON.Box(halfExtents)
+///     const boxBody = CANNON.Body({ mass: 1, shape: boxShape })
+///     world.addBody(boxBody)
 class Box extends Shape {
-  /**
-   * The half extents of the box.
-   */
+  /// The half extents of the box.
   Vec3 halfExtents;
 
-  /**
-   * Used by the contact generator to make contacts with other convex polyhedra for example.
-   */
+  /// Used by the contact generator to make contacts with other convex polyhedra for example.
   ConvexPolyhedron? convexPolyhedronRepresentation;
 
   Box(this.halfExtents):super(type: ShapeType.box){
     //this.convexPolyhedronRepresentation = null as unknown as ConvexPolyhedron;
-    this.updateConvexPolyhedronRepresentation();
-    this.updateBoundingSphereRadius();
+    updateConvexPolyhedronRepresentation();
+    updateBoundingSphereRadius();
   }
 
-  /**
-   * Updates the local convex polyhedron representation used for some collisions.
-   */
+  /// Updates the local convex polyhedron representation used for some collisions.
   void updateConvexPolyhedronRepresentation(){
     double sx = halfExtents.x;
-    double sy = this.halfExtents.y;
-    double sz = this.halfExtents.z;
+    double sy = halfExtents.y;
+    double sz = halfExtents.z;
 
     List<Vec3> vertices = [
       Vec3(-sx, -sy, -sz),
@@ -60,16 +52,15 @@ class Box extends Shape {
     final List<Vec3> axes = [Vec3(0, 0, 1), Vec3(0, 1, 0), Vec3(1, 0, 0)];
 
     final ConvexPolyhedron h = ConvexPolyhedron(vertices:vertices, faces:faces, axes:axes );
-    this.convexPolyhedronRepresentation = h;
-    h.material = this.material;
+    convexPolyhedronRepresentation = h;
+    h.material = material;
   }
 
-  /**
-   * Calculate the inertia of the box.
-   */
+  /// Calculate the inertia of the box.
+  @override
   Vec3 calculateLocalInertia(num mass,[ Vec3? target]){
     target ??= Vec3();
-    calculateInertia(this.halfExtents, mass, target);
+    calculateInertia(halfExtents, mass, target);
     return target;
   }
 
@@ -80,11 +71,9 @@ class Box extends Shape {
     target.z = (1.0 / 12.0) * mass * (2 * e.y * 2 * e.y + 2 * e.x * 2 * e.x);
   }
 
-  /**
-   * Get the box 6 side normals
-   * @param sixTargetVectors An array of 6 vectors, to store the resulting side normals in.
-   * @param quat Orientation to apply to the normal vectors. If not provided, the vectors will be in respect to the local frame.
-   */
+  /// Get the box 6 side normals
+  /// @param sixTargetVectors An array of 6 vectors, to store the resulting side normals in.
+  /// @param quat Orientation to apply to the normal vectors. If not provided, the vectors will be in respect to the local frame.
   List<Vec3> getSideNormals(List<Vec3> sixTargetVectors, [Quaternion? quat ]){
     final List<Vec3>  sides = sixTargetVectors;
     final Vec3 ex = halfExtents;
@@ -104,25 +93,17 @@ class Box extends Shape {
     return sides;
   }
 
-  /**
-   * Returns the volume of the box.
-   */
+  /// Returns the volume of the box.
   @override
   double volume() {
     return 8.0 * halfExtents.x * halfExtents.y * halfExtents.z;
   }
 
-  /**
-   * updateBoundingSphereRadius
-   */
   @override
   void updateBoundingSphereRadius() {
     boundingSphereRadius = halfExtents.length();
   }
 
-  /**
-   * forEachWorldCorner
-   */
   void forEachWorldCorner(Vec3 pos, Quaternion quat, void Function(num x, num y, num z) callback) {
     final Vec3 e = halfExtents;
     final List<List<double>> corners = [
@@ -143,9 +124,7 @@ class Box extends Shape {
     }
   }
 
-  /**
-   * calculateWorldAABB
-   */
+  @override
   void calculateWorldAABB(Vec3 pos, Quaternion quat,Vec3 min, Vec3 max) {
     final Vec3 e = halfExtents;
     worldCornersTemp[0].set(e.x, e.y, e.z);

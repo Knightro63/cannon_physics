@@ -12,118 +12,76 @@ import '../shapes/plane.dart';
 import '../shapes/heightfield.dart';
 import '../shapes/convex_polyhedron.dart';
 import '../shapes/trimesh.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 
-/**
- * RAY_MODES
- */
+/// RAY_MODES
 enum RayMode{closest,any,all}
 
 typedef RaycastCallback = void Function(RaycastResult result);
 
-/**
- * RayOptions
- */
+/// RayOptions
 class RayOptions{
-  /**
-   * from
-   */
   Vec3? from;
-  /**
-   * to
-   */
   Vec3? to;
-  /**
-   * mode
-   */
   RayMode? mode;
-  /**
-   * result
-   */
   RaycastResult? result;
-  /**
-   * If set to `true`, the ray skips any hits with normal.dot(rayDirection) < 0.
-   * @default false
-   */
   bool? skipBackfaces;
-  /**
-   * collisionFilterMask
-   * @default -1
-   */
   int? collisionFilterMask;
-  /**
-   * collisionFilterGroup
-   * @default -1
-   */
   int? collisionFilterGroup;
-  /**
-   * Set to `false` if you don't want the Ray to take `collisionResponse` flags into account on bodies and shapes.
-   * @default true
-   */
   bool? checkCollisionResponse;
-  /**
-   * callback
-   */
   RaycastCallback? callback;
 }
 
-/**
- * A line in 3D space that intersects bodies and return points.
- */
+class ConvexOptions{
+  ConvexOptions({
+    required this.faceList
+});
+
+  List<int> faceList;
+}
+
+final _v0 = Vec3();
+final _intersect = Vec3();
+final _v1 = Vec3();
+final _v2 = Vec3();
+
+/// A line in 3D space that intersects bodies and return points.
 class Ray {
-  /**
-   * from
-   */
   late Vec3 from;
-  /**
-   * to
-   */
   late Vec3 to;
-  /**
-   * direction
-   */
   Vec3 direction = Vec3();
-  /**
-   * The precision of the ray. Used when checking parallelity etc.
-   * @default 0.0001
-   */
+  
+  /// The precision of the ray. Used when checking parallelity etc.
+  /// [default] 0.0001
   double precision = 0.0001;
-  /**
-   * Set to `false` if you don't want the Ray to take `collisionResponse` flags into account on bodies and shapes.
-   * @default true
-   */
+
+  /// Set to `false` if you don't want the Ray to take `collisionResponse` flags into account on bodies and shapes.
+  /// @default true
   bool checkCollisionResponse = true;
-  /**
-   * If set to `true`, the ray skips any hits with normal.dot(rayDirection) < 0.
-   * @default false
-   */
+
+  /// If set to `true`, the ray skips any hits with normal.dot(rayDirection) < 0.
+  /// @default false
   bool skipBackfaces = false;
-  /**
-   * collisionFilterMask
-   * @default -1
-   */
+
+  /// collisionFilterMask
+  /// @default -1
   int collisionFilterMask = -1;
-  /**
-   * collisionFilterGroup
-   * @default -1
-   */
+
+  /// collisionFilterGroup
+  /// @default -1
   int collisionFilterGroup = -1;
-  /**
-   * The intersection mode. Should be Ray.ANY, Ray.ALL or Ray.CLOSEST.
-   * @default RAY.ANY
-   */
+  
+  /// The intersection mode. Should be any,all, closest.
+  /// @default RayMode.any
   RayMode mode = RayMode.any;
-  /**
-   * Current result object.
-   */
+
+  /// Current result object.
   RaycastResult result = RaycastResult();
-  /**
-   * Will be set to `true` during intersectWorld() if the ray hit anything.
-   */
+
+  /// Will be set to `true` during intersectWorld() if the ray hit anything.
   bool hasHit = false;
-  /**
-   * User-provided result callback. Will be used if mode is Ray.ALL.
-   */
+
+  /// User-provided result callback. Will be used if mode is Ray.ALL.
   late RaycastCallback callback;
 
   //void operator []=(int addr, int value) => puts(addr,Uint8List.fromList([value]));
@@ -160,10 +118,47 @@ class Ray {
     callback = (result){};
   }
 
-  /**
-   * Do itersection against all bodies in the given World.
-   * @return True if the ray hit anything, otherwise false.
-   */
+  final _tmpAABB = AABB();
+  final List<Body> _tmpArray = [];
+
+  final _intersectBodyXi = Vec3();
+  final _intersectBodyQi = Quaternion();
+  final _intersectPoint = Vec3();
+
+  final a = Vec3();
+  final b = Vec3();
+  final c = Vec3();
+  final d = Vec3();
+
+  //final _tmpRaycastResult = RaycastResult();
+  final ConvexOptions _intersectConvexOptions = ConvexOptions(
+    faceList: [0],
+  );
+  final worldPillarOffset = Vec3();
+  final _intersectHeightfieldLocalRay = Ray();
+  final List<int> _intersectHeightfieldIndex = [];
+  //final _intersectHeightfieldMinMax = [];
+
+  final _rayIntersectSphereIntersectionPoint = Vec3();
+  final _rayIntersectSphereNormal = Vec3();
+
+  final _intersectConvexNormal = Vec3();
+  //final _intersectConvexMinDistNormal = Vec3();
+  //final _intersectConvexMinDistIntersect = Vec3();
+  final _intersectConvexVector = Vec3();
+
+  final _intersectTrimeshNormal = Vec3();
+  final _intersectTrimeshLocalDirection = Vec3();
+  final _intersectTrimeshLocalFrom = Vec3();
+  final _intersectTrimeshLocalTo = Vec3();
+  final _intersectTrimeshWorldNormal = Vec3();
+  final _intersectTrimeshWorldIntersectPoint = Vec3();
+  //final _intersectTrimeshLocalAABB = AABB();
+  final List<int> _intersectTrimeshTriangles = [];
+  final _intersectTrimeshTreeTransform = Transform();
+
+  /// Do itersection against all bodies in the given World.
+  /// @return True if the ray hit anything, otherwise false.
   bool intersectWorld(World world, RayOptions options) {
     mode = options.mode ?? RayMode.any;
     result = options.result ?? RaycastResult();
@@ -185,18 +180,16 @@ class Ray {
     result.reset();
     _updateDirection();
 
-    getAABB(tmpAABB);
-    tmpArray.length = 0;
-    world.broadphase.aabbQuery(world, tmpAABB, tmpArray);
-    intersectBodies(tmpArray);
+    getAABB(_tmpAABB);
+    _tmpArray.length = 0;
+    world.broadphase.aabbQuery(world, _tmpAABB, _tmpArray);
+    intersectBodies(_tmpArray);
 
     return hasHit;
   }
 
-  /**
-   * Shoot a ray at a body, get back information about the hit.
-   * @deprecated @param result set the result property of the Ray instead.
-   */
+  /// Shoot a ray at a body, get back information about the hit.
+  /// @deprecated @param result set the result property of the Ray instead.
   void intersectBody(Body body, [RaycastResult? result]) {
     if (result != null) {
       this.result = result;
@@ -210,13 +203,13 @@ class Ray {
 
     if (
       (collisionFilterGroup & body.collisionFilterMask) == 0 ||
-      (body.collisionFilterGroup & this.collisionFilterMask) == 0
+      (body.collisionFilterGroup & collisionFilterMask) == 0
     ) {
       return;
     }
 
-    final xi = intersectBody_xi;
-    final qi = intersectBody_qi;
+    final xi = _intersectBodyXi;
+    final qi = _intersectBodyQi;
 
     for (int i = 0, N = body.shapes.length; i < N; i++) {
       final shape = body.shapes[i];
@@ -237,12 +230,9 @@ class Ray {
     }
   }
 
-  /**
-   * Shoot a ray at an array bodies, get back information about the hit.
-   * @param bodies An array of Body objects.
-   * @deprecated @param result set the result property of the Ray instead.
-   *
-   */
+  /// Shoot a ray at an array bodies, get back information about the hit.
+  /// @param bodies An array of Body objects.
+  /// @deprecated @param result set the result property of the Ray instead.
   void intersectBodies(List<Body> bodies, [RaycastResult? result]) {
     if (result != null) {
       this.result = result;
@@ -254,9 +244,7 @@ class Ray {
     }
   }
 
-  /**
-   * Updates the direction vector.
-   */
+  /// Updates the direction vector.
   void _updateDirection() {
     to.vsub(from, direction);
     direction.normalize();
@@ -305,28 +293,26 @@ class Ray {
       return;
     }
 
-    final n_dot_dir = worldNormal.dot(direction);
+    final nDotDir = worldNormal.dot(direction);
 
-    if (n_dot_dir.abs() < precision) {
+    if (nDotDir.abs() < precision) {
       // No intersection
       return;
     }
 
     final planePointToFrom = Vec3();
-    final dir_scaled_with_t = Vec3();
+    final dirScaledWithT = Vec3();
     final hitPointWorld = Vec3();
 
     from.vsub(position, planePointToFrom);
-    final t = -worldNormal.dot(planePointToFrom) / n_dot_dir;
-    direction.scale(t, dir_scaled_with_t);
-    from.vadd(dir_scaled_with_t, hitPointWorld);
+    final t = -worldNormal.dot(planePointToFrom) / nDotDir;
+    direction.scale(t, dirScaledWithT);
+    from.vadd(dirScaledWithT, hitPointWorld);
 
     _reportIntersection(worldNormal, hitPointWorld, reportedShape, body, -1);
   }
 
-  /**
-   * Get the world AABB of the ray.
-   */
+  /// Get the world AABB of the ray.
   void getAABB(AABB aabb) {
     final lowerBound = aabb.lowerBound;
     final upperBound = aabb.upperBound;
@@ -344,7 +330,7 @@ class Ray {
     //final data = shape.data;
     //final w = shape.elementSize;
     // Convert the ray to local heightfield coordinates
-    final localRay = intersectHeightfield_localRay; //Ray(this.from, this.to);
+    final localRay = _intersectHeightfieldLocalRay; //Ray(this.from, this.to);
     localRay.from.copy(from);
     localRay.to.copy(to);
     Transform.pointToLocalFrame(position, quat, localRay.from, localRay.from);
@@ -352,7 +338,7 @@ class Ray {
     localRay._updateDirection();
 
     // Get the index of the data points to test against
-    final index = intersectHeightfield_index;
+    final index = _intersectHeightfieldIndex;
     int iMinX;
     int iMinY;
     int iMaxX;
@@ -386,7 +372,7 @@ class Ray {
         // Lower triangle
         shape.getConvexTrianglePillar(i, j, false);
         Transform.pointToWorldFrame(position, quat, shape.pillarOffset, worldPillarOffset);
-        _intersectConvex(shape.pillarConvex, quat, worldPillarOffset, body, reportedShape, intersectConvexOptions);
+        _intersectConvex(shape.pillarConvex, quat, worldPillarOffset, body, reportedShape, _intersectConvexOptions);
 
         if (result.shouldStop) {
           return;
@@ -395,7 +381,7 @@ class Ray {
         // Upper triangle
         shape.getConvexTrianglePillar(i, j, true);
         Transform.pointToWorldFrame(position, quat, shape.pillarOffset, worldPillarOffset);
-        _intersectConvex(shape.pillarConvex, quat, worldPillarOffset, body, reportedShape, intersectConvexOptions);
+        _intersectConvex(shape.pillarConvex, quat, worldPillarOffset, body, reportedShape, _intersectConvexOptions);
       }
     }
   }
@@ -415,8 +401,8 @@ class Ray {
 
     final double delta = (math.pow(b, 2) - 4 * a * c).toDouble();
 
-    final intersectionPoint = Ray_intersectSphere_intersectionPoint;
-    final normal = Ray_intersectSphere_normal;
+    final intersectionPoint = _rayIntersectSphereIntersectionPoint;
+    final normal = _rayIntersectSphereNormal;
 
     if (delta < 0) {
       // No intersection
@@ -462,8 +448,8 @@ class Ray {
     [ConvexOptions? options]
   ){
     //final minDistNormal = intersectConvex_minDistNormal;
-    final normal = intersectConvex_normal;
-    final vector = intersectConvex_vector;
+    final normal = _intersectConvexNormal;
+    final vector = _intersectConvexVector;
     //final minDistIntersect = intersectConvex_minDistIntersect;
     final faceList = options?.faceList;
 
@@ -479,10 +465,10 @@ class Ray {
     final fromToDistance = from.distanceTo(to);
 
     //const minDist = -1;
-    final Nfaces = faceList != null? faceList.length : faces.length;
+    final nFaces = faceList != null? faceList.length : faces.length;
     final result = this.result;
 
-    for (int j = 0; !result.shouldStop && j < Nfaces; j++) {
+    for (int j = 0; !result.shouldStop && j < nFaces; j++) {
       final fi = faceList != null? faceList[j] : j;
 
       final face = faces[fi];
@@ -523,8 +509,8 @@ class Ray {
       // if (dot < 0) {
 
       // Intersection point is from + direction * scalar
-      direction.scale(scalar, intersectPoint);
-      intersectPoint.vadd(from, intersectPoint);
+      direction.scale(scalar, _intersectPoint);
+      _intersectPoint.vadd(from, _intersectPoint);
 
       // a is the point we compare points b and c with.
       a.copy(vertices[face[0]]);
@@ -540,25 +526,23 @@ class Ray {
         x.vadd(b, b);
         x.vadd(c, c);
 
-        final distance = intersectPoint.distanceTo(from);
+        final distance = _intersectPoint.distanceTo(from);
 
         if (
-          !(Ray.pointInTriangle(intersectPoint, a, b, c) || Ray.pointInTriangle(intersectPoint, b, a, c)) ||
+          !(Ray.pointInTriangle(_intersectPoint, a, b, c) || Ray.pointInTriangle(_intersectPoint, b, a, c)) ||
           distance > fromToDistance
         ) {
           continue;
         }
 
-        _reportIntersection(normal, intersectPoint, reportedShape, body, fi);
+        _reportIntersection(normal, _intersectPoint, reportedShape, body, fi);
       }
       // }
     }
   }
 
-  /**
-   * @todo Optimize by transforming the world to local space first.
-   * @todo Use Octree lookup
-   */
+  /// @todo Optimize by transforming the world to local space first.
+  /// @todo Use Octree lookup
   void _intersectTrimesh(
     Trimesh mesh,
     Quaternion quat,
@@ -567,15 +551,15 @@ class Ray {
     Shape reportedShape,
     [ConvexOptions? options]
   ){
-    final normal = intersectTrimesh_normal;
-    final triangles = intersectTrimesh_triangles;
-    final treeTransform = intersectTrimesh_treeTransform;
-    final vector = intersectConvex_vector;
-    final localDirection = intersectTrimesh_localDirection;
-    final localFrom = intersectTrimesh_localFrom;
-    final localTo = intersectTrimesh_localTo;
-    final worldIntersectPoint = intersectTrimesh_worldIntersectPoint;
-    final worldNormal = intersectTrimesh_worldNormal;
+    final normal = _intersectTrimeshNormal;
+    final triangles = _intersectTrimeshTriangles;
+    final treeTransform = _intersectTrimeshTreeTransform;
+    final vector = _intersectConvexVector;
+    final localDirection = _intersectTrimeshLocalDirection;
+    final localFrom = _intersectTrimeshLocalFrom;
+    final localTo = _intersectTrimeshLocalTo;
+    final worldIntersectPoint = _intersectTrimeshWorldIntersectPoint;
+    final worldNormal = _intersectTrimeshWorldNormal;
 
     // Checking faces
     final indices = mesh.indices;
@@ -640,17 +624,17 @@ class Ray {
       }
 
       // Intersection point is from + direction * scalar
-      localDirection.scale(scalar, intersectPoint);
-      intersectPoint.vadd(localFrom, intersectPoint);
+      localDirection.scale(scalar, _intersectPoint);
+      _intersectPoint.vadd(localFrom, _intersectPoint);
 
       // Get triangle vertices
       mesh.getVertex(indices[trianglesIndex * 3 + 1], b);
       mesh.getVertex(indices[trianglesIndex * 3 + 2], c);
 
-      final squaredDistance = intersectPoint.distanceSquared(localFrom);
+      final squaredDistance = _intersectPoint.distanceSquared(localFrom);
 
       if (
-        !(Ray.pointInTriangle(intersectPoint, b, a, c) || Ray.pointInTriangle(intersectPoint, a, b, c)) ||
+        !(Ray.pointInTriangle(_intersectPoint, b, a, c) || Ray.pointInTriangle(_intersectPoint, a, b, c)) ||
         squaredDistance > fromToDistanceSquared
       ) {
         continue;
@@ -658,15 +642,13 @@ class Ray {
 
       // transform intersectpoint and normal to world
       Transform.vectorToWorldFrame(quat, normal, worldNormal);
-      Transform.pointToWorldFrame(position, quat, intersectPoint, worldIntersectPoint);
+      Transform.pointToWorldFrame(position, quat, _intersectPoint, worldIntersectPoint);
       _reportIntersection(worldNormal, worldIntersectPoint, reportedShape, body, trianglesIndex);
     }
     triangles.length = 0;
   }
 
-  /**
-   * @return True if the intersections should continue
-   */
+  /// @return True if the intersections should continue
   void _reportIntersection(Vec3 normal, Vec3 hitPointWorld, Shape shape, Body body, int hitFaceIndex) {
     final from = this.from;
     final to = this.to;
@@ -707,19 +689,17 @@ class Ray {
     }
   }
 
-  /**
-   * As per "Barycentric Technique" as named
-   * {@link https://www.blackpawn.com/texts/pointinpoly/default.html here} but without the division
-   */
+  /// As per "Barycentric Technique" as named
+  /// {@link https://www.blackpawn.com/texts/pointinpoly/default.html here} but without the division
   static bool pointInTriangle(Vec3 p, Vec3 a, Vec3 b, Vec3 c) {
-    c.vsub(a, v0);
-    b.vsub(a, v1);
-    p.vsub(a, v2);
-    final dot00 = v0.dot(v0);
-    final dot01 = v0.dot(v1);
-    final dot02 = v0.dot(v2);
-    final dot11 = v1.dot(v1);
-    final dot12 = v1.dot(v2);
+    c.vsub(a, _v0);
+    b.vsub(a, _v1);
+    p.vsub(a, _v2);
+    final dot00 = _v0.dot(_v0);
+    final dot01 = _v0.dot(_v1);
+    final dot02 = _v0.dot(_v2);
+    final dot11 = _v1.dot(_v1);
+    final dot12 = _v1.dot(_v2);
     double u;
     double v;
     return (
@@ -728,69 +708,20 @@ class Ray {
       u + v < dot00 * dot11 - dot01 * dot01
     );
   }
+
+  double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
+    // v0 is vector from from to position
+    position.vsub(from, _v0);
+    final dot = _v0.dot(direction);
+
+    // intersect = direction*dot + from
+    direction.scale(dot, _intersect);
+    _intersect.vadd(from, _intersect);
+
+    final distance = position.distanceTo(_intersect);
+
+    return distance;
+  }
 }
 
-final tmpAABB = AABB();
-final List<Body> tmpArray = [];
 
-final v1 = Vec3();
-final v2 = Vec3();
-
-final intersectBody_xi = Vec3();
-final intersectBody_qi = Quaternion();
-final intersectPoint = Vec3();
-
-final a = Vec3();
-final b = Vec3();
-final c = Vec3();
-final d = Vec3();
-
-final tmpRaycastResult = RaycastResult();
-class ConvexOptions{
-  ConvexOptions({
-    required this.faceList
-});
-
-  List<int> faceList;
-}
-final ConvexOptions intersectConvexOptions = ConvexOptions(
-  faceList: [0],
-);
-final worldPillarOffset = Vec3();
-final intersectHeightfield_localRay = Ray();
-final List<int> intersectHeightfield_index = [];
-final intersectHeightfield_minMax = [];
-
-final Ray_intersectSphere_intersectionPoint = Vec3();
-final Ray_intersectSphere_normal = Vec3();
-
-final intersectConvex_normal = Vec3();
-final intersectConvex_minDistNormal = Vec3();
-final intersectConvex_minDistIntersect = Vec3();
-final intersectConvex_vector = Vec3();
-
-final intersectTrimesh_normal = Vec3();
-final intersectTrimesh_localDirection = Vec3();
-final intersectTrimesh_localFrom = Vec3();
-final intersectTrimesh_localTo = Vec3();
-final intersectTrimesh_worldNormal = Vec3();
-final intersectTrimesh_worldIntersectPoint = Vec3();
-final intersectTrimesh_localAABB = AABB();
-final List<int> intersectTrimesh_triangles = [];
-final intersectTrimesh_treeTransform = Transform();
-
-final v0 = Vec3();
-final intersect = Vec3();
-double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
-  // v0 is vector from from to position
-  position.vsub(from, v0);
-  final dot = v0.dot(direction);
-
-  // intersect = direction*dot + from
-  direction.scale(dot, intersect);
-  intersect.vadd(from, intersect);
-
-  final distance = position.distanceTo(intersect);
-
-  return distance;
-}

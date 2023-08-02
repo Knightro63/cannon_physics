@@ -2,19 +2,14 @@ String getKey(int i, int j){
   return (i < j ? '$i-$j' : '$j-$i');
 }
 
-/**
- * TupleDictionary
- */
 class TupleDictionary {
   Map<String,dynamic> data = {};//: { [id: string]: any; keys: string[] } = { keys: [] }
 
-  /** get */
   dynamic get(int i, int j){
     final key = getKey(i, j);
     return data[key];
   }
 
-  /** set */
   void set(int i, int j, dynamic value){
     final key = getKey(i, j);
 
@@ -26,7 +21,6 @@ class TupleDictionary {
     data[key] = value;
   }
 
-  /** delete */
   void delete(int i, int j) {
     final key = getKey(i, j);
     // final index = data.keys.indexOf(key);
@@ -36,7 +30,6 @@ class TupleDictionary {
     data.remove(key);//delete this.data[key];
   }
 
-  /** reset */
   void reset() {
     final data = this.data;
     //final keys = data.keys;

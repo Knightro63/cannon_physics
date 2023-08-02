@@ -2,25 +2,25 @@ import '../equations/equation.dart';
 import '../math/vec3.dart';
 import '../objects/body.dart';
 
-/**
- * Constrains the slipping in a contact along a tangent
- */
+/// Constrains the slipping in a contact along a tangent
 class FrictionEquation extends Equation {
   Vec3 ri = Vec3();
   Vec3 rj = Vec3(); 
   Vec3 t = Vec3(); // Tangent
 
-  /**
-   * @param slipForce should be +-F_friction = +-mu * F_normal = +-mu * m * g
-   */
+  /// @param slipForce should be +-F_friction = +-mu * F_normal = +-mu * m * g
   FrictionEquation (Body bodyA, Body bodyB, double slipForce):super(bodyA, bodyB, -slipForce, slipForce);
+
+  final _frictionEquationComputeBTemp1 = Vec3();
+  final _frictionEquationComputeBTemp2 = Vec3();
+
   @override
   double computeB(double h){
     final b = this.b;
     final ri = this.ri;
     final rj = this.rj;
-    final rixt = FrictionEquation_computeB_temp1;
-    final rjxt = FrictionEquation_computeB_temp2;
+    final rixt = _frictionEquationComputeBTemp1;
+    final rjxt = _frictionEquationComputeBTemp2;
     final t = this.t;
 
     // Caluclate cross products
@@ -29,22 +29,19 @@ class FrictionEquation extends Equation {
 
     // G = [-t -rixt t rjxt]
     // And remember, this is a pure velocity constraint, g is always zero!
-    final GA = jacobianElementA;
+    final ga = jacobianElementA;
 
-    final GB = jacobianElementB;
-    t.negate(GA.spatial);
-    rixt.negate(GA.rotational);
-    GB.spatial.copy(t);
-    GB.rotational.copy(rjxt);
+    final gb = jacobianElementB;
+    t.negate(ga.spatial);
+    rixt.negate(ga.rotational);
+    gb.spatial.copy(t);
+    gb.rotational.copy(rjxt);
 
-    final GW = computeGW();
-    final GiMf = computeGiMf();
+    final gw = computeGW();
+    final giMf = computeGiMf();
 
-    final B = -GW * b - h * GiMf;
+    final B = -gw * b - h * giMf;
 
     return B;
   }
 }
-
-final FrictionEquation_computeB_temp1 = Vec3();
-final FrictionEquation_computeB_temp2 = Vec3();

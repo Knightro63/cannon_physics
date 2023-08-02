@@ -3,21 +3,13 @@ import '../math/vec3.dart';
 import '../equations/equation.dart';
 import '../objects/body.dart';
 
-/**
- * Cone equation. Works to keep the given body world vectors aligned, or tilted within a given angle from each other.
- */
+/// Cone equation. Works to keep the given body world vectors aligned, or tilted within a given angle from each other.
 class ConeEquation extends Equation {
-  /**
-   * Local axis in A
-   */
+  /// Local axis in A
   late Vec3 axisA;
-  /**
-   * Local axis in B
-   */
+  /// Local axis in B
   late Vec3 axisB;
-  /**
-   * The "cone angle" to keep
-   */
+  /// The "cone angle" to keep
   double angle;
 
   ConeEquation(
@@ -33,16 +25,20 @@ class ConeEquation extends Equation {
     this.axisA = axisA != null? axisA.clone() : Vec3(1, 0, 0);
     this.axisB = axisB != null? axisB.clone() : Vec3(0, 1, 0);
   }
+
+  final _tmpVec1 = Vec3();
+  final _tmpVec2 = Vec3();
+
   @override
   double computeB(double h){
     final a = this.a;
     final b = this.b;
     final ni = axisA;
     final nj = axisB;
-    final nixnj = tmpVec1;
-    final njxni = tmpVec2;
-    final GA = jacobianElementA;
-    final GB = jacobianElementB;
+    final nixnj = _tmpVec1;
+    final njxni = _tmpVec2;
+    final ga = jacobianElementA;
+    final gb = jacobianElementB;
 
     // Caluclate cross products
     ni.cross(nj, nixnj);
@@ -55,16 +51,13 @@ class ConeEquation extends Equation {
     // gdot = (b x a) * wi + (a x b) * wj
     // G = [0 bxa 0 axb]
     // W = [vi wi vj wj]
-    GA.rotational.copy(njxni);
-    GB.rotational.copy(nixnj);
+    ga.rotational.copy(njxni);
+    gb.rotational.copy(nixnj);
 
     final g = math.cos(angle) - ni.dot(nj);
-    final GW = computeGW();
-    final GiMf = computeGiMf();
-    final B = -g * a - GW * b - h * GiMf;
+    final gw = computeGW();
+    final giMf = computeGiMf();
+    final B = -g * a - gw * b - h * giMf;
     return B;
   }
 }
-
-final tmpVec1 = Vec3();
-final tmpVec2 = Vec3();

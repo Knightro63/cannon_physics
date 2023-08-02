@@ -1,47 +1,35 @@
 import '../material/material.dart';
 
-/**
- * Defines what happens when two materials meet.
- * @todo Refactor materials to materialA and materialB
- */
+/// Defines what happens when two materials meet.
+/// @todo Refactor materials to materialA and materialB
 class ContactMaterial {
-  /**
-   * Identifier of this material.
-   */
+  /// Identifier of this material.
   late int id;
-  /**
-   * Participating materials.
-   */
+  /// Participating materials.
   late List<Material> materials;
-  /**
-   * Friction coefficient.
-   * @default 0.3
-   */
+
+  /// Friction coefficient.
+  /// @default 0.3
   double friction;
-  /**
-   * Restitution coefficient.
-   * @default 0.3
-   */
+
+  /// Restitution coefficient.
+  /// @default 0.3
   double restitution;
-  /**
-   * Stiffness of the produced contact equations.
-   * @default 1e7
-   */
+  
+  /// Stiffness of the produced contact equations.
+  /// @default 1e7
   double contactEquationStiffness;
-  /**
-   * Relaxation time of the produced contact equations.
-   * @default 3
-   */
+
+  /// Relaxation time of the produced contact equations.
+  /// @default 3
   double contactEquationRelaxation;
-  /**
-   * Stiffness of the produced friction equations.
-   * @default 1e7
-   */
+
+  /// Stiffness of the produced friction equations.
+  /// @default 1e7
   double frictionEquationStiffness;
-  /**
-   * Relaxation time of the produced friction equations
-   * @default 3
-   */
+
+  /// Relaxation time of the produced friction equations
+  /// @default 3
   double frictionEquationRelaxation;
 
   static int idCounter = 0;

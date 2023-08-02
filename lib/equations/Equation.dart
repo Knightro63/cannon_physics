@@ -3,44 +3,30 @@ import '../math/vec3.dart';
 import '../objects/body.dart';
 import '../shapes/shape.dart';
 
-/**
- * Equation base class.
- *
- * `a`, `b` and `eps` are {@link https://www8.cs.umu.se/kurser/5DV058/VT15/lectures/SPOOKlabnotes.pdf SPOOK} parameters that default to `0.0`. See {@link https://github.com/schteppe/cannon.js/issues/238#issuecomment-147172327 this exchange} for more details on Cannon's physics implementation.
- */
+/// Equation base class.
+///
+/// `a`, `b` and `eps` are {@link https://www8.cs.umu.se/kurser/5DV058/VT15/lectures/SPOOKlabnotes.pdf SPOOK} parameters that default to `0.0`. See {@link https://github.com/schteppe/cannon.js/issues/238#issuecomment-147172327 this exchange} for more details on Cannon's physics implementation.
 class Equation {
   late int id;
-  /**
-   * Minimum (read: negative max) force to be applied by the constraint.
-   */
+  /// Minimum (read: negative max) force to be applied by the constraint.
   double minForce;
-  /**
-   * Maximum (read: positive max) force to be applied by the constraint.
-   */
+  ///Maximum (read: positive max) force to be applied by the constraint.
   double maxForce;
   Body bi;
   Body bj;
 
   late Shape si;
   late Shape sj;
-  /**
-   * SPOOK parameter
-   */
+  /// SPOOK parameter
   double a = 0.0;
-  /**
-   * SPOOK parameter
-   */
+  /// SPOOK parameter
   double b = 0.0;
-  /**
-   * SPOOK parameter
-   */
+  /// SPOOK parameter
   double eps = 0.0;
   JacobianElement jacobianElementA = JacobianElement();
   JacobianElement jacobianElementB = JacobianElement();
   bool enabled = true;
-  /**
-   * A number, proportional to the force added to the bodies.
-   */
+  /// A number, proportional to the force added to the bodies.
   double multiplier = 0;
 
   static int idCounter = 0;
@@ -50,14 +36,20 @@ class Equation {
     setSpookParams(1e7, 4, 1 / 60); // Set typical spook params
   }
 
-  /**
-   * Recalculates a, b, and eps.
-   *
-   * The Equation constructor sets typical SPOOK parameters as such:
-   * * `stiffness` = 1e7
-   * * `relaxation` = 4
-   * * `timeStep`= 1 / 60, _note the hardcoded refresh rate._
-   */
+  final _iMfi = Vec3();
+  final _iMfj = Vec3();
+  final _invIiVmultTaui = Vec3();
+  final _invIjVmultTauj = Vec3();
+
+  final _tmp = Vec3();
+  final _addToWlambdaTemp = Vec3();
+
+  /// Recalculates a, b, and eps.
+  ///
+  /// The Equation constructor sets typical SPOOK parameters as such:
+  /// * `stiffness` = 1e7
+  /// * `relaxation` = 4
+  /// * `timeStep`= 1 / 60, _note the hardcoded refresh rate._
   void setSpookParams(double stiffness, double relaxation, double timeStep) {
     final double d = relaxation;
     final double k = stiffness;
@@ -67,9 +59,7 @@ class Equation {
     eps = 4.0 / (h * h * k * (1 + 4 * d));
   }
 
-  /**
-   * Computes the right hand side of the SPOOK equation
-   */
+  /// Computes the right hand side of the SPOOK equation
   double computeB(double h) {
     final double gw = computeGW();
     final double gq = computeGq();
@@ -77,9 +67,7 @@ class Equation {
     return -gq * a - gw * b - gimf * h;
   }
 
-  /**
-   * Computes G*q, where q are the generalized body coordinates
-   */
+  /// Computes G*q, where q are the generalized body coordinates
   double computeGq() {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
@@ -90,9 +78,7 @@ class Equation {
     return ga.spatial.dot(xi) + gb.spatial.dot(xj);
   }
 
-  /**
-   * Computes G*W, where W are the body velocities
-   */
+  /// Computes G*W, where W are the body velocities
   double computeGW() {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
@@ -105,9 +91,7 @@ class Equation {
     return ga.multiplyVectors(vi, wi) + gb.multiplyVectors(vj, wj);
   }
 
-  /**
-   * Computes G*Wlambda, where W are the body velocities
-   */
+  /// Computes G*Wlambda, where W are the body velocities
   double computeGWlambda() {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
@@ -120,9 +104,7 @@ class Equation {
     return ga.multiplyVectors(vi, wi) + gb.multiplyVectors(vj, wj);
   }
 
-  /**
-   * Computes G*inv(M)*f, where M is the mass matrix with diagonal blocks for each body, and f are the forces on the bodies.
-   */
+  /// Computes G*inv(M)*f, where M is the mass matrix with diagonal blocks for each body, and f are the forces on the bodies.
   double computeGiMf() {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
@@ -135,18 +117,16 @@ class Equation {
     final invMassi = bi.invMassSolve;
     final invMassj = bj.invMassSolve;
 
-    fi.scale(invMassi, iMfi);
-    fj.scale(invMassj, iMfj);
+    fi.scale(invMassi, _iMfi);
+    fj.scale(invMassj, _iMfj);
 
-    bi.invInertiaWorldSolve.vmult(ti, invIi_vmult_taui);
-    bj.invInertiaWorldSolve.vmult(tj, invIj_vmult_tauj);
+    bi.invInertiaWorldSolve.vmult(ti, _invIiVmultTaui);
+    bj.invInertiaWorldSolve.vmult(tj, _invIjVmultTauj);
 
-    return ga.multiplyVectors(iMfi, invIi_vmult_taui) + gb.multiplyVectors(iMfj, invIj_vmult_tauj);
+    return ga.multiplyVectors(_iMfi, _invIiVmultTaui) + gb.multiplyVectors(_iMfj, _invIjVmultTauj);
   }
 
-  /**
-   * Computes G*inv(M)*G'
-   */
+  /// Computes G*inv(M)*G'
   double computeGiMGt() {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
@@ -158,24 +138,22 @@ class Equation {
     final invIj = bj.invInertiaWorldSolve;
     double result = invMassi + invMassj;
 
-    invIi.vmult(ga.rotational, tmp);
-    result += tmp.dot(ga.rotational);
+    invIi.vmult(ga.rotational, _tmp);
+    result += _tmp.dot(ga.rotational);
 
-    invIj.vmult(gb.rotational, tmp);
-    result += tmp.dot(gb.rotational);
+    invIj.vmult(gb.rotational, _tmp);
+    result += _tmp.dot(gb.rotational);
 
     return result;
   }
 
-  /**
-   * Add constraint velocity to the bodies.
-   */
+  /// Add constraint velocity to the bodies.
   void addToWlambda(double deltalambda) {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
     final bi = this.bi;
     final bj = this.bj;
-    final temp = addToWlambda_temp;
+    final temp = _addToWlambdaTemp;
 
     // Add to linear velocity
     // v_lambda += inv(M) * delta_lamba * G
@@ -190,18 +168,8 @@ class Equation {
     bj.wlambda.addScaledVector(deltalambda, temp, bj.wlambda);
   }
 
-  /**
-   * Compute the denominator part of the SPOOK equation: C = G*inv(M)*G' + eps
-   */
+  /// Compute the denominator part of the SPOOK equation: C = G*inv(M)*G' + eps
   double computeC() {
     return computeGiMGt() + eps;
   }
 }
-
-final iMfi = Vec3();
-final iMfj = Vec3();
-final invIi_vmult_taui = Vec3();
-final invIj_vmult_tauj = Vec3();
-
-final tmp = Vec3();
-final addToWlambda_temp = Vec3();

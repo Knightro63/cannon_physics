@@ -11,62 +11,46 @@ class HeightfieldPillar{
   dynamic offset;
 }
 
-/**
- * Heightfield shape class. Height data is given as an array. These data points are spread out evenly with a given distance.
- * @todo Should be possible to use along all axes, not just y
- * @todo should be possible to scale along all axes
- * @todo Refactor elementSize to elementSizeX and elementSizeY
- *
- * @example
- *     // Generate some height data (y-values).
- *     final data = []
- *     for (let i = 0; i < 1000; i++) {
- *         final y = 0.5 * Math.cos(0.2 * i)
- *         data.push(y)
- *     }
- *
- *     // Create the heightfield shape
- *     final heightfieldShape = CANNON.Heightfield(data, {
- *         elementSize: 1 // Distance between the data points in X and Y directions
- *     })
- *     final heightfieldBody = CANNON.Body({ shape: heightfieldShape })
- *     world.addBody(heightfieldBody)
- */
+/// Heightfield shape class. Height data is given as an array. These data points are spread out evenly with a given distance.
+/// @todo Should be possible to use along all axes, not just y
+/// @todo should be possible to scale along all axes
+/// @todo Refactor elementSize to elementSizeX and elementSizeY
+///
+/// @example
+///     // Generate some height data (y-values).
+///     final data = []
+///     for (let i = 0; i < 1000; i++) {
+///        final y = 0.5 * Math.cos(0.2 * i)
+///         data.add(y)
+///     }
+///
+///     // Create the heightfield shape
+///     final heightfieldShape = CANNON.Heightfield(data, {
+///         elementSize: 1 // Distance between the data points in X and Y directions
+///     })
+///     final heightfieldBody = CANNON.Body({ shape: heightfieldShape })
+///     world.addBody(heightfieldBody)
 class Heightfield extends Shape {
-  /**
-   * An array of numbers, or height values, that are spread out along the x axis.
-   */
+  /// An array of numbers, or height values, that are spread out along the x axis.
   List<List<double>>data;
 
-  /**
-   * Max value of the data points in the data array.
-   */
+  /// Max value of the data points in the data array.
   double? maxValue;
 
-  /**
-   * Minimum value of the data points in the data array.
-   */
+  /// Minimum value of the data points in the data array.
   double? minValue;
 
-  /**
-   * World spacing between the data points in X and Y direction.
-   * @todo elementSizeX and Y
-   * @default 1
-   */
+  /// World spacing between the data points in X and Y direction.
+  /// @todo elementSizeX and Y
   int elementSize;
 
-  /**
-   * @default true
-   */
   bool cacheEnabled = true;
   ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
   Vec3 pillarOffset = Vec3();
 
   Map<String,HeightfieldPillar> _cachedPillars = {};
 
-  /**
-   * @param data An array of numbers, or height values, that are spread out along the x axis.
-   */
+  /// @param data An array of numbers, or height values, that are spread out along the x axis.
   Heightfield(
     this.data,
     {
@@ -83,16 +67,24 @@ class Heightfield extends Shape {
     updateBoundingSphereRadius();
   }
 
-  /**
-   * Call whenever you change the data array.
-   */
+  final List<int> _getHeightAtIdx = [];
+  final _getHeightAtWeights = Vec3();
+  final _getHeightAtA = Vec3();
+  final _getHeightAtB = Vec3();
+  final _getHeightAtC = Vec3();
+
+  final _getNormalAtA = Vec3();
+  final _getNormalAtB = Vec3();
+  final _getNormalAtC = Vec3();
+  final _getNormalAtE0 = Vec3();
+  final _getNormalAtE1 = Vec3();
+
+  /// Call whenever you change the data array.
   void update() {
     _cachedPillars = {};
   }
 
-  /**
-   * Update the `minValue` property
-   */
+  /// Update the `minValue` property
   void updateMinValue() {
     final data = this.data;
     double minValue = data[0][0];
@@ -107,9 +99,7 @@ class Heightfield extends Shape {
     this.minValue = minValue;
   }
 
-  /**
-   * Update the `maxValue` property
-   */
+  /// Update the `maxValue` property
   void updateMaxValue() {
     final data = this.data;
     double maxValue = data[0][0];
@@ -124,9 +114,7 @@ class Heightfield extends Shape {
     this.maxValue = maxValue;
   }
 
-  /**
-   * Set the height value at an index. Don't forget to update maxValue and minValue after you're done.
-   */
+  /// Set the height value at an index. Don't forget to update maxValue and minValue after you're done.
   void setHeightValueAtIndex(int xi, int yi, double value){
     final data = this.data;
     data[xi][yi] = value;
@@ -146,11 +134,9 @@ class Heightfield extends Shape {
     }
   }
 
-  /**
-   * Get max/min in a rectangle in the matrix data
-   * @param result An array to store the results in.
-   * @return The result array, if it was passed in. Minimum will be at position 0 and max at 1.
-   */
+  /// Get max/min in a rectangle in the matrix data
+  /// @param result An array to store the results in.
+  /// @return The result array, if it was passed in. Minimum will be at position 0 and max at 1.
   void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double> result = const []]) {
     // Get max and min of the data
     final data = this.data; // Set first value
@@ -169,11 +155,9 @@ class Heightfield extends Shape {
     result[1] = max;
   }
 
-  /**
-   * Get the index of a local position on the heightfield. The indexes indicate the rectangles, so if your terrain is made of N x N height data points, you will have rectangle indexes ranging from 0 to N-1.
-   * @param result Two-element array
-   * @param clamp If the position should be clamped to the heightfield edge.
-   */
+  /// Get the index of a local position on the heightfield. The indexes indicate the rectangles, so if your terrain is made of N x N height data points, you will have rectangle indexes ranging from 0 to N-1.
+  /// @param result Two-element array
+  /// @param clamp If the position should be clamped to the heightfield edge.
   bool getIndexOfPosition(double x, double y, List<int> result, bool clamp) {
     // Get the index of the data points to test against
     final w = elementSize;
@@ -209,7 +193,7 @@ class Heightfield extends Shape {
   }
 
   bool getTriangleAt(double x, double y, bool edgeClamp,Vec3 a,Vec3 b, Vec3 c) {
-    final idx = getHeightAt_idx;
+    final idx = _getHeightAtIdx;
     getIndexOfPosition(x, y, idx, edgeClamp);
     int xi = idx[0];
     int yi = idx[1];
@@ -229,11 +213,11 @@ class Heightfield extends Shape {
   }
 
   void getNormalAt(double x, double y, bool edgeClamp, Vec3 result) {
-    final a = getNormalAt_a;
-    final b = getNormalAt_b;
-    final c = getNormalAt_c;
-    final e0 = getNormalAt_e0;
-    final e1 = getNormalAt_e1;
+    final a = _getNormalAtA;
+    final b = _getNormalAtB;
+    final c = _getNormalAtC;
+    final e0 = _getNormalAtE0;
+    final e1 = _getNormalAtE1;
     getTriangleAt(x, y, edgeClamp, a, b, c);
     b.vsub(a, e0);
     c.vsub(a, e1);
@@ -241,12 +225,10 @@ class Heightfield extends Shape {
     result.normalize();
   }
 
-  /**
-   * Get an AABB of a square in the heightfield
-   * @param xi
-   * @param yi
-   * @param result
-   */
+  /// Get an AABB of a square in the heightfield
+  /// @param xi
+  /// @param yi
+  /// @param result
   void getAabbAtIndex(int xi, int yi, AABB aabb){//{ lowerBound, upperBound }: AABB) {
     final data = this.data;
     final elementSize = this.elementSize.toDouble();
@@ -257,15 +239,13 @@ class Heightfield extends Shape {
     aabb.upperBound.set((xi + 1) * elementSize, (yi + 1) * elementSize, data[xi + 1][yi + 1]);
   }
 
-  /**
-   * Get the height in the heightfield at a given position
-   */
+  /// Get the height in the heightfield at a given position
   double getHeightAt(double x, double y, bool edgeClamp) {
     final data = this.data;
-    final a = getHeightAt_a;
-    final b = getHeightAt_b;
-    final c = getHeightAt_c;
-    final idx = getHeightAt_idx;
+    final a = _getHeightAtA;
+    final b = _getHeightAtB;
+    final c = _getHeightAtC;
+    final idx = _getHeightAtIdx;
 
     getIndexOfPosition(x, y, idx, edgeClamp);
     int xi = idx[0];
@@ -275,9 +255,9 @@ class Heightfield extends Shape {
       yi = math.min(data[0].length - 2, math.max(0, yi));
     }
     final upper = getTriangleAt(x, y, edgeClamp, a, b, c);
-    barycentricWeights(x, y, a.x, a.y, b.x, b.y, c.x, c.y, getHeightAt_weights);
+    barycentricWeights(x, y, a.x, a.y, b.x, b.y, c.x, c.y, _getHeightAtWeights);
 
-    final w = getHeightAt_weights;
+    final w = _getHeightAtWeights;
 
     if (upper) {
       // Top triangle verts
@@ -313,9 +293,7 @@ class Heightfield extends Shape {
     _cachedPillars.remove(getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle));//delete this._cachedPillars[getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle)];
   }
 
-  /**
-   * Get a triangle from the heightfield
-   */
+  /// Get a triangle from the heightfield
   void getTriangle(int xi, int yi, bool upper, Vec3 a, Vec3 b, Vec3 c) {
     final data = this.data;
     final elementSize = this.elementSize.toDouble();
@@ -333,9 +311,7 @@ class Heightfield extends Shape {
     }
   }
 
-  /**
-   * Get a triangle in the terrain in the form of a triangular convex shape.
-   */
+  /// Get a triangle in the terrain in the form of a triangular convex shape.
   void getConvexTrianglePillar(int xi, int yi, bool getUpperTriangle) {
     ConvexPolyhedron result = pillarConvex;
     Vec3 offsetResult = pillarOffset;
@@ -515,9 +491,7 @@ class Heightfield extends Shape {
     ).length();
   }
 
-  /**
-   * Sets the height values from an image. Currently only supported in browser.
-   */
+  /// Sets the height values from an image. Currently only supported in browser.
   void setHeightsFromImage(HTMLImageElement image, Vec3 scale) {
     final x = scale.x;
     final y = scale.y;
@@ -555,33 +529,21 @@ class Heightfield extends Shape {
     updateMinValue();
     update();
   }
-}
 
-final List<int> getHeightAt_idx = [];
-final getHeightAt_weights = Vec3();
-final getHeightAt_a = Vec3();
-final getHeightAt_b = Vec3();
-final getHeightAt_c = Vec3();
-
-final getNormalAt_a = Vec3();
-final getNormalAt_b = Vec3();
-final getNormalAt_c = Vec3();
-final getNormalAt_e0 = Vec3();
-final getNormalAt_e1 = Vec3();
-
-// from https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-void barycentricWeights(
-  double x,
-  double y,
-  double ax,
-  double ay,
-  double bx,
-  double by,
-  double cx,
-  double cy,
-  Vec3 result
-) {
-  result.x = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
-  result.y = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
-  result.z = 1 - result.x - result.y;
+  // from https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+  void barycentricWeights(
+    double x,
+    double y,
+    double ax,
+    double ay,
+    double bx,
+    double by,
+    double cx,
+    double cy,
+    Vec3 result
+  ) {
+    result.x = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
+    result.y = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
+    result.z = 1 - result.x - result.y;
+  }
 }

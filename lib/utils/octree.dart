@@ -1,16 +1,11 @@
 import '../collision/aabb.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
-import '../collision/ray.dart';
+import '../collision/ray_class.dart';
 
-/**
- * OctreeNode
- */
 class OctreeNode {
   OctreeNode({
-    /** The root node */
     this.root,
-    /** Boundary of this node */
     AABB? aabb
   }) {
     this.aabb = aabb ?? AABB();
@@ -34,10 +29,8 @@ class OctreeNode {
     children.length = data.length = 0;
   }
 
-  /**
-   * Insert data into this node
-   * @return True if successful, otherwise false
-   */
+  /// Insert data into this node
+  /// @return True if successful, otherwise false
   bool insert(AABB aabb, int elementData, [int level = 0]){
     final nodeData = data;
 
@@ -76,9 +69,7 @@ class OctreeNode {
     return true;
   }
 
-  /**
-   * Create 8 equally sized children nodes and put them in the `children` array.
-   */
+  /// Create 8 equally sized children nodes and put them in the `children` array
   void subdivide(){
     final aabb = this.aabb;
     final l = aabb.lowerBound;
@@ -121,10 +112,8 @@ class OctreeNode {
     }
   }
 
-  /**
-   * Get all data, potentially within an AABB
-   * @return The "result" object
-   */
+  /// Get all data, potentially within an AABB
+  /// @return The "result" object
   List<int> aabbQuery(AABB aabb, List<int> result){
     // final nodeData = data;
 
@@ -158,10 +147,8 @@ class OctreeNode {
     return result;
   }
 
-  /**
-   * Get all data, potentially intersected by a ray.
-   * @return The "result" object
-   */
+  /// Get all data, potentially intersected by a ray.
+  /// @return The "result" object
   List<int> rayQuery(Ray ray, Transform treeTransform, List<int>result){
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */
@@ -172,9 +159,6 @@ class OctreeNode {
     return result;
   }
 
-  /**
-   * removeEmptyNodes
-   */
   void removeEmptyNodes(){
     for (int i = children.length - 1; i >= 0; i--) {
       children[i].removeEmptyNodes();
@@ -185,9 +169,6 @@ class OctreeNode {
   }
 }
 
-/**
- * Octree
- */
 class Octree extends OctreeNode {
   /**
    * Maximum subdivision depth
@@ -195,9 +176,7 @@ class Octree extends OctreeNode {
    */
   
 
-  /**
-   * @param aabb The total AABB of the tree
-   */
+  /// @param aabb The total AABB of the tree
   Octree({
     AABB? aabb,
     int maxDepth = 8

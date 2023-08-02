@@ -3,21 +3,13 @@ import '../equations/equation.dart';
 import '../math/vec3.dart';
 import '../objects/body.dart';
 
-/**
- * Rotational constraint. Works to keep the local vectors orthogonal to each other in world space.
- */
+/// Rotational constraint. Works to keep the local vectors orthogonal to each other in world space.
 class RotationalEquation extends Equation {
-  /**
-   * World oriented rotational axis.
-   */
+  /// World oriented rotational axis.
   late Vec3 axisA;
-  /**
-   * World oriented rotational axis.
-   */
+  /// World oriented rotational axis.
   late Vec3 axisB;
-  /**
-   * maxAngle
-   */
+  /// maxAngle
   double maxAngle;
 
   RotationalEquation(
@@ -34,16 +26,19 @@ class RotationalEquation extends Equation {
     this.axisB = axisB ?? Vec3(0, 1, 0);
   }
 
+  final _tmpVec1 = Vec3();
+  final _tmpVec2 = Vec3();
+
   @override
   double computeB(double h) {
     final a = this.a;
     final b = this.b;
     final ni = axisA;
     final nj = axisB;
-    final nixnj = tmpVec1;
-    final njxni = tmpVec2;
-    final GA = jacobianElementA;
-    final GB = jacobianElementB;
+    final nixnj = _tmpVec1;
+    final njxni = _tmpVec2;
+    final ga = jacobianElementA;
+    //final gb = jacobianElementB;
 
     // Caluclate cross products
     ni.cross(nj, nixnj);
@@ -53,18 +48,15 @@ class RotationalEquation extends Equation {
     // gdot = (nj x ni) * wi + (ni x nj) * wj
     // G = [0 njxni 0 nixnj]
     // W = [vi wi vj wj]
-    GA.rotational.copy(njxni);
-    GB.rotational.copy(nixnj);
+    ga.rotational.copy(njxni);
+    ga.rotational.copy(nixnj);
 
     final g = math.cos(maxAngle) - ni.dot(nj);
-    final GW = computeGW();
-    final GiMf = computeGiMf();
+    final gW = computeGW();
+    final giMf = computeGiMf();
 
-    final B = -g * a - GW * b - h * GiMf;
+    final B = -g * a - gW * b - h * giMf;
 
     return B;
   }
 }
-
-final tmpVec1 = Vec3();
-final tmpVec2 = Vec3();

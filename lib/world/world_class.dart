@@ -10,8 +10,8 @@ import '../collision/array_collision_matrix.dart';
 import '../collision/overlap_keeper.dart';
 import '../utils/tuple_dictionary.dart';
 import '../collision/raycast_result.dart';
-import '../collision/ray.dart';
-import '../collision/aabb.dart';
+import '../collision/ray_class.dart';
+// import '../collision/aabb.dart';
 import '../objects/body.dart';
 import '../collision/broadphase.dart';
 import '../solver/solver.dart';
@@ -31,6 +31,32 @@ class CollideEvent{
   ContactEquation? contact; 
 }
 
+class ContactEvent{
+  ContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
+}
+
+class ShapeContactEvent{
+  ShapeContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB,
+    this.shapeA,
+    this.shapeB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
+  Shape? shapeA;
+  Shape? shapeB;
+}
+
 class BodyEvent{
   BodyEvent({
     this.type = '',
@@ -39,9 +65,11 @@ class BodyEvent{
   String type;
   Body? target;
 }
+
 class Timing{
   DateTime? navigationStart;
 }
+
 class Performance{
   Timing? timing;
   DateTime? nowOffset;// = DateTime.now();
@@ -75,140 +103,88 @@ class Profile{
 
 /// The physics world
 class World extends EventTarget {
-  /**
-   * Currently / last used timestep. Is set to -1 if not available. This value is updated before each internal step, which means that it is "fresh" inside event callbacks.
-   */
+  /// Currently / last used timestep. Is set to -1 if not available. This value is updated before each internal step, which means that it is "fresh" inside event callbacks.
   double dt = -1;
 
-  /**
-   * Makes bodies go to sleep when they've been inactive.
-   * @default false
-   */
+  /// Makes bodies go to sleep when they've been inactive.
   late bool allowSleep;
 
-  /**
-   * All the current contacts (instances of ContactEquation) in the world.
-   */
+  /// All the current contacts (instances of ContactEquation) in the world.
   List<ContactEquation> contacts = [];
 
   List<FrictionEquation> frictionEquations = [];
 
-  /**
-   * How often to normalize quaternions. Set to 0 for every step, 1 for every second etc.. A larger value increases performance. If bodies tend to explode, set to a smaller value (zero to be sure nothing can go wrong).
-   * @default 0
-   */
+  /// How often to normalize quaternions. Set to 0 for every step, 1 for every second etc.. A larger value increases performance. If bodies tend to explode, set to a smaller value (zero to be sure nothing can go wrong).
   late int quatNormalizeSkip;
 
-  /**
-   * Set to true to use fast quaternion normalization. It is often enough accurate to use.
-   * If bodies tend to explode, set to false.
-   * @default false
-   */
+  /// Set to true to use fast quaternion normalization. It is often enough accurate to use.
+  /// If bodies tend to explode, set to false.
   late bool quatNormalizeFast;
 
-  /**
-   * The wall-clock time since simulation start.
-   */
+  /// The wall-clock time since simulation start.
   double time = 0.0;
 
-  /**
-   * Number of timesteps taken since start.
-   */
+  /// Number of timesteps taken since start.
   int stepnumber = 0;
 
-  /**
-   * Default and last timestep sizes.
-   */
-  double default_dt = 1/60;
+  /// Default and last timestep sizes.
+  double defaultDt = 1/60;
 
   int nextId = 0;
 
-  /**
-   * The gravity of the world.
-   */
+  /// The gravity of the world.
   Vec3 gravity = Vec3();
 
-  /**
-   * Gravity to use when approximating the friction max force (mu*mass*gravity).
-   * If undefined, global gravity will be used.
-   * Use to enable friction in a World with a null gravity vector (no gravity).
-   */
+  /// Gravity to use when approximating the friction max force (mu*mass*gravity).
+  /// If undefined, global gravity will be used.
+  /// Use to enable friction in a World with a null gravity vector (no gravity).
   Vec3? frictionGravity;
 
-  /**
-   * The broadphase algorithm to use.
-   * @default NaiveBroadphase
-   */
+  /// The broadphase algorithm to use.
   late Broadphase broadphase;
 
-  /**
-   * All bodies in this world
-   */
+  /// All bodies in this world
   List<Body> bodies = [];
 
-  /**
-   * True if any bodies are not sleeping, false if every body is sleeping.
-   */
+  /// True if any bodies are not sleeping, false if every body is sleeping.
   bool hasActiveBodies = false;
 
-  /**
-   * The solver algorithm to use.
-   * @default GSSolver
-   */
+  /// The solver algorithm to use.
   late Solver solver;
   List<Constraint> constraints = [];
   late Narrowphase narrowphase;
 
-  /**
-   * collisionMatrix
-   */
   ArrayCollisionMatrix collisionMatrix = ArrayCollisionMatrix();
 
-  /**
-   * CollisionMatrix from the previous step.
-   */
+  /// CollisionMatrix from the previous step.
   ArrayCollisionMatrix collisionMatrixPrevious = ArrayCollisionMatrix();
   OverlapKeeper bodyOverlapKeeper = OverlapKeeper();
   OverlapKeeper shapeOverlapKeeper = OverlapKeeper();
 
-  /**
-   * All added contactmaterials.
-   */
+  /// All added contactmaterials.
   List<ContactMaterial> contactmaterials = [];
 
-  /**
-   * Used to look up a ContactMaterial given two instances of Material.
-   */
+  /// Used to look up a ContactMaterial given two instances of Material.
   TupleDictionary contactMaterialTable = TupleDictionary();
-  /**
-   * The default material of the bodies.
-   */
+  /// The default material of the bodies.
   Material defaultMaterial = Material(name:'default');
 
-  /**
-   * This contact material is used if no suitable contactmaterial is found for a contact.
-   */
+  /// This contact material is used if no suitable contactmaterial is found for a contact.
   late ContactMaterial defaultContactMaterial;
   bool doProfiling = false;
   
   Profile profile = Profile();
 
-  /**
-   * Time accumulator for interpolation.
-   * @see https://gafferongames.com/game-physics/fix-your-timestep/
-   */
+  /// Time accumulator for interpolation.
+  /// @see https://gafferongames.com/game-physics/fix-your-timestep/
   double accumulator = 0;
 
   List subsystems = [];
 
-  /**
-   * Dispatched after a body has been added to the world.
-   */
+  /// Dispatched after a body has been added to the world.
   BodyEvent addBodyEvent = BodyEvent(type: 'addBody');
 
-  /**
-   * Dispatched after a body has been removed from the world.
-   */
+  /// Dispatched after a body has been removed from the world.
   BodyEvent removeBodyEvent = BodyEvent(type: 'removeBody');
   Map<int,Body> idToBodyMap = {};
   double? lastCallTime;
@@ -240,21 +216,60 @@ class World extends EventTarget {
     );
 
     this.broadphase.setWorld(this);
-
-
   }
 
-  /**
-   * Get the contact material between materials m1 and m2
-   * @return The contact material if it was found.
-   */
+  // Temp stuff
+  // final _tmpAABB1 = AABB();
+  // final _tmpArray1 = [];
+  final _tmpRay = Ray();
+
+  // performance.now() fallback on Date.now()
+  final Performance performance = Performance();
+
+  // final Vec3 _stepTmp1 = Vec3();
+
+  // Dispatched after the world has stepped forward in time.
+  // Reusable event objects to save memory.
+  final CollideEvent _worldStepPostStepEvent = CollideEvent( type: 'postStep' );
+
+  // Dispatched before the world steps forward in time.
+  final CollideEvent _worldStepPreStepEvent = CollideEvent( type: 'preStep' );
+
+  final CollideEvent _worldStepCollideEvent = CollideEvent();
+
+  // Pools for unused objects
+  final List<ContactEquation> _worldStepOldContacts = [];
+  final List<FrictionEquation> _worldStepFrictionEquationPool = [];
+
+  // Reusable arrays for collision pairs
+  final List<Body> _worldStepP1 = [];
+  final List<Body> _worldStepP2 = [];
+
+  // Stuff for emitContactEvents
+  final List<int> additions = [];
+  final List<int> removals = [];
+  ContactEvent beginContactEvent = ContactEvent(
+    type: 'beginContact',
+  );
+  ContactEvent endContactEvent  = ContactEvent(
+    type: 'endContact',
+  );
+
+  ShapeContactEvent beginShapeContactEvent  = ShapeContactEvent(
+    type: 'beginShapeContact',
+  );
+  ShapeContactEvent endShapeContactEvent  = ShapeContactEvent(
+    type: 'endShapeContact',
+  );
+
+
+  /// Get the contact material between materials m1 and m2
+  /// @return The contact material if it was found.
   ContactMaterial getContactMaterial(Material m1, Material m2){
     return contactMaterialTable.get(m1.id, m2.id);
   }
 
-  /**
-   * Store old collision state info
-   */
+  /// Store old collision state info
   void collisionMatrixTick() {
     final temp = collisionMatrixPrevious;
     collisionMatrixPrevious = collisionMatrix;
@@ -265,16 +280,12 @@ class World extends EventTarget {
     shapeOverlapKeeper.tick();
   }
 
-  /**
-   * Add a constraint to the simulation.
-   */
+  /// Add a constraint to the simulation.
   void addConstraint(Constraint c) {
     constraints.add(c);
   }
 
-  /**
-   * Removes a constraint
-   */
+  /// Removes a constraint
   void removeConstraint(Constraint c) {
     int idx = constraints.indexOf(c);
     if (idx != -1) {
@@ -282,10 +293,8 @@ class World extends EventTarget {
     }
   }
 
-  /**
-   * Raycast test
-   * @deprecated Use .raycastAll, .raycastClosest or .raycastAny instead.
-   */
+  /// Raycast test
+  /// @deprecated Use .raycastAll, .raycastClosest or .raycastAny instead.
   void rayTest(Vec3 from, Vec3 to, RaycastResult result) {
     // if (result is RaycastResult) {
       // Do raycastClosest
@@ -297,50 +306,42 @@ class World extends EventTarget {
     // }
   }
 
-  /**
-   * Ray cast against all bodies. The provided callback will be executed for each hit with a RaycastResult as single argument.
-   * @return True if any body was hit.
-   */
+  /// Ray cast against all bodies. The provided callback will be executed for each hit with a RaycastResult as single argument.
+  /// @return True if any body was hit.
   bool raycastAll([Vec3? from,Vec3? to, RayOptions? options, RaycastCallback? callback]) {
     options ??= RayOptions();
     options.mode = RayMode.all;
     options.from = from;
     options.to = to;
     options.callback = callback;
-    return tmpRay.intersectWorld(this, options);
+    return _tmpRay.intersectWorld(this, options);
   }
 
-  /**
-   * Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
-   * @return True if any body was hit.
-   */
+  /// Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
+  /// @return True if any body was hit.
   bool raycastAny([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result ]) {
     options ??= RayOptions();
     options.mode = RayMode.any;
     options.from = from;
     options.to = to;
     options.result = result;
-    return tmpRay.intersectWorld(this, options);
+    return _tmpRay.intersectWorld(this, options);
   }
 
-  /**
-   * Ray cast, and return information of the closest hit.
-   * @return True if any body was hit.
-   */
+  /// Ray cast, and return information of the closest hit.
+  /// @return True if any body was hit.
   bool raycastClosest([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result]) {
     options ??= RayOptions();
     options.mode = RayMode.closest;
     options.from = from;
     options.to = to;
     options.result = result;
-    return tmpRay.intersectWorld(this, options);
+    return _tmpRay.intersectWorld(this, options);
   }
 
-  /**
-   * Add a rigid body to the simulation.
-   * @todo If the simulation has not yet started, why recrete and copy arrays for each body? Accumulate in dynamic arrays in this case.
-   * @todo Adding an array of bodies should be possible. This would save some loops too
-   */
+  /// Add a rigid body to the simulation.
+  /// @todo If the simulation has not yet started, why recrete and copy arrays for each body? Accumulate in dynamic arrays in this case.
+  /// @todo Adding an array of bodies should be possible. This would save some loops too
   void addBody(Body body) {
     if (bodies.contains(body)) {
       return;
@@ -361,9 +362,7 @@ class World extends EventTarget {
     dispatchEvent(addBodyEvent);
   }
 
-  /**
-   * Remove a rigid body from the simulation.
-   */
+  /// Remove a rigid body from the simulation.
   void removeBody(Body body) {
     body.world = null;
     final n = this.bodies.length - 1;
@@ -388,9 +387,7 @@ class World extends EventTarget {
     return idToBodyMap[id]!;
   }
 
-  /**
-   * @todo Make a faster map
-   */
+  /// @todo Make a faster map
   Shape? getShapeById(int id){
     final bodies = this.bodies;
     for (int i = 0; i < bodies.length; i++) {
@@ -406,9 +403,7 @@ class World extends EventTarget {
     return null;
   }
 
-  /**
-   * Adds a contact material to the World
-   */
+  /// Adds a contact material to the World
   void addContactMaterial(ContactMaterial cmat) {
     // Add contact material
     contactmaterials.add(cmat);
@@ -416,9 +411,7 @@ class World extends EventTarget {
     contactMaterialTable.set(cmat.materials[0].id, cmat.materials[1].id, cmat);
   }
 
-  /**
-   * Removes a contact material from the World.
-   */
+  /// Removes a contact material from the World.
   void removeContactMaterial(ContactMaterial cmat) {
     final idx = contactmaterials.indexOf(cmat);
     if (idx == -1) {
@@ -429,17 +422,15 @@ class World extends EventTarget {
     contactMaterialTable.delete(cmat.materials[0].id, cmat.materials[1].id);
   }
 
-  /**
-   * Step the simulation forward keeping track of last called time
-   * to be able to step the world at a fixed rate, independently of framerate.
-   *
-   * @param dt The fixed time step size to use (default: 1 / 60).
-   * @param maxSubSteps Maximum number of fixed steps to take per function call (default: 10).
-   * @see https://gafferongames.com/post/fix_your_timestep/
-   * @example
-   *     // Run the simulation independently of framerate every 1 / 60 ms
-   *     world.fixedStep()
-   */
+  /// Step the simulation forward keeping track of last called time
+  /// to be able to step the world at a fixed rate, independently of framerate.
+  ///
+  /// @param dt The fixed time step size to use (default: 1 / 60).
+  /// @param maxSubSteps Maximum number of fixed steps to take per function call (default: 10).
+  /// @see https://gafferongames.com/post/fix_your_timestep/
+  /// @example
+  ///     // Run the simulation independently of framerate every 1 / 60 ms
+  ///     world.fixedStep()
   void fixedStep([double dt = 1 / 60, int maxSubSteps = 10]) {
     final time = performance.now() / 1000; // seconds
     if (lastCallTime == null) {
@@ -451,19 +442,17 @@ class World extends EventTarget {
     lastCallTime = time;
   }
 
-  /**
-   * Step the physics world forward in time.
-   *
-   * There are two modes. The simple mode is fixed timestepping without interpolation. In this case you only use the first argument. The second case uses interpolation. In that you also provide the time since the function was last used, as well as the maximum fixed timesteps to take.
-   *
-   * @param dt The fixed time step size to use.
-   * @param timeSinceLastCalled The time elapsed since the function was last called.
-   * @param maxSubSteps Maximum number of fixed steps to take per function call (default: 10).
-   * @see https://web.archive.org/web/20180426154531/http://bulletphysics.org/mediawiki-1.5.8/index.php/Stepping_The_World#What_do_the_parameters_to_btDynamicsWorld::stepSimulation_mean.3F
-   * @example
-   *     // fixed timestepping without interpolation
-   *     world.step(1 / 60)
-   */
+  /// Step the physics world forward in time.
+  ///
+  /// There are two modes. The simple mode is fixed timestepping without interpolation. In this case you only use the first argument. The second case uses interpolation. In that you also provide the time since the function was last used, as well as the maximum fixed timesteps to take.
+  ///
+  /// @param dt The fixed time step size to use.
+  /// @param timeSinceLastCalled The time elapsed since the function was last called.
+  /// @param maxSubSteps Maximum number of fixed steps to take per function call (default: 10).
+  /// @see https://web.archive.org/web/20180426154531/http://bulletphysics.org/mediawiki-1.5.8/index.php/Stepping_The_World#What_do_the_parameters_to_btDynamicsWorld::stepSimulation_mean.3F
+  /// @example
+  ///     // fixed timestepping without interpolation
+  ///     world.step(1 / 60)
   void step(double dt, [double? timeSinceLastCalled, int maxSubSteps = 10]) {
     if (timeSinceLastCalled == null) {
       // Fixed, simple stepping
@@ -511,8 +500,8 @@ class World extends EventTarget {
     //final world = this;
     //final that = this;
     final contacts = this.contacts;
-    final p1 = World_step_p1;
-    final p2 = World_step_p2;
+    final p1 = _worldStepP1;
+    final p2 = _worldStepP2;
     int N = this.bodies.length;
     final bodies = this.bodies;
     final solver = this.solver;
@@ -521,7 +510,7 @@ class World extends EventTarget {
     final profile = this.profile;
     int profilingStart = -1;
     final constraints = this.constraints;
-    final frictionEquationPool = World_step_frictionEquationPool;
+    final frictionEquationPool = _worldStepFrictionEquationPool;
     //final gnorm = gravity.length();
     final gx = gravity.x;
     final gy = gravity.y;
@@ -547,7 +536,7 @@ class World extends EventTarget {
     }
 
     // Update subsystems
-    for (int i = 0, Nsubsystems = subsystems.length; i != Nsubsystems; i++) {
+    for (int i = 0, nSubsystems = subsystems.length; i != nSubsystems; i++) {
       subsystems[i].update();
     }
 
@@ -563,8 +552,8 @@ class World extends EventTarget {
     }
 
     // Remove constrained pairs with collideConnected == false
-    int Nconstraints = constraints.length;
-    for (i = 0; i != Nconstraints; i++) {
+    int nConstraints = constraints.length;
+    for (i = 0; i != nConstraints; i++) {
       final c = constraints[i];
       if (!c.collideConnected) {
         for (int j = p1.length - 1; j >= 0; j -= 1) {
@@ -582,17 +571,17 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-    final oldcontacts = World_step_oldContacts;
-    final NoldContacts = contacts.length;
+    final oldcontacts = _worldStepOldContacts;
+    final nOldContacts = contacts.length;
 
-    for (i = 0; i != NoldContacts; i++) {
+    for (i = 0; i != nOldContacts; i++) {
       oldcontacts.add(contacts[i]);
     }
     contacts.length = 0;
 
     // Transfer FrictionEquation from current list to the pool for reuse
-    final NoldFrictionEquations = frictionEquations.length;
-    for (i = 0; i != NoldFrictionEquations; i++) {
+    final nOldFrictionEquations = frictionEquations.length;
+    for (i = 0; i != nOldFrictionEquations; i++) {
       frictionEquationPool.add(frictionEquations[i]);
     }
     frictionEquations.length = 0;
@@ -738,12 +727,12 @@ class World extends EventTarget {
       if (collisionMatrixPrevious.get(bi, bj) != 0) {
         // First contact!
         // We reuse the collideEvent object, otherwise we will end up creating objects for each contact, even if there's no event listener attached.
-        World_step_collideEvent.body = bj;
-        World_step_collideEvent.contact = c;
-        bi.dispatchEvent(World_step_collideEvent);
+        _worldStepCollideEvent.body = bj;
+        _worldStepCollideEvent.contact = c;
+        bi.dispatchEvent(_worldStepCollideEvent);
 
-        World_step_collideEvent.body = bi;
-        bj.dispatchEvent(World_step_collideEvent);
+        _worldStepCollideEvent.body = bi;
+        bj.dispatchEvent(_worldStepCollideEvent);
       }
 
       bodyOverlapKeeper.set(bi.id, bj.id);
@@ -767,11 +756,11 @@ class World extends EventTarget {
     }
 
     // Add user-added constraints
-    Nconstraints = constraints.length;
-    for (i = 0; i != Nconstraints; i++) {
+    nConstraints = constraints.length;
+    for (i = 0; i != nConstraints; i++) {
       final c = constraints[i];
       c.update();
-      for (int j = 0, Neq = c.equations.length; j != Neq; j++) {
+      for (int j = 0, neq = c.equations.length; j != neq; j++) {
         final eq = c.equations[j];
         solver.addEquation(eq);
       }
@@ -803,7 +792,7 @@ class World extends EventTarget {
       }
     }
 
-   dispatchEvent(World_step_preStepEvent);
+   dispatchEvent(_worldStepPreStepEvent);
 
     // Leap frog
     // vnew = v + h*f/m
@@ -829,7 +818,7 @@ class World extends EventTarget {
     // Update step number
     this.stepnumber += 1;
 
-    dispatchEvent(World_step_postStepEvent);
+    dispatchEvent(_worldStepPostStepEvent);
 
     // Sleeping update
     bool hasActiveBodies = true;
@@ -917,9 +906,7 @@ class World extends EventTarget {
     }
   }
 
-  /**
-   * Sets all body forces in the world to zero.
-   */
+  /// Sets all body forces in the world to zero.
   void clearForces() {
     final bodies = this.bodies;
     final N = bodies.length;
@@ -930,70 +917,3 @@ class World extends EventTarget {
     }
   }
 }
-
-// Temp stuff
-final tmpAABB1 = AABB();
-final tmpArray1 = [];
-final tmpRay = Ray();
-
-// performance.now() fallback on Date.now()
-final Performance performance = Performance();
-
-final Vec3 step_tmp1 = Vec3();
-
-// Dispatched after the world has stepped forward in time.
-// Reusable event objects to save memory.
-final CollideEvent World_step_postStepEvent = CollideEvent( type: 'postStep' );
-
-// Dispatched before the world steps forward in time.
-final CollideEvent World_step_preStepEvent = CollideEvent( type: 'preStep' );
-
-final CollideEvent World_step_collideEvent = CollideEvent();
-
-// Pools for unused objects
-final List<ContactEquation> World_step_oldContacts = [];
-final List<FrictionEquation> World_step_frictionEquationPool = [];
-
-// Reusable arrays for collision pairs
-final List<Body> World_step_p1 = [];
-final List<Body> World_step_p2 = [];
-
-// Stuff for emitContactEvents
-final List<int> additions = [];
-final List<int> removals = [];
-class ContactEvent{
-  ContactEvent({
-    required this.type,
-    this.bodyA,
-    this.bodyB
-  });
-  String type;
-  Body? bodyA;
-  Body? bodyB;
-}
-ContactEvent beginContactEvent = ContactEvent(
-  type: 'beginContact',
-);
-ContactEvent endContactEvent  = ContactEvent(
-  type: 'endContact',
-);
-class ShapeContactEvent{
-  ShapeContactEvent({
-    required this.type,
-    this.bodyA,
-    this.bodyB,
-    this.shapeA,
-    this.shapeB
-  });
-  String type;
-  Body? bodyA;
-  Body? bodyB;
-  Shape? shapeA;
-  Shape? shapeB;
-}
-ShapeContactEvent beginShapeContactEvent  = ShapeContactEvent(
-  type: 'beginShapeContact',
-);
-ShapeContactEvent endShapeContactEvent  = ShapeContactEvent(
-  type: 'endShapeContact',
-);

@@ -1,13 +1,9 @@
-/**
- * Base class for objects that dispatches events.
- */
+/// Base class for objects that dispatches events.
 class EventTarget {
   Map<String,List<Function>>? _listeners;//private _listeners: Record<string, Function[]> | null;
 
-  /**
-   * Add an event listener
-   * @return The self object, for chainability.
-   */
+  /// Add an event listener
+  /// @return The self object, for chainability.
   EventTarget addEventListener(String type, Function listener) {
     _listeners ??= {};
     final listeners = _listeners;
@@ -20,9 +16,7 @@ class EventTarget {
     return this;
   }
 
-  /**
-   * Check if an event listener is added
-   */
+  /// Check if an event listener is added
   bool hasEventListener(String type, void Function() listener) {
     if (_listeners == null) {
       return false;
@@ -34,9 +28,7 @@ class EventTarget {
     return false;
   }
 
-  /**
-   * Check if any event listener of the given type is added
-   */
+  /// Check if any event listener of the given type is added
   bool hasAnyEventListener(String type){
     if (_listeners == null) {
       return false;
@@ -45,10 +37,8 @@ class EventTarget {
     return listeners?[type] != null;
   }
 
-  /**
-   * Remove an event listener
-   * @return The self object, for chainability.
-   */
+  /// Remove an event listener
+  /// @return The self object, for chainability.
   EventTarget removeEventListener(String type, Function listener){
     if (_listeners == null) {
       return this;
@@ -64,10 +54,8 @@ class EventTarget {
     return this;
   }
 
-  /**
-   * Emit an event.
-   * @return The self object, for chainability.
-   */
+  /// Emit an event.
+  /// @return The self object, for chainability.
   EventTarget dispatchEvent(dynamic event){
     if (_listeners == null) {
       return this;

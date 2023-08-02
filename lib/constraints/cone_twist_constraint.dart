@@ -6,25 +6,18 @@ import '../objects/body.dart';
 
 //export type ConeTwistConstraintOptions = ConstructorParameters<typeof ConeTwistConstraint>[2]
 
-/**
- * A Cone Twist constraint, useful for ragdolls.
- */
+/// A Cone Twist constraint, useful for ragdolls.
 class ConeTwistConstraint extends PointToPointConstraint {
-  /**
-   * The axis direction for the constraint of the body A.
-   */
+  /// The axis direction for the constraint of the body A.
   late Vec3 axisA;
-  /**
-   * The axis direction for the constraint of the body B.
-   */
+
+  /// The axis direction for the constraint of the body B.
   late Vec3 axisB;
-  /**
-   * The aperture angle of the cone.
-   */
+
+  /// The aperture angle of the cone.
   double angle;
-  /**
-   * The twist angle of the joint.
-   */
+
+  /// The twist angle of the joint.
   double twistAngle;
   late ConeEquation coneEquation;
   late RotationalEquation twistEquation;
@@ -33,41 +26,13 @@ class ConeTwistConstraint extends PointToPointConstraint {
     Body bodyA,
     Body bodyB,
     {
-      /**
-       * The pivot point for bodyA.
-       */
       Vec3? pivotA,
-      /**
-       * The pivot point for bodyB.
-       */
       Vec3? pivotB,
-      /**
-       * The axis direction for the constraint of the body A.
-       */
       Vec3? axisA,
-      /**
-       * The axis direction for the constraint of the body B.
-       */
       Vec3? axisB,
-      /**
-       * The aperture angle of the cone.
-       * @default 0
-       */
       this.angle = 0,
-      /**
-       * The twist angle of the joint.
-       * @default 0
-       */
       this.twistAngle = 0,
-      /**
-       * The maximum force that should be applied to constrain the bodies.
-       * @default 1e6
-       */
       double maxForce = 1e6,
-      /**
-       * Wether to collide the connected bodies or not.
-       * @default false
-       */
       bool collideConnected = false
     }
   ):super(bodyA, bodyB,pivotA, pivotB, maxForce){
@@ -95,6 +60,10 @@ class ConeTwistConstraint extends PointToPointConstraint {
     equations.add(c);
     equations.add(t);
   }
+
+  // final _coneTwistConstraintUpdateTmpVec1 = Vec3();
+  // final _coneTwistConstraintUpdateTmpVec2 = Vec3();
+
   @override
   void update() {
     final bodyA = this.bodyA;
@@ -119,6 +88,3 @@ class ConeTwistConstraint extends PointToPointConstraint {
     twist.maxAngle = twistAngle;
   }
 }
-
-final ConeTwistConstraint_update_tmpVec1 =Vec3();
-final ConeTwistConstraint_update_tmpVec2 =Vec3();

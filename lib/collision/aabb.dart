@@ -1,33 +1,14 @@
 import '../math/vec3.dart';
-import 'ray.dart';
+import 'ray_class.dart';
 import 'dart:math' as math;
 import '../math/transform.dart';
 import '../math/quaternion.dart';
 
-Vec3 tmp = Vec3();
-
-List<Vec3> transformIntoFrame_corners = [
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-];
-
-/**
- * Axis aligned bounding box class.
- */
+/// Axis aligned bounding box class.
 class AABB {
-  /**
-   * The lower bound of the bounding box
-   */
+  /// The lower bound of the bounding box
   late Vec3 lowerBound;
-  /**
-   * The upper bound of the bounding box
-   */
+  /// The upper bound of the bounding box
   late Vec3 upperBound;
 
   AABB({
@@ -43,11 +24,22 @@ class AABB {
     // };
   }
 
-  /**
-   * Set the AABB bounds from a set of points.
-   * @param points An array of Vec3's.
-   * @return The self object
-   */
+  final Vec3 _tmp = Vec3();
+
+  final List<Vec3> _transformIntoFrameCorners = [
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+  ];
+
+  /// Set the AABB bounds from a set of points.
+  /// [points] An array of Vec3's.
+  /// return The self object 
   AABB setFromPoints(List<Vec3> points, [Vec3? position, Quaternion? quaternion, num? skinSize]){
     final l = lowerBound;
     final u = upperBound;
@@ -64,8 +56,8 @@ class AABB {
       Vec3 p = points[i];
 
       if (q != null) {
-        q.vmult(p, tmp);
-        p = tmp;
+        q.vmult(p, _tmp);
+        p = _tmp;
       }
 
       if (p.x > u.x) {
@@ -106,27 +98,21 @@ class AABB {
     return this;
   }
 
-  /**
-   * Copy bounds from an AABB to this AABB
-   * @param aabb Source to copy from
-   * @return The this object, for chainability
-   */
+  /// Copy bounds from an AABB to this AABB
+  /// @param aabb Source to copy from
+  /// @return The this object, for chainability
   AABB copy(AABB aabb) {
     lowerBound.copy(aabb.lowerBound);
     upperBound.copy(aabb.upperBound);
     return this;
   }
 
-  /**
-   * Clone an AABB
-   */
+  /// Clone an AABB
   AABB clone() {
     return AABB().copy(this);
   }
 
-  /**
-   * Extend this AABB so that it covers the given AABB too.
-   */
+  /// Extend this AABB so that it covers the given AABB too.
   void extend(AABB aabb) {
     lowerBound.x = math.min(lowerBound.x, aabb.lowerBound.x);
     upperBound.x = math.max(upperBound.x, aabb.upperBound.x);
@@ -136,9 +122,7 @@ class AABB {
     upperBound.z = math.max(upperBound.z, aabb.upperBound.z);
   }
 
-  /**
-   * Returns true if the given AABB overlaps this AABB.
-   */
+  /// Returns true if the given AABB overlaps this AABB.
   bool overlaps(AABB aabb) {
     final l1 = lowerBound;
     final u1 = upperBound;
@@ -158,15 +142,13 @@ class AABB {
   }
 
   // Mostly for debugging
-  num volume() {
+  double volume() {
     final l = lowerBound;
     final u = upperBound;
     return (u.x - l.x) * (u.y - l.y) * (u.z - l.z);
   }
 
-  /**
-   * Returns true if the given AABB is fully contained in this AABB.
-   */
+  /// Returns true if the given AABB is fully contained in this AABB.
   bool contains(AABB aabb) {
     final l1 = lowerBound;
     final u1 = upperBound;
@@ -195,12 +177,10 @@ class AABB {
     h.copy(u);
   }
 
-  /**
-   * Get the representation of an AABB in another frame.
-   * @return The "target" AABB object.
-   */
+  /// Get the representation of an AABB in another frame.
+  /// [return] The "target" AABB object.
   AABB toLocalFrame(Transform frame,AABB target){
-    final corners = transformIntoFrame_corners;
+    final corners = _transformIntoFrameCorners;
     final a = corners[0];
     final b = corners[1];
     final c = corners[2];
@@ -222,12 +202,10 @@ class AABB {
     return target.setFromPoints(corners);
   }
 
-  /**
-   * Get the representation of an AABB in the global frame.
-   * @return The "target" AABB object.
-   */
+  /// Get the representation of an AABB in the global frame.
+  /// [return] The "target" AABB object.
   AABB toWorldFrame(Transform frame,AABB target){
-    final corners = transformIntoFrame_corners;
+    final corners = _transformIntoFrameCorners;
     final a = corners[0];
     final b = corners[1];
     final c = corners[2];
@@ -249,9 +227,7 @@ class AABB {
     return target.setFromPoints(corners);
   }
 
-  /**
-   * Check if the AABB is hit by a ray.
-   */
+  /// Check if the AABB is hit by a ray.
   bool overlapsRay(Ray ray) {
     final direction = ray.direction;
     final from = ray.from;

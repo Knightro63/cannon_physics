@@ -3,17 +3,15 @@ import '../shapes/convex_polyhedron.dart';
 import '../math/vec3.dart';
 import './shape.dart';
 
-/**
- * Cylinder class.
- * @example
- *     const radiusTop = 0.5
- *     const radiusBottom = 0.5
- *     const height = 2
- *     const numSegments = 12
- *     const cylinderShape = new CANNON.Cylinder(radiusTop, radiusBottom, height, numSegments)
- *     const cylinderBody = new CANNON.Body({ mass: 1, shape: cylinderShape })
- *     world.addBody(cylinderBody)
- */
+/// Cylinder class.
+/// @example
+///     const radiusTop = 0.5
+///     const radiusBottom = 0.5
+///     const height = 2
+///     const numSegments = 12
+///     const cylinderShape = new CANNON.Cylinder(radiusTop, radiusBottom, height, numSegments)
+///     const cylinderBody = new CANNON.Body({ mass: 1, shape: cylinderShape })
+///     world.addBody(cylinderBody)
 class Cylinder extends ConvexPolyhedron {
   /// The radius of the top of the Cylinder.
   double radiusTop;
@@ -24,12 +22,10 @@ class Cylinder extends ConvexPolyhedron {
   /// The number of segments to build the cylinder out of.
   int numSegments;
 
-  /**
-   * @param radiusTop The radius of the top of the Cylinder.
-   * @param radiusBottom The radius of the bottom of the Cylinder.
-   * @param height The height of the Cylinder.
-   * @param numSegments The number of segments to build the cylinder out of.
-   */
+  /// @param radiusTop The radius of the top of the Cylinder.
+  /// @param radiusBottom The radius of the bottom of the Cylinder.
+  /// @param height The height of the Cylinder.
+  /// @param numSegments The number of segments to build the cylinder out of.
   Cylinder({this.radiusTop = 1, this.radiusBottom = 1, this.height = 1, this.numSegments = 8}):super() {
     if (radiusTop < 0) {
       throw('The cylinder radiusTop cannot be negative.');

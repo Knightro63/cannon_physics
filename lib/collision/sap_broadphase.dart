@@ -2,36 +2,26 @@ import 'package:cannon/utils/utils.dart';
 
 import '../collision/broadphase.dart';
 import '../collision/aabb.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 import '../objects/body.dart';
 
-/**
- * Sweep and prune broadphase along one axis.
- */
+/// Sweep and prune broadphase along one axis.
 class SAPBroadphase extends Broadphase {
-  /**
-   * List of bodies currently in the broadphase.
-   */
+  /// List of bodies currently in the broadphase.
   List<Body> axisList = [];
 
-  /**
-   * The world to search in.
-   */
-  World? world;
+  /// The world to search in.
+  //World? world;
 
-  /**
-   * Axis to sort the bodies along.
-   * Set to 0 for x axis, and 1 for y axis.
-   * For best performance, pick the axis where bodies are most distributed.
-   */
+  /// Axis to sort the bodies along.
+  /// Set to 0 for x axis, and 1 for y axis.
+  /// For best performance, pick the axis where bodies are most distributed.
   late AxisIndex axisIndex = AxisIndex.x;
 
   late void Function(Body body) _addBodyHandler;
   late void Function(Body body) _removeBodyHandler;
 
-  /**
-   * Check if the bounds of two bodies overlap, along the given SAP axis.
-   */
+  /// Check if the bounds of two bodies overlap, along the given SAP axis.
   static bool checkBounds(Body bi,Body bj, AxisIndex axisIndex) {
     late double biPos;
     late double bjPos;
@@ -56,9 +46,7 @@ class SAPBroadphase extends Broadphase {
   }
 
   // Note: these are identical, save for x/y/z lowerbound
-  /**
-   * insertionSortX
-   */
+  /// insertionSortX
   static List<Body> insertionSortX(List<Body> a){
     for (int i = 1, l = a.length; i < l; i++) {
       final v = a[i];
@@ -74,9 +62,7 @@ class SAPBroadphase extends Broadphase {
     return a;
   }
 
-  /**
-   * insertionSortY
-   */
+  /// insertionSortY
   static List<Body> insertionSortY(List<Body> a){
     for (int i = 1, l = a.length; i < l; i++) {
       final v = a[i];
@@ -92,9 +78,7 @@ class SAPBroadphase extends Broadphase {
     return a;
   }
 
-  /**
-   * insertionSortZ
-   */
+  /// insertionSortZ
   static List<Body> insertionSortZ(List<Body> a){
     for (int i = 1, l = a.length; i < l; i++) {
       final v = a[i];
@@ -129,9 +113,7 @@ class SAPBroadphase extends Broadphase {
     }
   }
 
-  /**
-   * Change the world
-   */
+  /// Change the world
   @override
   void setWorld(World world) {
     // Clear the old axis array
@@ -151,12 +133,10 @@ class SAPBroadphase extends Broadphase {
     world.addEventListener('removeBody', _removeBodyHandler);
 
     this.world = world;
-    this.dirty = true;
+    dirty = true;
   }
 
-  /**
-   * Collect all collision pairs
-   */
+  /// Collect all collision pairs
   @override
   void collisionPairs(World world, List<Body> p1, List<Body> p2) {
     final bodies = axisList;
@@ -213,10 +193,8 @@ class SAPBroadphase extends Broadphase {
     }
   }
 
-  /**
-   * Computes the variance of the body positions and estimates the best axis to use.
-   * Will automatically set property `axisIndex`.
-   */
+  /// Computes the variance of the body positions and estimates the best axis to use.
+  /// Will automatically set property `axisIndex`.
   void autoDetectAxis() {
     double sumX = 0;
     double sumX2 = 0;
@@ -261,10 +239,9 @@ class SAPBroadphase extends Broadphase {
     }
   }
 
-  /**
-   * Returns all the bodies within an AABB.
-   * @param result An array to store resulting bodies in.
-   */
+  /// Returns all the bodies within an AABB.
+  /// @param result An array to store resulting bodies in.
+  @override
   List<Body> aabbQuery(World world, AABB aabb, [List<Body> result = const []]){
     if (dirty) {
       sortList();

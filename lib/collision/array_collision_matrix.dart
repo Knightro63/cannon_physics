@@ -1,20 +1,14 @@
 import '../objects/body.dart';
 
-/**
- * Collision "matrix".
- * It's actually a triangular-shaped array of whether two bodies are touching this step, for reference next step
- */
+/// Collision "matrix".
+/// It's actually a triangular-shaped array of whether two bodies are touching this step, for reference next step
 class ArrayCollisionMatrix {
-  /**
-   * The matrix storage.
-   */
+  /// The matrix storage.
   List<double> matrix;
 
   ArrayCollisionMatrix([this.matrix = const []]);
 
-  /**
-   * Get an element
-   */
+  /// Get an element
   double get(Body bi, Body  bj) {
     int i = bi.index;
     int j = bj.index;
@@ -26,9 +20,7 @@ class ArrayCollisionMatrix {
     return matrix[((i * (i + 1)) >> 1) + j - 1];
   }
 
-  /**
-   * Set an element
-   */
+  /// Set an element
   void set(Body bi, Body bj, bool value) {
     int i = bi.index;
     int j = bj.index;
@@ -39,10 +31,8 @@ class ArrayCollisionMatrix {
     }
     matrix[((i * (i + 1)) >> 1) + j - 1] = value ? 1 : 0;
   }
-
-  /**
-   * Sets all elements to zero
-   */
+ 
+  /// Sets all elements to zero
   void reset() {
     for (int i = 0, l = matrix.length; i != l; i++) {
       matrix[i] = 0;

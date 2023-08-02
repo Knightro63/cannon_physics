@@ -1,17 +1,14 @@
 import '../objects/body.dart';
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
-import '../collision/ray.dart';
 import '../objects/wheel_info.dart';
 import '../math/transform.dart';
 import '../constraints/constraint.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 import 'dart:math' as math;
 import 'package:cannon/utils/utils.dart';
 
-/**
- * Vehicle helper class that casts rays from the wheel positions towards the ground and applies forces.
- */
+/// Vehicle helper class that casts rays from the wheel positions towards the ground and applies forces.
 class RaycastVehicle {
 
  RaycastVehicle ({
@@ -43,9 +40,40 @@ class RaycastVehicle {
   int numWheelsOnGround = 0;
 
 
-  /**
-   * Add a wheel. For information about the options, see `WheelInfo`.
-   */
+  //final _tmpVec1 = Vec3();
+  //final _tmpVec2 = Vec3();
+  //final _tmpVec3 = Vec3();
+  final _tmpVec4 = Vec3();
+  final _tmpVec5 = Vec3();
+  final _tmpVec6 = Vec3();
+  //final _tmpRay = Ray();
+
+  final torque = Vec3();
+
+  final _castRayRayvector = Vec3();
+  final _castRayTarget = Vec3();
+
+  final directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
+
+  final _updateFrictionSurfNormalWSScaledProj = Vec3();
+  final List<Vec3> _updateFrictionAxle =  [];
+  final List<Vec3> _updateFrictionForwardWS = [];
+  final _sideFrictionStiffness2 = 1;
+
+  final _calcRollingFrictionVel1 = Vec3();
+  final _calcRollingFrictionVel2 = Vec3();
+  final _calcRollingFrictionVel = Vec3();
+
+  final _computeImpulseDenominatorR0 = Vec3();
+  final _computeImpulseDenominatorC0 = Vec3();
+  final _computeImpulseDenominatorVec = Vec3();
+  final _computeImpulseDenominatorM = Vec3();
+
+  final _resolveSingleBilateralVel1 = Vec3();
+  final _resolveSingleBilateralVel2 = Vec3();
+  final _resolveSingleBilateralVel = Vec3();
+
+  /// Add a wheel. For information about the options, see `WheelInfo`.
   int addWheel([WheelInfo? wheelInfo]){
     final info = wheelInfo ?? WheelInfo();
     final index = wheelInfos.length;
@@ -54,31 +82,23 @@ class RaycastVehicle {
     return index;
   }
 
-  /**
-   * Set the steering value of a wheel.
-   */
+  /// Set the steering value of a wheel.
   void setSteeringValue(double value, int wheelIndex){
     final wheel = wheelInfos[wheelIndex];
     wheel.steering = value;
   }
 
-  /**
-   * Set the wheel force to apply on one of the wheels each time step
-   */
+  /// Set the wheel force to apply on one of the wheels each time step
   void applyEngineForce(double value,int wheelIndex){
     wheelInfos[wheelIndex].engineForce = value;
   }
 
-  /**
-   * Set the braking force of a wheel
-   */
+  /// Set the braking force of a wheel
   void setBrake(double brake,int wheelIndex){
     wheelInfos[wheelIndex].brake = brake;
   }
 
-  /**
-   * Add the vehicle including its finalraints to the world.
-   */
+  /// Add the vehicle including its finalraints to the world.
   void addToWorld(World world){
     world.addBody(chassisBody);
     final that = this;
@@ -89,11 +109,9 @@ class RaycastVehicle {
     this.world = world;
   }
 
-  /**
-   * Get one of the wheel axles, world-oriented.
-   */
+  /// Get one of the wheel axles, world-oriented.
   void getVehicleAxisWorld(AxisIndex axisIndex, Vec3 result){
-    result.set(axisIndex == 0 ? 1 : 0, axisIndex == 1 ? 1 : 0, axisIndex == 2 ? 1 :0);
+    result.set(axisIndex == AxisIndex.x ? 1 : 0, AxisIndex.y == axisIndex ? 1 : 0, axisIndex == AxisIndex.z ? 1 :0);
     chassisBody.vectorToWorldFrame(result, result);
   }
 
@@ -222,9 +240,7 @@ void   updateSuspension(num? deltaTime){
     }
   }
 
-  /**
-   * Remove the vehicle including its finalraints from the world.
-   */
+  /// Remove the vehicle including its finalraints from the world.
   void removeFromWorld(World world){
     //final finalraints = this.finalraints;
     world.removeBody(chassisBody);
@@ -233,8 +249,8 @@ void   updateSuspension(num? deltaTime){
   }
 
   double castRay(WheelInfo wheel){
-    final rayvector = castRay_rayvector;
-    final target = castRay_target;
+    final rayvector = _castRayRayvector;
+    final target = _castRayTarget;
 
     updateWheelTransformWorld(wheel);
     final chassisBody = this.chassisBody;
@@ -284,10 +300,10 @@ void   updateSuspension(num? deltaTime){
 
       final denominator = wheel.raycastResult.hitNormalWorld.dot(wheel.directionWorld);
 
-      final chassis_velocity_at_contactPoint = Vec3();
-      chassisBody.getVelocityAtWorldPoint(wheel.raycastResult.hitPointWorld, chassis_velocity_at_contactPoint);
+      //final chassisVelocityAtContactPoint = Vec3();
+      chassisBody.getVelocityAtWorldPoint(wheel.raycastResult.hitPointWorld, chassisVelocityAtContactPoint);
 
-      final projVel = wheel.raycastResult.hitNormalWorld.dot(chassis_velocity_at_contactPoint);
+      final projVel = wheel.raycastResult.hitNormalWorld.dot(chassisVelocityAtContactPoint);
 
       if (denominator >= -0.1) {
         wheel.suspensionRelativeVelocity = 0;
@@ -316,15 +332,13 @@ void   updateSuspension(num? deltaTime){
     chassisBody.vectorToWorldFrame(wheel.axleLocal, wheel.axleWorld);
   }
 
-  /**
-   * Update one of the wheel transform.
-   * Note when rendering wheels: during each step, wheel transforms are updated BEFORE the chassis; ie. their position becomes invalid after the step. Thus when you render wheels, you must update wheel transforms before rendering them. See raycastVehicle demo for an example.
-   * @param wheelIndex The wheel index to update.;
-   */
+  /// Update one of the wheel transform.
+  /// Note when rendering wheels: during each step, wheel transforms are updated BEFORE the chassis; ie. their position becomes invalid after the step. Thus when you render wheels, you must update wheel transforms before rendering them. See raycastVehicle demo for an example.
+  /// @param wheelIndex The wheel index to update.;
   void updateWheelTransform(int wheelIndex){
-    final up = tmpVec4;
-    final right = tmpVec5;
-    final fwd = tmpVec6;
+    final up = _tmpVec4;
+    final right = _tmpVec5;
+    final fwd = _tmpVec6;
 
     final wheel = wheelInfos[wheelIndex];
     updateWheelTransformWorld(wheel);
@@ -357,22 +371,20 @@ void   updateSuspension(num? deltaTime){
     p.vadd(wheel.chassisConnectionPointWorld, p);
   }
 
-  /**
-   * Get the world transform of one of the wheels
-   */
+  /// Get the world transform of one of the wheels
   Transform getWheelTransformWorld(int wheelIndex){
     return wheelInfos[wheelIndex].worldTransform;
   }
 
   void updateFriction(double timeStep){
-    final surfNormalWS_scaled_proj = updateFriction_surfNormalWS_scaled_proj;
+    final surfNormalWSScaledProj = _updateFrictionSurfNormalWSScaledProj;
 
     //calculate the impulse, so that the wheels don't move sidewards
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
     final chassisBody = this.chassisBody;
-    final forwardWS = updateFriction_forwardWS;
-    final axle = updateFriction_axle;
+    final forwardWS = _updateFrictionForwardWS;
+    final axle = _updateFrictionAxle;
 
     numWheelsOnGround = 0;
     final int forwardWSLength = forwardWS.length;
@@ -410,8 +422,8 @@ void   updateSuspension(num? deltaTime){
 
         final surfNormalWS = wheel.raycastResult.hitNormalWorld;
         final proj = axlei.dot(surfNormalWS);
-        surfNormalWS.scale(proj, surfNormalWS_scaled_proj);
-        axlei.vsub(surfNormalWS_scaled_proj, axlei);
+        surfNormalWS.scale(proj, surfNormalWSScaledProj);
+        axlei.vsub(surfNormalWSScaledProj, axlei);
         axlei.normalize();
 
         surfNormalWS.cross(axlei, forwardWS[i]);
@@ -425,7 +437,7 @@ void   updateSuspension(num? deltaTime){
           axlei
         );
 
-        wheel.sideImpulse *= sideFrictionStiffness2;
+        wheel.sideImpulse *= _sideFrictionStiffness2;
       }
     }
 
@@ -505,7 +517,7 @@ void   updateSuspension(num? deltaTime){
       }
     }
 
-    ; // apply the impulses
+    // apply the impulses
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
 
@@ -529,7 +541,7 @@ void   updateSuspension(num? deltaTime){
         final sideImp = Vec3();
         axle[i].scale(wheel.sideImpulse, sideImp);
 
-        ; // Scale the relative position in the up direction with rollInfluence.
+        // Scale the relative position in the up direction with rollInfluence.
         // If rollInfluence is 1, the impulse will be applied on the hitPoint (easy to roll over), if it is zero it will be applied in the same plane as the center of mass (not easy to roll over).
         chassisBody.vectorToLocalFrame(relPos, relPos);
         relPos[indexUpAxis.index] *= wheel.rollInfluence;//'xyz'[this.indexUpAxis] as 'x' | 'y' | 'z'
@@ -542,31 +554,7 @@ void   updateSuspension(num? deltaTime){
       }
     }
   }
-}
 
-final tmpVec1 = Vec3();
-final tmpVec2 = Vec3();
-final tmpVec3 = Vec3();
-final tmpVec4 = Vec3();
-final tmpVec5 = Vec3();
-final tmpVec6 = Vec3();
-final tmpRay = Ray();
-
-final torque = Vec3();
-
-final castRay_rayvector = Vec3();
-final castRay_target = Vec3();
-
-final directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
-
-final updateFriction_surfNormalWS_scaled_proj = Vec3();
-final List<Vec3> updateFriction_axle =  [];
-final List<Vec3>updateFriction_forwardWS = [];
-const sideFrictionStiffness2 = 1;
-
-final calcRollingFriction_vel1 = Vec3();
-final calcRollingFriction_vel2 = Vec3();
-final calcRollingFriction_vel = Vec3();
 
 double calcRollingFriction(
   Body body0,
@@ -580,9 +568,9 @@ double calcRollingFriction(
 
   // final rel_pos1 = Vec3();
   // final rel_pos2 = Vec3();
-  final vel1 = calcRollingFriction_vel1;
-  final vel2 = calcRollingFriction_vel2;
-  final vel = calcRollingFriction_vel;
+  final vel1 = _calcRollingFrictionVel1;
+  final vel2 = _calcRollingFrictionVel2;
+  final vel = _calcRollingFrictionVel;
   // contactPosWorld.vsub(body0.position, rel_pos1);
   // contactPosWorld.vsub(body1.position, rel_pos2);
 
@@ -610,53 +598,46 @@ double calcRollingFriction(
   return j1;
 }
 
-final computeImpulseDenominator_r0 = Vec3();
-final computeImpulseDenominator_c0 = Vec3();
-final computeImpulseDenominator_vec = Vec3();
-final computeImpulseDenominator_m = Vec3();
+  double computeImpulseDenominator(Body body,Vec3 pos,Vec3 normal){
+    final r0 = _computeImpulseDenominatorR0;
+    final c0 = _computeImpulseDenominatorC0;
+    final vec = _computeImpulseDenominatorVec;
+    final m = _computeImpulseDenominatorM;
 
-double computeImpulseDenominator(Body body,Vec3 pos,Vec3 normal){
-  final r0 = computeImpulseDenominator_r0;
-  final c0 = computeImpulseDenominator_c0;
-  final vec = computeImpulseDenominator_vec;
-  final m = computeImpulseDenominator_m;
+    pos.vsub(body.position, r0);
+    r0.cross(normal, c0);
+    body.invInertiaWorld.vmult(c0, m);
+    m.cross(r0, vec);
 
-  pos.vsub(body.position, r0);
-  r0.cross(normal, c0);
-  body.invInertiaWorld.vmult(c0, m);
-  m.cross(r0, vec);
-
-  return body.invMass + normal.dot(vec);
-}
-
-final resolveSingleBilateral_vel1 = Vec3();
-final resolveSingleBilateral_vel2 = Vec3();
-final resolveSingleBilateral_vel = Vec3();
-
-// bilateral finalraint between two dynamic objects
-double resolveSingleBilateral(Body body1,Vec3 pos1,Body body2,Vec3 pos2,Vec3 normal){
-  final normalLenSqr = normal.lengthSquared();
-  if (normalLenSqr > 1.1) {
-    return 0 ; // no impulse
+    return body.invMass + normal.dot(vec);
   }
-  // final rel_pos1 = Vec3();
-  // final rel_pos2 = Vec3();
-  // pos1.vsub(body1.position, rel_pos1);
-  // pos2.vsub(body2.position, rel_pos2);
 
-  final vel1 = resolveSingleBilateral_vel1;
-  final vel2 = resolveSingleBilateral_vel2;
-  final vel = resolveSingleBilateral_vel;
-  body1.getVelocityAtWorldPoint(pos1, vel1);
-  body2.getVelocityAtWorldPoint(pos2, vel2);
+  // bilateral finalraint between two dynamic objects
+  double resolveSingleBilateral(Body body1,Vec3 pos1,Body body2,Vec3 pos2,Vec3 normal){
+    final normalLenSqr = normal.lengthSquared();
+    if (normalLenSqr > 1.1) {
+      return 0 ; // no impulse
+    }
+    // final rel_pos1 = Vec3();
+    // final rel_pos2 = Vec3();
+    // pos1.vsub(body1.position, rel_pos1);
+    // pos2.vsub(body2.position, rel_pos2);
 
-  vel1.vsub(vel2, vel);
+    final vel1 = _resolveSingleBilateralVel1;
+    final vel2 = _resolveSingleBilateralVel2;
+    final vel = _resolveSingleBilateralVel;
+    body1.getVelocityAtWorldPoint(pos1, vel1);
+    body2.getVelocityAtWorldPoint(pos2, vel2);
 
-  final relVel = normal.dot(vel);
+    vel1.vsub(vel2, vel);
 
-  const contactDamping = 0.2;
-  final massTerm = 1 / (body1.invMass + body2.invMass);
-  final impulse = -contactDamping * relVel * massTerm;
+    final relVel = normal.dot(vel);
 
-  return impulse;
+    const contactDamping = 0.2;
+    final massTerm = 1 / (body1.invMass + body2.invMass);
+    final impulse = -contactDamping * relVel * massTerm;
+
+    return impulse;
+  }
+
 }

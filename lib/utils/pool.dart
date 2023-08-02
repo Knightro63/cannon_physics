@@ -1,32 +1,22 @@
 import 'package:cannon/math/vec3.dart';
 
-/**
- * For pooling objects that can be reused.
- */
+/// For pooling objects that can be reused.
 class Pool {
-  /**
-   * The objects array.
-   */
+  /// he objects array.
   List objects = [];
-  /**
-   * The type of the objects.
-   */
+  /// The type of the objects.
   Object type = Object();//: any = Object
 
-  /**
-   * Release an object after use
-   */
+  /// Release an object after use
   Pool release([List args = const []]){
-    final Nargs = args.length;
-    for (int i = 0; i != Nargs; i++) {
+    final nargs = args.length;
+    for (int i = 0; i != nargs; i++) {
       objects.add(args[i]);
     }
     return this;
   }
 
-  /**
-   * Get an object
-   */
+  /// Get an object
   dynamic get() {
     if (objects.isEmpty) {
       return constructObject();
@@ -35,16 +25,12 @@ class Pool {
     }
   }
 
-  /**
-   * Construct an object. Should be implemented in each subclass.
-   */
+  /// Construct an object. Should be implemented in each subclass.
   Vec3 constructObject(){
     throw ('constructObject() not implemented in this Pool subclass yet!');
   }
 
-  /**
-   * @return Self, for chaining
-   */
+  /// @return Self, for chaining
   Pool resize(num size) {
     final objects = this.objects;
 

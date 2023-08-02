@@ -1,9 +1,6 @@
 import 'vec3.dart';
 import 'dart:math' as math;
 
-final sfv_t1 = Vec3();
-final sfv_t2 = Vec3();
-
 enum Order{xyz,yxz,zxy,zyx,yzx,xzy}
 
 class AxisAngle{
@@ -13,14 +10,12 @@ class AxisAngle{
   Vec3 axis;
 }
 
-/**
- * A Quaternion describes a rotation in 3D space. The Quaternion is mathematically defined as Q = x*i + y*j + z*k + w, where (i,j,k) are imaginary basis vectors. (x,y,z) can be seen as a vector related to the axis of rotation, while the real multiplier, w, is related to the amount of rotation.
- * @param x Multiplier of the imaginary basis vector i.
- * @param y Multiplier of the imaginary basis vector j.
- * @param z Multiplier of the imaginary basis vector k.
- * @param w Multiplier of the real part.
- * @see http://en.wikipedia.org/wiki/Quaternion
- */
+/// A Quaternion describes a rotation in 3D space. The Quaternion is mathematically defined as Q = x*i + y*j + z*k + w, where (i,j,k) are imaginary basis vectors. (x,y,z) can be seen as a vector related to the axis of rotation, while the real multiplier, w, is related to the amount of rotation.
+/// @param x Multiplier of the imaginary basis vector i.
+/// @param y Multiplier of the imaginary basis vector j.
+/// @param z Multiplier of the imaginary basis vector k.
+/// @param w Multiplier of the real part.
+/// @see http://en.wikipedia.org/wiki/Quaternion
 class Quaternion {
   double x;
   double y;
@@ -29,9 +24,10 @@ class Quaternion {
 
   Quaternion([this.x = 0, this.y = 0, this.z = 0, this.w = 1]);
 
-  /**
-   * Set the value of the quaternion.
-   */
+  final _sfvT1 = Vec3();
+  final _sfvT2 = Vec3();
+
+  /// Set the value of the quaternion.
   Quaternion set(double x, double y, double z, double w){
     this.x = x;
     this.y = y;
@@ -40,25 +36,20 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Convert to a readable format
-   * @return "x,y,z,w"
-   */
+  /// Convert to a readable format
+  /// @return "x,y,z,w"
+  @override
   String toString() {
     return '$x,$y,$z,$w';
   }
 
-  /**
-   * Convert to an Array
-   * @return [x, y, z, w]
-   */
+  /// Convert to an Array
+  /// @return [x, y, z, w]
   List<double> toArray(){
     return [x,y,z,w];
   }
 
-  /**
-   * Set the quaternion components given an axis and an angle in radians.
-   */
+  /// Set the quaternion components given an axis and an angle in radians.
   Quaternion setFromAxisAngle(Vec3 vector, double angle){
     final s = math.sin(angle * 0.5);
     x = vector.x * s;
@@ -68,11 +59,9 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Converts the quaternion to [ axis, angle ] representation.
-   * @param targetAxis A vector object to reuse for storing the axis.
-   * @return An array, first element is the axis and the second is the angle in radians.
-   */
+  ///Converts the quaternion to [ axis, angle ] representation.
+  /// @param targetAxis A vector object to reuse for storing the axis.
+  /// @return An array, first element is the axis and the second is the angle in radians.
   AxisAngle toAxisAngle(Vec3? targetAxis){
     targetAxis ??= Vec3();
     normalize(); // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
@@ -92,13 +81,11 @@ class Quaternion {
     return AxisAngle(targetAxis, angle);
   }
 
-  /**
-   * Set the quaternion value given two vectors. The resulting rotation will be the needed rotation to rotate u to v.
-   */
+  /// Set the quaternion value given two vectors. The resulting rotation will be the needed rotation to rotate u to v.
   Quaternion setFromVectors(Vec3 u, Vec3 v){
     if (u.isAntiparallelTo(v)) {
-      final t1 = sfv_t1;
-      final t2 = sfv_t2;
+      final t1 = _sfvT1;
+      final t2 = _sfvT2;
 
       u.tangents(t1, t2);
       setFromAxisAngle(t1, math.pi);
@@ -113,9 +100,7 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Multiply the quaternion with an other quaternion.
-   */
+  /// Multiply the quaternion with an other quaternion.
   Quaternion mult(Quaternion quat, [Quaternion? target]){
     target ??= Quaternion();
     final ax = x;
@@ -135,9 +120,7 @@ class Quaternion {
     return target;
   }
 
-  /**
-   * Get the inverse quaternion rotation.
-   */
+  /// Get the inverse quaternion rotation.
   Quaternion inverse([Quaternion? target]){
     target ??= Quaternion();
     final x = this.x;
@@ -155,9 +138,7 @@ class Quaternion {
     return target;
   }
 
-  /**
-   * Get the quaternion conjugate
-   */
+  /// Get the quaternion conjugate
   Quaternion conjugate([Quaternion? target]){
     target ??= Quaternion();
     target.x = -x;
@@ -168,9 +149,7 @@ class Quaternion {
     return target;
   }
 
-  /**
-   * Normalize the quaternion. Note that this changes the values of the quaternion.
-   */
+  /// Normalize the quaternion. Note that this changes the values of the quaternion.
   Quaternion normalize(){
     double l = math.sqrt(x * x + y *y + z *z + w * w);
     if (l == 0) {
@@ -188,10 +167,8 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Approximation of quaternion normalization. Works best when quat is already almost-normalized.
-   * @author unphased, https://github.com/unphased
-   */
+  /// Approximation of quaternion normalization. Works best when quat is already almost-normalized.
+  /// @author unphased, https://github.com/unphased
   Quaternion normalizeFast(){
     final f = (3.0 - (x * x + y * y + z * z + w * w)) / 2.0;
     if (f == 0) {
@@ -208,9 +185,7 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Multiply the quaternion by a vector
-   */
+  /// Multiply the quaternion by a vector
   Vec3 vmult(Vec3 v, [Vec3? target]){
     target ??= Vec3();
     final x = v.x;
@@ -219,7 +194,7 @@ class Quaternion {
     final qx = this.x;
     final qy = this.y;
     final qz = this.z;
-    final qw = this.w;
+    final qw = w;
 
     // q*v
     final ix = qw * x + qy * z - qz * y;
@@ -235,10 +210,8 @@ class Quaternion {
     return target;
   }
 
-  /**
-   * Copies value of source to this quaternion.
-   * @return this
-   */
+  /// Copies value of source to this quaternion.
+  /// @return this
   Quaternion copy(Quaternion quat){
     x = quat.x;
     y = quat.y;
@@ -247,10 +220,8 @@ class Quaternion {
     return this;
   }
 
-  /**
-   * Convert the quaternion to euler angle representation. Order: YZX, as this page describes: https://www.euclideanspace.com/maths/standards/index.htm
-   * @param order Three-character string, defaults to "YZX"
-   */
+  /// Convert the quaternion to euler angle representation. Order: YZX, as this page describes: https://www.euclideanspace.com/maths/standards/index.htm
+  /// @param order Three-character string, defaults to "YZX"
   void toEuler(Vec3 target, [Order order = Order.xyz]) {
     double? heading;
     late double attitude;
@@ -286,7 +257,7 @@ class Quaternion {
         }
         break;
       default:
-        throw('Euler order ${order} not supported yet.');
+        throw('Euler order $order not supported yet.');
     }
 
     target.y = heading;
@@ -294,13 +265,11 @@ class Quaternion {
     target.x = bank;
   }
 
-  /**
-   * Set the quaternion components given Euler angle representation.
-   *
-   * @param order The order to apply angles: 'XYZ' or 'YXZ' or any other combination.
-   *
-   * See {@link https://www.mathworks.com/matlabcentral/fileexchange/20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors mathWorks} reference
-   */
+  /// Set the quaternion components given Euler angle representation.
+  ///
+  /// @param order The order to apply angles: 'XYZ' or 'YXZ' or any other combination.
+  ///
+  /// See {@link https://www.mathworks.com/matlabcentral/fileexchange/20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors mathWorks} reference
   Quaternion setFromEuler(double x,double y,double z, [Order order = Order.xyz]){
     final c1 = math.cos(x / 2);
     final c2 = math.cos(y / 2);
@@ -348,14 +317,12 @@ class Quaternion {
     return Quaternion(x, y, z, w);
   }
 
-  /**
-   * Performs a spherical linear interpolation between two quat
-   *
-   * @param toQuat second operand
-   * @param t interpolation amount between the self quaternion and toQuat
-   * @param target A quaternion to store the result in. If not provided, a new one will be created.
-   * @returns {Quaternion} The "target" object
-   */
+  /// Performs a spherical linear interpolation between two quat
+  ///
+  /// @param toQuat second operand
+  /// @param t interpolation amount between the self quaternion and toQuat
+  /// @param target A quaternion to store the result in. If not provided, a new one will be created.
+  /// @returns {Quaternion} The "target" object
   Quaternion slerp(Quaternion toQuat,double t, [Quaternion? target]){
     target ??= Quaternion();
     final ax = x;
@@ -408,9 +375,7 @@ class Quaternion {
     return target;
   }
 
-  /**
-   * Rotate an absolute orientation quaternion given an angular velocity and a time step.
-   */
+  /// Rotate an absolute orientation quaternion given an angular velocity and a time step.
   Quaternion integrate(Vec3 angularVelocity,double dt,Vec3 angularFactor, [Quaternion? target]){
     target ??= Quaternion();
     final ax = angularVelocity.x * angularFactor.x,

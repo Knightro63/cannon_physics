@@ -1,7 +1,7 @@
 import 'broadphase.dart';
 import  '../objects/body.dart';
 import  '../collision/aabb.dart';
-import  '../world/world.dart';
+import  '../world/world_class.dart';
 
 /// Naive broadphase implementation, used in lack of better ones.
 ///

@@ -4,9 +4,7 @@ import '../math/vec3.dart';
 import '../objects/body.dart';
 import '../equations/rotational_motor_equation.dart';
 
-/**
- * Lock constraint. Will remove all degrees of freedom between the bodies.
- */
+/// Lock constraint. Will remove all degrees of freedom between the bodies.
 class LockConstraint extends PointToPointConstraint {
   late Vec3 xA;
   late Vec3 xB;
@@ -58,9 +56,11 @@ class LockConstraint extends PointToPointConstraint {
     equations.add(r3);
   }
 
-  /**
-   * update
-   */
+
+  //final _lockConstraintUpdateTmpVec1 = Vec3();
+  //final _lockConstraintUpdateTmpVec2 = Vec3();
+
+  /// update
   @override
   void update(){
     final bodyA = this.bodyA;
@@ -82,6 +82,3 @@ class LockConstraint extends PointToPointConstraint {
     bodyB.vectorToWorldFrame(xB, r3.axisB);
   }
 }
-
-final LockConstraint_update_tmpVec1 = Vec3();
-final LockConstraint_update_tmpVec2 = Vec3();

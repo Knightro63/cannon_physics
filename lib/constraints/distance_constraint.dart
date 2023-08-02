@@ -2,20 +2,14 @@ import '../constraints/constraint.dart';
 import '../equations/contact_equation.dart';
 import '../objects/body.dart';
 
-/**
- * Constrains two bodies to be at a constant distance from each others center of mass.
- */
+/// Constrains two bodies to be at a constant distance from each others center of mass.
 class DistanceConstraint extends Constraint {
-  /**
-   * The distance to keep. If undefined, it will be set to the current distance between bodyA and bodyB
-   */
+  /// The distance to keep. If undefined, it will be set to the current distance between bodyA and bodyB
   late double distance;
   late ContactEquation distanceEquation;
 
-  /**
-   * @param distance The distance to keep. If undefined, it will be set to the current distance between bodyA and bodyB.
-   * @param maxForce The maximum force that should be applied to constrain the bodies.
-   */
+  /// [distance] The distance to keep. If undefined, it will be set to the current distance between bodyA and bodyB.
+  /// [maxForce] The maximum force that should be applied to constrain the bodies.
   DistanceConstraint(Body bodyA, Body bodyB, [double? distance, double maxForce = 1e6]):super(bodyA, bodyB) {
     this.distance = distance ?? bodyA.position.distanceTo(bodyB.position);
     distanceEquation = ContactEquation(bodyA, bodyB);
@@ -27,9 +21,7 @@ class DistanceConstraint extends Constraint {
     eq.maxForce = maxForce;
   }
 
-  /**
-   * update
-   */
+  /// update
   @override
   void update() {
     final bodyA = this.bodyA;

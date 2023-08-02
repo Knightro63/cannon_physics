@@ -1,35 +1,30 @@
 import '../solver/solver.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 
-/**
- * Constraint equation Gauss-Seidel solver.
- * @todo The spook parameters should be specified for each constraint, not globally.
- * @see https://www8.cs.umu.se/kurser/5DV058/VT09/lectures/spooknotes.pdf
- */
+/// Constraint equation Gauss-Seidel solver.
+/// @todo The spook parameters should be specified for each constraint, not globally.
+/// @see https://www8.cs.umu.se/kurser/5DV058/VT09/lectures/spooknotes.pdf
 class GSSolver extends Solver {
-  /**
-   * The number of solver iterations determines quality of the constraints in the world.
-   * The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
-   */
+  /// The number of solver iterations determines quality of the constraints in the world.
+  /// The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
   int iterations;
 
-  /**
-   * When tolerance is reached, the system is assumed to be converged.
-   */
+  /// When tolerance is reached, the system is assumed to be converged.
   double tolerance;
 
-  /**
-   * @todo remove useless constructor
-   */
+  /// @todo remove useless constructor
   GSSolver({
     this.iterations = 10,
     this.tolerance = 1e-7
   }):super();
 
-  /**
-   * Solve
-   * @return number of iterations performed
-   */
+  // Just temporary number holders that we want to reuse each iteration.
+  final List<double> _gsSolverSolveLambda = [];
+  final List<double> _gsSolverSolveInvCs = [];
+  final List<double> _gsSolverSolveBs = [];
+
+  /// Solve
+  /// @return number of iterations performed
   @override
   int solve(double dt, World world) {
     int iter = 0;
@@ -45,7 +40,7 @@ class GSSolver extends Solver {
     double invC;
     double deltalambda;
     double deltalambdaTot;
-    double GWlambda;
+    double gwlambda;
     double lambdaj;
 
     // Update solve mass
@@ -56,17 +51,17 @@ class GSSolver extends Solver {
     }
 
     // Things that do not change during iteration can be computed once
-    final invCs = GSSolver_solve_invCs;
+    final invCs = _gsSolverSolveInvCs;
 
-    final Bs = GSSolver_solve_Bs;
-    final lambda = GSSolver_solve_lambda;
+    final bs = _gsSolverSolveBs;
+    final lambda = _gsSolverSolveLambda;
     invCs.length = nEq;
-    Bs.length = nEq;
+    bs.length = nEq;
     lambda.length = nEq;
     for (int i = 0; i != nEq; i++) {
       final c = equations[i];
       lambda[i] = 0.0;
-      Bs[i] = c.computeB(h);
+      bs[i] = c.computeB(h);
       invCs[i] = 1.0 / c.computeC();
     }
 
@@ -89,11 +84,11 @@ class GSSolver extends Solver {
           final c = equations[j];
 
           // Compute iteration
-          B = Bs[j];
+          B = bs[j];
           invC = invCs[j];
           lambdaj = lambda[j];
-          GWlambda = c.computeGWlambda();
-          deltalambda = invC * (B - GWlambda - c.eps * lambdaj);
+          gwlambda = c.computeGWlambda();
+          deltalambda = invC * (B - gwlambda - c.eps * lambdaj);
 
           // Clamp if we are not within the min/max interval
           if (lambdaj + deltalambda < c.minForce) {
@@ -139,8 +134,3 @@ class GSSolver extends Solver {
     return iter;
   }
 }
-
-// Just temporary number holders that we want to reuse each iteration.
-List<double> GSSolver_solve_lambda = [];
-List<double> GSSolver_solve_invCs = [];
-List<double> GSSolver_solve_Bs = [];

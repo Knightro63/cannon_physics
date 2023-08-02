@@ -1,7 +1,7 @@
 import '../solver/solver.dart';
 import '../objects/body.dart';
 import '../equations/equation.dart';
-import '../world/world.dart';
+import '../world/world_class.dart';
 import './gs_solver.dart';
 
 //type SplitSolverNode = { body: Body | null; children: SplitSolverNode[]; eqs: Equation[]; visited: boolean }
@@ -34,42 +34,48 @@ class SplitSolver extends Solver {
   SplitSolver(this.subsolver):super(){
     // Create needed nodes, reuse if possible
     while (nodePool.length < 128) {
-      nodePool.add(this.createNode());
+      nodePool.add(createNode());
     }
   }
 
-  /**
-   * Solve the subsystems
-   * @return number of iterations performed
-   */
+  // Returns the number of subsystems
+  final List<SplitSolverNode> _splitSolverSolveNodes = []; // All allocated node objects
+  //final List<SplitSolverNode> _splitSolverSolveNodePool = []; // All allocated node objects
+  final List<Equation> _splitSolverSolveEqs = []; // Temp array
+  //final List<Body> _splitSolverSolveBds = []; // Temp array
+  final List<Body> _splitSolverSolveDummyWorld = [];// { bodies: Body[] } = { bodies: [] }; // Temp object
+  final List<SplitSolverNode> _queue = [];
+
+  /// Solve the subsystems
+  /// @return number of iterations performed
   @override
   int solve(double dt, World world) {
-    final nodes = SplitSolver_solve_nodes;
+    final nodes = _splitSolverSolveNodes;
     final nodePool = this.nodePool;
     final bodies = world.bodies;
     final equations = this.equations;
-    final Neq = equations.length;
-    final Nbodies = bodies.length;
+    final neq = equations.length;
+    final nbodies = bodies.length;
     final subsolver = this.subsolver;
 
     // Create needed nodes, reuse if possible
-    while (nodePool.length < Nbodies) {
-      nodePool.add(this.createNode());
+    while (nodePool.length < nbodies) {
+      nodePool.add(createNode());
     }
-    nodes.length = Nbodies;
-    for (int i = 0; i < Nbodies; i++) {
+    nodes.length = nbodies;
+    for (int i = 0; i < nbodies; i++) {
       nodes[i] = nodePool[i];
     }
 
     // Reset node values
-    for (int i = 0; i != Nbodies; i++) {
+    for (int i = 0; i != nbodies; i++) {
       final node = nodes[i];
       node.body = bodies[i];
       node.children.length = 0;
       node.eqs.length = 0;
       node.visited = false;
     }
-    for (int k = 0; k != Neq; k++) {
+    for (int k = 0; k != neq; k++) {
       final eq = equations[k];
       final i = bodies.indexOf(eq.bi);
       final j = bodies.indexOf(eq.bj);
@@ -83,12 +89,12 @@ class SplitSolver extends Solver {
 
     //:  | false;
     int n = 0;
-    List<Equation> eqs = SplitSolver_solve_eqs;
+    List<Equation> eqs = _splitSolverSolveEqs;
 
     subsolver.tolerance = tolerance;
     subsolver.iterations = iterations;
 
-    final dummyWorld = SplitSolver_solve_dummyWorld;
+    final dummyWorld = _splitSolverSolveDummyWorld;
     while(true) {
       SplitSolverNode? child = getUnvisitedNode(nodes);
       if(child == null) break;
@@ -96,12 +102,12 @@ class SplitSolver extends Solver {
       dummyWorld.length = 0;
       bfs(child, visitFunc, dummyWorld, eqs);
 
-      final Neqs = eqs.length;
+      final neqs = eqs.length;
 
       //eqs = eqs.sort(sortById);
       eqs.sort(sortById);
 
-      for (int i = 0; i != Neqs; i++) {
+      for (int i = 0; i != neqs; i++) {
         subsolver.addEquation(eqs[i]);
       }
 
@@ -132,25 +138,25 @@ class SplitSolver extends Solver {
     List<Body?> bds,
     List<Equation> eqs
   ) {
-    queue.add(root);
+    _queue.add(root);
     root.visited = true;
     visitFunc(root, bds, eqs);
-    while (queue.isNotEmpty) {
-      final node = queue.removeLast();
+    while (_queue.isNotEmpty) {
+      final node = _queue.removeLast();
       while(true) {
         SplitSolverNode? child = getUnvisitedNode(node.children);
         if(child == null) break;
         child.visited = true;
         visitFunc(child, bds, eqs);
-        queue.add(child);
+        _queue.add(child);
       }
     }
   }
 
   void visitFunc(SplitSolverNode node, List<Body?> bds, List<Equation> eqs) {
     bds.add(node.body);
-    final Neqs = node.eqs.length;
-    for (int i = 0; i != Neqs; i++) {
+    final neqs = node.eqs.length;
+    for (int i = 0; i != neqs; i++) {
       final eq = node.eqs[i];
       if (!eqs.contains(eq)) {
         eqs.add(eq);
@@ -162,11 +168,3 @@ class SplitSolver extends Solver {
     return b.id - a.id;
   }
 }
-
-  // Returns the number of subsystems
-  List<SplitSolverNode> SplitSolver_solve_nodes = []; // All allocated node objects
-  final List<SplitSolverNode> SplitSolver_solve_nodePool = []; // All allocated node objects
-  final List<Equation> SplitSolver_solve_eqs = []; // Temp array
-  final List<Body> SplitSolver_solve_bds = []; // Temp array
-  final List<Body> SplitSolver_solve_dummyWorld = [];// { bodies: Body[] } = { bodies: [] }; // Temp object
-  List<SplitSolverNode> queue = [];

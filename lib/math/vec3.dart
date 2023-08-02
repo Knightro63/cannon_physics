@@ -7,12 +7,10 @@ final Vec3_tangents_n = new Vec3();
 final Vec3_tangents_randVec = new Vec3();
 final antip_neg = new Vec3();
 
-/**
- * 3-dimensional vector
- * @example
- *     final v = new Vec3(1, 2, 3)
- *     console.log('x=' + v.x) // x=1
- */
+/// 3-dimensional vector
+/// @example
+///     final v = new Vec3(1, 2, 3)
+///     console.log('x=' + v.x) // x=1
 class Vec3 {
   double x;
   double y;
@@ -55,10 +53,8 @@ class Vec3 {
     }
   }
 
-  /**
-   * Vector cross product
-   * @param target Optional target to save in.
-   */
+  /// Vector cross product
+  /// @param target Optional target to save in.
   Vec3 cross(Vec3 vector, [Vec3? target]){
     target ??= Vec3();
     final vx = vector.x;
@@ -75,9 +71,7 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Set the vectors' 3 elements
-   */
+  /// Set the vectors' 3 elements
   Vec3 set(double x,double y,double z){
     this.x = x;
     this.y = y;
@@ -85,16 +79,12 @@ class Vec3 {
     return this;
   }
 
-  /**
-   * Set all components of the vector to zero.
-   */
+  /// Set all components of the vector to zero.
   void setZero() {
     x = y = z = 0;
   }
 
-  /**
-   * Vector addition
-   */
+  /// Vector addition
   Vec3? vadd(Vec3 vector, [Vec3? target]){
     if (target != null) {
       target.x = vector.x + x;
@@ -106,10 +96,8 @@ class Vec3 {
     }
   }
 
-  /**
-   * Vector subtraction
-   * @param target Optional target to save in.
-   */
+  /// Vector subtraction
+  ///  @param target Optional target to save in.
   Vec3? vsub(Vec3 vector, [Vec3? target]){
     if (target != null) {
       target.x = x - vector.x;
@@ -121,20 +109,15 @@ class Vec3 {
     }
   }
 
-  /**
-   * Get the cross product matrix a_cross from a vector, such that a x b = a_cross * b = c
-   *
-   * See {@link https://www8.cs.umu.se/kurser/TDBD24/VT06/lectures/Lecture6.pdf Umeå University Lecture}
-   */
+  /// Get the cross product matrix a_cross from a vector, such that a x b = a_cross * b = c
+  ///
+  /// See {@link https://www8.cs.umu.se/kurser/TDBD24/VT06/lectures/Lecture6.pdf Umeå University Lecture}
   Mat3 crossmat(){
     return Mat3([0, -z, y, z, 0, -x, -y, x, 0]);
   }
 
-  /**
-   * Normalize the vector. Note that this changes the values in the vector.
-
-   * @return Returns the norm of the vector
-   */
+  /// Normalize the vector. Note that this changes the values in the vector.
+  /// @return Returns the norm of the vector
   double normalize() {
     final x = this.x;
     final y = this.y;
@@ -154,11 +137,9 @@ class Vec3 {
     return n;
   }
 
-  /**
-   * Get the version of this vector that is of length 1.
-   * @param target Optional target to save in
-   * @return Returns the unit vector
-   */
+  /// Get the version of this vector that is of length 1.
+  /// @param target Optional target to save in
+  /// @return Returns the unit vector
   Vec3 unit([Vec3? target]) {
     target ??= Vec3();
     final x = this.x;
@@ -178,9 +159,7 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Get the length of the vector
-   */
+  /// Get the length of the vector
   double length() {
     final x = this.x;
     final y = this.y;
@@ -188,16 +167,12 @@ class Vec3 {
     return math.sqrt(x * x + y * y + z * z);
   }
 
-  /**
-   * Get the squared length of the vector.
-   */
+  /// Get the squared length of the vector.
   double lengthSquared() {
     return dot(this);
   }
 
-  /**
-   * Get distance from this point to another point
-   */
+  /// Get distance from this point to another point
   double distanceTo(Vec3 p) {
     final x = this.x;
     final y = this.y;
@@ -208,9 +183,7 @@ class Vec3 {
     return math.sqrt((px - x) * (px - x) + (py - y) * (py - y) + (pz - z) * (pz - z));
   }
 
-  /**
-   * Get squared distance from this point to another point
-   */
+  /// Get squared distance from this point to another point
   double distanceSquared(Vec3 p) {
     final x = this.x;
     final y = this.y;
@@ -221,10 +194,8 @@ class Vec3 {
     return (px - x) * (px - x) + (py - y) * (py - y) + (pz - z) * (pz - z);
   }
 
-  /**
-   * Multiply all the components of the vector with a scalar.
-   * @param target The vector to save the result in.
-   */
+  /// Multiply all the components of the vector with a scalar.
+  /// @param target The vector to save the result in.
   Vec3 scale(double scalar, [Vec3? target]){
     target ??= Vec3();
     final x = this.x;
@@ -236,10 +207,8 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Multiply the vector with an other vector, component-wise.
-   * @param target The vector to save the result in.
-   */
+  /// Multiply the vector with an other vector, component-wise.
+  /// @param target The vector to save the result in.
   Vec3 vmul(Vec3 vector, [Vec3? target]){
     target ??= Vec3();
     target.x = vector.x * x;
@@ -248,10 +217,8 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Scale a vector and add it to this vector. Save the result in "target". (target = this + vector * scalar)
-   * @param target The vector to save the result in.
-   */
+  /// Scale a vector and add it to this vector. Save the result in "target". (target = this + vector * scalar)
+  /// @param target The vector to save the result in.
   Vec3 addScaledVector(double scalar, Vec3 vector, [Vec3? target]) {
     target ??= Vec3();
     target.x = x + scalar * vector.x;
@@ -260,10 +227,8 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Calculate dot product
-   * @param vector
-   */
+  /// Calculate dot product
+  /// @param vector
   double dot(Vec3 vector) {
     return x * vector.x + y * vector.y + z * vector.z;
   }
@@ -272,10 +237,8 @@ class Vec3 {
     return x == 0 && y == 0 && z == 0;
   }
 
-  /**
-   * Make the vector point in the opposite direction.
-   * @param target Optional target to save in
-   */
+  /// Make the vector point in the opposite direction.
+  /// @param target Optional target to save in
   Vec3 negate([Vec3? target]) {
     target ??= Vec3();
     target.x = -x;
@@ -284,11 +247,9 @@ class Vec3 {
     return target;
   }
 
-  /**
-   * Compute two artificial tangents to the vector
-   * @param t1 Vector object to save the first tangent in
-   * @param t2 Vector object to save the second tangent in
-   */
+  /// Compute two artificial tangents to the vector
+  /// @param t1 Vector object to save the first tangent in
+  /// @param t2 Vector object to save the second tangent in
   void tangents(Vec3 t1, Vec3 t2){
     final norm = length();
     if (norm > 0.0) {
@@ -311,24 +272,18 @@ class Vec3 {
     }
   }
 
-  /**
-   * Converts to a more readable format
-   */
+  /// Converts to a more readable format
   @override
   String toString(){
     return '$x,$y,$z';
   }
 
-  /**
-   * Converts to an array
-   */
+  /// Converts to an array
   List<double> toArray(){
     return [x, y, z];
   }
 
-  /**
-   * Copies value of source to this vector.
-   */
+  /// Copies value of source to this vector.
   Vec3 copy(Vec3 vector) {
     x = vector.x;
     y = vector.y;
@@ -336,10 +291,8 @@ class Vec3 {
     return this;
   }
 
-  /**
-   * Do a linear interpolation between two vectors
-   * @param t A number between 0 and 1. 0 will make this function return u, and 1 will make it return v. Numbers in between will generate a vector in between them.
-   */
+  /// Do a linear interpolation between two vectors
+  /// @param t A number between 0 and 1. 0 will make this function return u, and 1 will make it return v. Numbers in between will generate a vector in between them.
   void lerp(Vec3 vector,double t, Vec3 target) {
     final x = this.x;
     final y = this.y;
@@ -349,9 +302,7 @@ class Vec3 {
     target.z = z + (vector.z - z) * t;
   }
 
-  /**
-   * Check if a vector equals is almost equal to another one.
-   */
+  /// Check if a vector equals is almost equal to another one.
   bool almostEquals(Vec3 vector,[double? precision]) {
     precision ??= 1e-6;
     if (
@@ -364,28 +315,22 @@ class Vec3 {
     return true;
   }
 
-  /**
-   * Check if a vector is almost zero
-   */
+  /// Check if a vector is almost zero
   bool almostZero([double precision = 1e-6]) {
     if (x.abs() > precision || y.abs() > precision || z.abs() > precision) {
       return false;
     }
     return true;
   }
-
-  /**
-   * Check if the vector is anti-parallel to another vector.
-   * @param precision Set to zero for exact comparisons
-   */
+  
+  /// Check if the vector is anti-parallel to another vector.
+  /// @param precision Set to zero for exact comparisons
   bool isAntiparallelTo(Vec3 vector, [double? precision]) {
     negate(antip_neg);
     return antip_neg.almostEquals(vector, precision);
   }
 
-  /**
-   * Clone the vector
-   */
+  /// Clone the vector
   Vec3 clone() {
     return Vec3(x, y, z);
   }
