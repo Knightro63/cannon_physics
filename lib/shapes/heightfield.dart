@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import '../shapes/shape.dart';
 import '../shapes/convex_polyhedron.dart';
 import '../math/vec3.dart';
@@ -492,26 +493,27 @@ class Heightfield extends Shape {
   }
 
   /// Sets the height values from an image. Currently only supported in browser.
-  void setHeightsFromImage(HTMLImageElement image, Vec3 scale) {
+  void setHeightsFromImage(Image image, Vec3 scale) async{
     final x = scale.x;
     final y = scale.y;
     final z = scale.z;
-    final canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
-    final context = canvas.getContext('2d')!;
-    context.drawImage(image, 0, 0);
-    final imageData = context.getImageData(0, 0, image.width, image.height);
+    // final canvas = document.createElement('canvas');
+    // canvas.width = image.width;
+    // canvas.height = image.height;
+    // final context = canvas.getContext('2d')!;
+    // context.drawImage(image, 0, 0);
+    final toByteData = await image.toByteData();
+    final imageData = toByteData!.buffer.asUint8List();//context.getImageData(0, 0, image.width, image.height);
 
     final matrix = data;
     matrix.length = 0;
-    elementSize = x.abs() ~/ imageData.width;
-    for (int i = 0; i < imageData.height; i++) {
+    elementSize = x.abs() ~/ image.width;
+    for (int i = 0; i < image.height; i++) {
       final List<double> row = [];
-      for (int j = 0; j < imageData.width; j++) {
-        final a = imageData.data[(i * imageData.height + j) * 4];
-        final b = imageData.data[(i * imageData.height + j) * 4 + 1];
-        final c = imageData.data[(i * imageData.height + j) * 4 + 2];
+      for (int j = 0; j < image.width; j++) {
+        final a = imageData[(i * image.height + j) * 4];
+        final b = imageData[(i * image.height + j) * 4 + 1];
+        final c = imageData[(i * image.height + j) * 4 + 2];
         final height = ((a + b + c) / 4 / 255) * z;
         if (x < 0) {
           row.add(height);

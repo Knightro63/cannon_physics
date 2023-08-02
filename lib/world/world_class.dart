@@ -17,7 +17,7 @@ import '../collision/broadphase.dart';
 import '../solver/solver.dart';
 import '../equations/contact_equation.dart';
 import '../equations/friction_equation.dart';
-import '../constraints/constraint.dart';
+import '../constraints/constraint_class.dart';
 import '../shapes/shape.dart';
 
 class CollideEvent{
@@ -623,23 +623,23 @@ class World extends EventTarget {
       final sj = c.sj;
 
       // Get collision properties
-      ContactMaterial cm;
-      if (bi.material != null && bj.material != null) {
-        cm = getContactMaterial(bi.material!, bj.material!) ?? this.defaultContactMaterial;
-      } else {
-        cm = defaultContactMaterial;
-      }
+      // ContactMaterial cm;
+      // if (bi.material != null && bj.material != null) {
+      //   cm = getContactMaterial(bi.material!, bj.material!) ?? this.defaultContactMaterial;
+      // } else {
+      //   cm = defaultContactMaterial;
+      // }
 
       // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
 
-      double mu = cm.friction;
+      //double mu = cm.friction;
       // c.restitution = cm.restitution;
 
       // If friction or restitution were specified in the material, use them
       if (bi.material != null && bj.material != null) {
-        if (bi.material!.friction >= 0 && bj.material!.friction >= 0) {
-          mu = bi.material!.friction * bj.material!.friction;
-        }
+        // if (bi.material!.friction >= 0 && bj.material!.friction >= 0) {
+        //   mu = bi.material!.friction * bj.material!.friction;
+        // }
 
         if (bi.material!.restitution >= 0 && bj.material!.restitution >= 0) {
           c.restitution = bi.material!.restitution * bj.material!.restitution;

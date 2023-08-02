@@ -3,7 +3,7 @@ import '../math/vec3.dart';
 import '../math/quaternion.dart';
 import '../objects/wheel_info.dart';
 import '../math/transform.dart';
-import '../constraints/constraint.dart';
+import '../constraints/constraint_class.dart';
 import '../world/world_class.dart';
 import 'dart:math' as math;
 import 'package:cannon/utils/utils.dart';
@@ -168,10 +168,10 @@ class RaycastVehicle {
 
       // Hack to get the rotation in the correct direction
       int m = 1;
-      switch (indexUpAxis) {
-        case AxisIndex.y:
-          m = -1;
-          break;
+      //switch (indexUpAxis) {
+      if (indexUpAxis == AxisIndex.y){
+        m = -1;
+        break;
       }
 
       if (wheel.isInContact) {

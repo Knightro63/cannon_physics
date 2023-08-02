@@ -98,7 +98,7 @@ class Ray {
     if(type == ShapeType.cylinder) {
       return _intersectConvex;
     }
-    if(type == ShapeType.convexpolyhedron) {
+    if(type == ShapeType.convex) {
       return _intersectConvex;
     }
     if(type == ShapeType.heightfield) {

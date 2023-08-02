@@ -1,4 +1,4 @@
-import '../constraints/constraint.dart';
+import '../constraints/constraint_class.dart';
 import '../equations/contact_equation.dart';
 import '../math/vec3.dart';
 import '../objects/body.dart';

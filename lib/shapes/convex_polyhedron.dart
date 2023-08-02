@@ -70,7 +70,7 @@ class ConvexPolyhedron extends Shape {
     this.faceNormals = const [],
     List<Vec3>? axes,
     double? boundingSphereRadius
-  }):super(type: ShapeType.convexpolyhedron){
+  }):super(type: ShapeType.convex){
     //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
 
     if (faceNormals.isEmpty) {
