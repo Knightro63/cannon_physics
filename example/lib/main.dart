@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cannon_physics_example/game.dart';
-import 'package:cannon_physics_example/test_basic.dart';
-import 'package:cannon_physics_example/test_collision.dart';
-import 'package:cannon_physics_example/test_compound.dart';
-import 'package:cannon_physics_example/test_compound2.dart';
-import 'package:cannon_physics_example/test_moving.dart';
+import 'package:cannon_physics_example/cloth.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const TestCompound(),
+      home: const Cloth(),
     );
   }
 }

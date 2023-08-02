@@ -22,8 +22,6 @@ class SplitSolverNode{
 
 /// Splits the equations into islands and solves them independently. Can improve performance.
 class SplitSolver extends Solver {
-  /// The number of solver iterations determines quality of the constraints in the world. The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
-  int iterations = 10;
   /// When tolerance is reached, the system is assumed to be converged.
   double tolerance = 1e-7;
   /// subsolver
