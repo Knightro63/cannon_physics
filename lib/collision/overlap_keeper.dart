@@ -37,7 +37,7 @@ class OverlapKeeper {
     final tmp = current;
     current = previous;
     previous = tmp;
-    current.length = 0;
+    current.clear();
   }
 
   /// getDiff

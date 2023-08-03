@@ -287,23 +287,20 @@ class World extends EventTarget {
 
   /// Removes a constraint
   void removeConstraint(Constraint c) {
-    int idx = constraints.indexOf(c);
-    if (idx != -1) {
-      constraints.removeAt(idx);
-    }
+    constraints.remove(c);
   }
 
   /// Raycast test
   /// @deprecated Use .raycastAll, .raycastClosest or .raycastAny instead.
-  void rayTest(Vec3 from, Vec3 to, RaycastResult result) {
-    // if (result is RaycastResult) {
+  void rayTest(Vec3 from, Vec3 to, dynamic result) {
+    if (result is RaycastResult) {
       // Do raycastClosest
       raycastClosest(from, to, RayOptions()..skipBackfaces = true , result);
-    // } 
-    // else {
-    //   // Do raycastAll
-    //   raycastAll(from, to, { skipBackfaces: true }, result);
-    // }
+    } 
+    else {
+      // Do raycastAll
+      raycastAll(from, to, RayOptions()..skipBackfaces = true, result);
+    }
   }
 
   /// Ray cast against all bodies. The provided callback will be executed for each hit with a RaycastResult as single argument.
@@ -367,10 +364,8 @@ class World extends EventTarget {
     body.world = null;
     final n = this.bodies.length - 1;
     final bodies = this.bodies;
-    final idx = bodies.indexOf(body);
-    if (idx != -1) {
-      bodies.removeAt(idx); // Todo: should use a garbage free method
-
+    bodies.remove(body);
+    if (bodies.isNotEmpty) {
       // Recompute index
       for (int i = 0; i != bodies.length; i++) {
         bodies[i].index = i;
@@ -544,8 +539,8 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-    p1.length = 0; // Clean up pair arrays from last step
-    p2.length = 0;
+    p1.clear(); // Clean up pair arrays from last step
+    p2.clear();
     broadphase.collisionPairs(this, p1, p2);
     if (doProfiling) {
       profile.broadphase = performance.now() - profilingStart;
@@ -577,14 +572,14 @@ class World extends EventTarget {
     for (i = 0; i != nOldContacts; i++) {
       oldcontacts.add(contacts[i]);
     }
-    contacts.length = 0;
+    contacts.clear();
 
     // Transfer FrictionEquation from current list to the pool for reuse
     final nOldFrictionEquations = frictionEquations.length;
     for (i = 0; i != nOldFrictionEquations; i++) {
       frictionEquationPool.add(frictionEquations[i]);
     }
-    frictionEquations.length = 0;
+    frictionEquations.clear();
 
     narrowphase.getContacts(
       p1,
@@ -862,7 +857,8 @@ class World extends EventTarget {
       endContactEvent.bodyA = endContactEvent.bodyB = null;
     }
 
-    additions.length = removals.length = 0;
+    additions.clear(); 
+    removals.clear();
 
     final hasBeginShapeContact = hasAnyEventListener('beginShapeContact');
     final hasEndShapeContact = hasAnyEventListener('endShapeContact');

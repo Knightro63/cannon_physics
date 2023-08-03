@@ -84,7 +84,10 @@ class Vec3 {
   }
 
   /// Vector addition
-  Vec3? vadd(Vec3 vector, [Vec3? target]){
+  Vec3? vadd(Vec3? vector, [Vec3? target]){
+    if(vector == null){
+      return Vec3(x - 0, y - 0, z - 0);
+    }
     if (target != null) {
       target.x = vector.x + x;
       target.y = vector.y + y;
@@ -97,7 +100,10 @@ class Vec3 {
 
   /// Vector subtraction
   ///  @param target Optional target to save in.
-  Vec3? vsub(Vec3 vector, [Vec3? target]){
+  Vec3? vsub(Vec3? vector, [Vec3? target]){
+    if(vector == null){
+      return Vec3(x - 0, y - 0, z - 0);
+    }
     if (target != null) {
       target.x = x - vector.x;
       target.y = y - vector.y;
@@ -228,7 +234,8 @@ class Vec3 {
 
   /// Calculate dot product
   /// @param vector
-  double dot(Vec3 vector) {
+  double dot(Vec3? vector) {
+    if(vector == null) return 0;
     return x * vector.x + y * vector.y + z * vector.z;
   }
 
@@ -283,7 +290,8 @@ class Vec3 {
   }
 
   /// Copies value of source to this vector.
-  Vec3 copy(Vec3 vector) {
+  Vec3 copy(Vec3? vector) {
+    if(vector == null) return Vec3();
     x = vector.x;
     y = vector.y;
     z = vector.z;

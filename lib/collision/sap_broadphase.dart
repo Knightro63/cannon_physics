@@ -117,7 +117,7 @@ class SAPBroadphase extends Broadphase {
   @override
   void setWorld(World world) {
     // Clear the old axis array
-    axisList.length = 0;
+    axisList.clear();
 
     // Add all bodies from the new world
     for (int i = 0; i < world.bodies.length; i++) {

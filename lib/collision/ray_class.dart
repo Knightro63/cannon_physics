@@ -479,7 +479,7 @@ class Ray {
       // note: this works regardless of the direction of the face normal
 
       // Get plane point in world coordinates...
-      vector.copy(vertices[face[0]]);
+      vector.copy(vertices[face![0]]);
       q.vmult(vector, vector);
       vector.vadd(x, vector);
 
@@ -487,7 +487,7 @@ class Ray {
       vector.vsub(from, vector);
 
       // Get plane normal
-      q.vmult(faceNormal, normal);
+      q.vmult(faceNormal!, normal);
 
       // If this dot product is negative, we have something interesting
       final dot = direction.dot(normal);
@@ -638,7 +638,7 @@ class Ray {
       Transform.pointToWorldFrame(position, quat, _intersectPoint, worldIntersectPoint);
       _reportIntersection(worldNormal, worldIntersectPoint, reportedShape, body, trianglesIndex);
     }
-    triangles.length = 0;
+    triangles.clear();
   }
 
   /// @return True if the intersections should continue

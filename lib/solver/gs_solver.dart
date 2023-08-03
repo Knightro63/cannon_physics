@@ -14,9 +14,9 @@ class GSSolver extends Solver {
   }):super();
 
   // Just temporary number holders that we want to reuse each iteration.
-  List<double> gsSolverSolveLambda = [];
-  List<double> gsSolverSolveInvCs = [];
-  List<double> gsSolverSolveBs = [];
+  List<double?> gsSolverSolveLambda = [];
+  List<double?> gsSolverSolveInvCs = [];
+  List<double?> gsSolverSolveBs = [];
 
   /// Solve
   /// @return number of iterations performed
@@ -31,12 +31,12 @@ class GSSolver extends Solver {
     final int nBodies = bodies.length;
     final double h = dt;
 
-    double B;
-    double invC;
+    double? B;
+    double? invC;
     double deltalambda;
     double deltalambdaTot;
     double gwlambda;
-    double lambdaj;
+    double? lambdaj;
 
     // Update solve mass
     if (nEq != 0) {
@@ -46,10 +46,9 @@ class GSSolver extends Solver {
     }
 
     // Things that do not change during iteration can be computed once
-    final invCs = gsSolverSolveInvCs;
-    final bs = gsSolverSolveBs;
-    final lambda = gsSolverSolveLambda;
-    
+    List<double?> invCs = gsSolverSolveInvCs;
+    List<double?> bs = gsSolverSolveBs;
+    List<double?> lambda = gsSolverSolveLambda;
     invCs.length = nEq;
     bs.length = nEq;
     lambda.length = nEq;
@@ -82,6 +81,7 @@ class GSSolver extends Solver {
           B = bs[j];
           invC = invCs[j];
           lambdaj = lambda[j];
+          if(B == null || invC == null || lambdaj == null || lambda[j] == null) break;
           gwlambda = c.computeGWlambda();
           deltalambda = invC * (B - gwlambda - c.eps * lambdaj);
 
@@ -91,7 +91,7 @@ class GSSolver extends Solver {
           } else if (lambdaj + deltalambda > c.maxForce) {
             deltalambda = c.maxForce - lambdaj;
           }
-          lambda[j] += deltalambda;
+          lambda[j] = lambda[j]!+deltalambda;
 
           deltalambdaTot += deltalambda > 0.0 ? deltalambda : -deltalambda; // abs(deltalambda)
 
@@ -118,10 +118,10 @@ class GSSolver extends Solver {
       }
 
       // Set the `.multiplier` property of each equation
-      int l = equations.length;
+      int l = equations.length-1;
       double invDt = 1 / h;
       while(l > 0) {
-        equations[l].multiplier = lambda[l] * invDt;
+        equations[l].multiplier = lambda[l]! * invDt;
         l--;
       }
     }

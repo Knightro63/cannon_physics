@@ -347,7 +347,7 @@ class Heightfield extends Shape {
     // Reuse faces if possible
     faces.length = 5;
     for (int i = 0; i < 5; i++) {
-      if (faces[i].isEmpty) {
+      if (faces[i] != null && faces[i]!.isEmpty) {
         faces[i] = [];
       }
     }
@@ -374,42 +374,42 @@ class Heightfield extends Shape {
       );
 
       // Top triangle verts
-      verts[0].set(-0.25 * elementSize, -0.25 * elementSize, data[xi][yi] - h);
-      verts[1].set(0.75 * elementSize, -0.25 * elementSize, data[xi + 1][yi] - h);
-      verts[2].set(-0.25 * elementSize, 0.75 * elementSize, data[xi][yi + 1] - h);
+      verts[0]!.set(-0.25 * elementSize, -0.25 * elementSize, data[xi][yi] - h);
+      verts[1]!.set(0.75 * elementSize, -0.25 * elementSize, data[xi + 1][yi] - h);
+      verts[2]!.set(-0.25 * elementSize, 0.75 * elementSize, data[xi][yi + 1] - h);
 
       // bottom triangle verts
-      verts[3].set(-0.25 * elementSize, -0.25 * elementSize, -h.abs() - 1);
-      verts[4].set(0.75 * elementSize, -0.25 * elementSize, -h.abs() - 1);
-      verts[5].set(-0.25 * elementSize, 0.75 * elementSize, -h.abs() - 1);
+      verts[3]!.set(-0.25 * elementSize, -0.25 * elementSize, -h.abs() - 1);
+      verts[4]!.set(0.75 * elementSize, -0.25 * elementSize, -h.abs() - 1);
+      verts[5]!.set(-0.25 * elementSize, 0.75 * elementSize, -h.abs() - 1);
 
       // top triangle
-      faces[0][0] = 0;
-      faces[0][1] = 1;
-      faces[0][2] = 2;
+      faces[0]![0] = 0;
+      faces[0]![1] = 1;
+      faces[0]![2] = 2;
 
       // bottom triangle
-      faces[1][0] = 5;
-      faces[1][1] = 4;
-      faces[1][2] = 3;
+      faces[1]![0] = 5;
+      faces[1]![1] = 4;
+      faces[1]![2] = 3;
 
       // -x facing quad
-      faces[2][0] = 0;
-      faces[2][1] = 2;
-      faces[2][2] = 5;
-      faces[2][3] = 3;
+      faces[2]![0] = 0;
+      faces[2]![1] = 2;
+      faces[2]![2] = 5;
+      faces[2]![3] = 3;
 
       // -y facing quad
-      faces[3][0] = 1;
-      faces[3][1] = 0;
-      faces[3][2] = 3;
-      faces[3][3] = 4;
+      faces[3]![0] = 1;
+      faces[3]![1] = 0;
+      faces[3]![2] = 3;
+      faces[3]![3] = 4;
 
       // +xy facing quad
-      faces[4][0] = 4;
-      faces[4][1] = 5;
-      faces[4][2] = 2;
-      faces[4][3] = 1;
+      faces[4]![0] = 4;
+      faces[4]![1] = 5;
+      faces[4]![2] = 2;
+      faces[4]![3] = 1;
     } else {
       // Center of the triangle pillar - all polygons are given relative to this one
       offsetResult.set(
@@ -419,42 +419,42 @@ class Heightfield extends Shape {
       );
 
       // Top triangle verts
-      verts[0].set(0.25 * elementSize, 0.25 * elementSize, data[xi + 1][yi + 1] - h);
-      verts[1].set(-0.75 * elementSize, 0.25 * elementSize, data[xi][yi + 1] - h);
-      verts[2].set(0.25 * elementSize, -0.75 * elementSize, data[xi + 1][yi] - h);
+      verts[0]!.set(0.25 * elementSize, 0.25 * elementSize, data[xi + 1][yi + 1] - h);
+      verts[1]!.set(-0.75 * elementSize, 0.25 * elementSize, data[xi][yi + 1] - h);
+      verts[2]!.set(0.25 * elementSize, -0.75 * elementSize, data[xi + 1][yi] - h);
 
       // bottom triangle verts
-      verts[3].set(0.25 * elementSize, 0.25 * elementSize, -h.abs() - 1);
-      verts[4].set(-0.75 * elementSize, 0.25 * elementSize, -h.abs() - 1);
-      verts[5].set(0.25 * elementSize, -0.75 * elementSize, -h.abs() - 1);
+      verts[3]!.set(0.25 * elementSize, 0.25 * elementSize, -h.abs() - 1);
+      verts[4]!.set(-0.75 * elementSize, 0.25 * elementSize, -h.abs() - 1);
+      verts[5]!.set(0.25 * elementSize, -0.75 * elementSize, -h.abs() - 1);
 
       // Top triangle
-      faces[0][0] = 0;
-      faces[0][1] = 1;
-      faces[0][2] = 2;
+      faces[0]![0] = 0;
+      faces[0]![1] = 1;
+      faces[0]![2] = 2;
 
       // bottom triangle
-      faces[1][0] = 5;
-      faces[1][1] = 4;
-      faces[1][2] = 3;
+      faces[1]![0] = 5;
+      faces[1]![1] = 4;
+      faces[1]![2] = 3;
 
       // +x facing quad
-      faces[2][0] = 2;
-      faces[2][1] = 5;
-      faces[2][2] = 3;
-      faces[2][3] = 0;
+      faces[2]![0] = 2;
+      faces[2]![1] = 5;
+      faces[2]![2] = 3;
+      faces[2]![3] = 0;
 
       // +y facing quad
-      faces[3][0] = 3;
-      faces[3][1] = 4;
-      faces[3][2] = 1;
-      faces[3][3] = 0;
+      faces[3]![0] = 3;
+      faces[3]![1] = 4;
+      faces[3]![2] = 1;
+      faces[3]![3] = 0;
 
       // -xy facing quad
-      faces[4][0] = 1;
-      faces[4][1] = 4;
-      faces[4][2] = 5;
-      faces[4][3] = 2;
+      faces[4]![0] = 1;
+      faces[4]![1] = 4;
+      faces[4]![2] = 5;
+      faces[4]![3] = 2;
     }
 
     result.computeNormals();
@@ -506,7 +506,7 @@ class Heightfield extends Shape {
     final imageData = toByteData!.buffer.asUint8List();//context.getImageData(0, 0, image.width, image.height);
 
     final matrix = data;
-    matrix.length = 0;
+    matrix.clear();
     elementSize = x.abs() ~/ image.width;
     for (int i = 0; i < image.height; i++) {
       final List<double> row = [];

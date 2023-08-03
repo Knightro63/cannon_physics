@@ -111,8 +111,8 @@ class Broadphase {
       p2[i] = pairs2[i];
     }
 
-    pairs1.length = 0;
-    pairs2.length = 0;
+    pairs1.clear();
+    pairs2.clear();
 
     for (int i = 0; i != N; i++) {
       final id1 = p1[i].id;

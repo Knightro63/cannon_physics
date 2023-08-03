@@ -26,7 +26,8 @@ class OctreeNode {
 
   /// reset
   void reset(){
-    children.length = data.length = 0;
+    children.clear();
+    data.clear();
   }
 
   /// Insert data into this node
@@ -59,7 +60,7 @@ class OctreeNode {
 
       if (subdivided) {
         // No children accepted! Might as well just remove em since they contain none
-        children.length = 0;
+        children.clear();
       }
     }
 

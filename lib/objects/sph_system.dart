@@ -84,7 +84,7 @@ class SPHSystem {
       final neighbors = this.neighbors[i];
 
       // Get neighbors
-      neighbors.length = 0;
+      neighbors.clear();
       getNeighbors(p, neighbors);
       neighbors.add(particles[i]); // Add current too
       final numNeighbors = neighbors.length;

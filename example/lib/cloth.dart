@@ -180,7 +180,7 @@ class _ClothPageState extends State<Cloth> {
     // so the cloth doesn't clip thruogh
     cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
     sphereBody = cannon.Body(
-      //type: cannon.BodyTypes.kinematic,
+      type: cannon.BodyTypes.kinematic,
       mass: 0
     );
     sphereBody.addShape(sphereShape);
@@ -257,11 +257,9 @@ class _ClothPageState extends State<Cloth> {
     if (!mounted || disposed) {
       return;
     }
-
     render();
 
     Future.delayed(const Duration(milliseconds: 16), () {
-      updateCannonPhysics();
       animate();
     });
   }
@@ -270,6 +268,7 @@ class _ClothPageState extends State<Cloth> {
     renderer!.render(scene, camera);
     _gl.flush();
     world.fixedStep();
+    updateCannonPhysics();
     controls.update();
     if(!kIsWeb) {
       three3dRender.updateTexture(sourceTexture);

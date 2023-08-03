@@ -986,7 +986,7 @@ class Narrowphase {
 
       // World position of corner
       final worldCorner = _sphereConvexWorldCorner;
-      qj.vmult(v, worldCorner);
+      qj.vmult(v!, worldCorner);
       xj.vadd(worldCorner, worldCorner);
       final sphereToCorner = _sphereConvexSphereToCorner;
       worldCorner.vsub(xi, sphereToCorner);
@@ -1023,11 +1023,11 @@ class Narrowphase {
 
       // Get world-transformed normal of the face
       final worldNormal = _sphereConvexWorldNormal;
-      qj.vmult(normal, worldNormal);
+      qj.vmult(normal!, worldNormal);
 
       // Get a world vertex from the face
       final worldPoint = _sphereConvexWorldPoint;
-      qj.vmult(verts[face[0]], worldPoint);
+      qj.vmult(verts[face![0]]!, worldPoint);
       worldPoint.vadd(xj, worldPoint);
 
       // Get a point on the sphere, closest to the face normal
@@ -1050,7 +1050,7 @@ class Narrowphase {
         final List<Vec3> faceVerts = []; // Face vertices, in world coords
         for (int j = 0, nVerts = face.length; j != nVerts; j++) {
           final worldVertex = v3pool.get();
-          qj.vmult(verts[face[j]], worldVertex);
+          qj.vmult(verts[face[j]]!, worldVertex);
           xj.vadd(worldVertex, worldVertex);
           faceVerts.add(worldVertex);
         }
@@ -1102,8 +1102,8 @@ class Narrowphase {
             // Get two world transformed vertices
             final v1 = v3pool.get();
             final v2 = v3pool.get();
-            qj.vmult(verts[face[(j + 1) % face.length]], v1);
-            qj.vmult(verts[face[(j + 2) % face.length]], v2);
+            qj.vmult(verts[face[(j + 1) % face.length]]!, v1);
+            qj.vmult(verts[face[(j + 2) % face.length]]!, v2);
             xj.vadd(v1, v1);
             xj.vadd(v2, v2);
 
@@ -1678,7 +1678,7 @@ class Narrowphase {
       // For each world polygon in the polyhedra
       for (int i = 0, nfaces = sj.faces.length; i != nfaces; i++) {
         // Construct world face vertices
-        final verts = [sj.worldVertices[sj.faces[i][0]]];
+        final verts = [sj.worldVertices[sj.faces[i]![0]]];
         final normal = sj.worldFaceNormals[i];
 
         // Check how much the particle penetrates the polygon plane.
@@ -1952,7 +1952,7 @@ class Narrowphase {
       }
     }
 
-    triangles.length = 0;
+    triangles.clear();
     return null;
   }
 

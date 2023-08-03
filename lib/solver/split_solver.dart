@@ -51,10 +51,10 @@ class SplitSolver extends Solver {
   /// @return number of iterations performed
   @override
   int solve(double dt, World world) {
-    final nodes = splitSolverSolveNodes;
-    final nodePool = this.nodePool;
-    final bodies = world.bodies;
-    final equations = this.equations;
+    List<SplitSolverNode> nodes = splitSolverSolveNodes;
+    List<SplitSolverNode> nodePool = this.nodePool;
+    List<Body> bodies = world.bodies;
+    List<Equation> equations = this.equations;
     final neq = equations.length;
     final nbodies = bodies.length;
     final subsolver = this.subsolver;
@@ -63,7 +63,7 @@ class SplitSolver extends Solver {
     while (nodePool.length < nbodies) {
       nodePool.add(createNode());
     }
-    nodes.length = nbodies;
+    nodes = List.filled(nbodies,SplitSolverNode());
     for (int i = 0; i < nbodies; i++) {
       nodes[i] = nodePool[i];
     }
@@ -72,8 +72,8 @@ class SplitSolver extends Solver {
     for (int i = 0; i != nbodies; i++) {
       final node = nodes[i];
       node.body = bodies[i];
-      node.children.length = 0;
-      node.eqs.length = 0;
+      node.children.clear();
+      node.eqs.clear();
       node.visited = false;
     }
     for (int k = 0; k != neq; k++) {
@@ -99,8 +99,8 @@ class SplitSolver extends Solver {
     while(true) {
       SplitSolverNode? child = getUnvisitedNode(nodes);
       if(child == null) break;
-      eqs.length = 0;
-      dummyWorld.length = 0;
+      eqs.clear();
+      dummyWorld.clear();
       bfs(child, visitFunc, dummyWorld, eqs);
 
       final neqs = eqs.length;
