@@ -1,16 +1,16 @@
 import 'vec3.dart';
 import 'quaternion.dart';
 
-
-
 /// A 3x3 matrix.
 /// Authored by {@link http://github.com/schteppe/ schteppe}
 class Mat3 {
-  Mat3([this.elements = const [0, 0, 0, 0, 0, 0, 0, 0, 0]]);
+  Mat3([List<double>? elements]){
+    this.elements = elements ?? [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  }
 
   final _reverseEqns = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   /// A vector of length 9, containing all matrix elements.
-  List<double> elements;
+  late List<double> elements;
 
   /// Sets the matrix to identity
   /// @todo Should perhaps be renamed to `setIdentity()` to be more clear.
@@ -151,7 +151,7 @@ class Mat3 {
     // finalruct equations
     const nr = 3; // num rows
     const nc = 4; // num cols
-    final eqns = [];
+    List<double> eqns = [];
     int i;
     int j;
     for (i = 0; i < nr * nc; i++) {
@@ -361,7 +361,7 @@ class Mat3 {
     final wx = w * x2;
     final wy = w * y2;
     final wz = w * z2;
-    final e = elements;
+    List<double> e = elements;
 
     e[3 * 0 + 0] = 1 - (yy + zz);
     e[3 * 0 + 1] = xy - wz;

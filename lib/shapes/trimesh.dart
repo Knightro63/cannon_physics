@@ -383,8 +383,8 @@ class Trimesh extends Shape {
 
   /// Create a Trimesh instance, shaped as a torus.
   static Trimesh createTorus([double radius = 1, double tube = 0.5, int radialSegments = 8, int tubularSegments = 6, double arc = math.pi * 2]){
-    final List<double> vertices = [];
-    final List<int> indices = [];
+    List<double> vertices = [];
+    List<int> indices = [];
 
     for (int j = 0; j <= radialSegments; j++) {
       for (int i = 0; i <= tubularSegments; i++) {

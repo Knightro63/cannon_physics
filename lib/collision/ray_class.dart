@@ -135,7 +135,7 @@ class Ray {
     faceList: [0],
   );
   final worldPillarOffset = Vec3();
-  final _intersectHeightfieldLocalRay = Ray();
+  //final _intersectHeightfieldLocalRay = Ray();
   final List<int> _intersectHeightfieldIndex = [];
   //final _intersectHeightfieldMinMax = [];
 
@@ -181,7 +181,6 @@ class Ray {
     _updateDirection();
 
     getAABB(_tmpAABB);
-    _tmpArray.length = 0;
     world.broadphase.aabbQuery(world, _tmpAABB, _tmpArray);
     intersectBodies(_tmpArray);
 
@@ -330,7 +329,7 @@ class Ray {
     //final data = shape.data;
     //final w = shape.elementSize;
     // Convert the ray to local heightfield coordinates
-    final localRay = _intersectHeightfieldLocalRay; //Ray(this.from, this.to);
+    final localRay = Ray(from, to);//_intersectHeightfieldLocalRay; //
     localRay.from.copy(from);
     localRay.to.copy(to);
     Transform.pointToLocalFrame(position, quat, localRay.from, localRay.from);
@@ -528,10 +527,7 @@ class Ray {
 
         final distance = _intersectPoint.distanceTo(from);
 
-        if (
-          !(Ray.pointInTriangle(_intersectPoint, a, b, c) || Ray.pointInTriangle(_intersectPoint, b, a, c)) ||
-          distance > fromToDistance
-        ) {
+        if (!(pointInTriangle(_intersectPoint, a, b, c) || pointInTriangle(_intersectPoint, b, a, c)) || distance > fromToDistance) {
           continue;
         }
 
@@ -633,10 +629,7 @@ class Ray {
 
       final squaredDistance = _intersectPoint.distanceSquared(localFrom);
 
-      if (
-        !(Ray.pointInTriangle(_intersectPoint, b, a, c) || Ray.pointInTriangle(_intersectPoint, a, b, c)) ||
-        squaredDistance > fromToDistanceSquared
-      ) {
+      if (!(pointInTriangle(_intersectPoint, b, a, c) || pointInTriangle(_intersectPoint, a, b, c)) || squaredDistance > fromToDistanceSquared) {
         continue;
       }
 

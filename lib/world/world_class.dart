@@ -209,12 +209,12 @@ class World extends EventTarget {
     }
     this.broadphase = broadphase ?? NaiveBroadphase();
     this.solver = solver ?? GSSolver();
-    narrowphase = Narrowphase(this);
     defaultContactMaterial = ContactMaterial(defaultMaterial, defaultMaterial,
       friction: 0.3,
       restitution: 0.0,
     );
-
+    narrowphase = Narrowphase(this);
+    performance.init();
     this.broadphase.setWorld(this);
   }
 
@@ -238,16 +238,16 @@ class World extends EventTarget {
   final CollideEvent _worldStepCollideEvent = CollideEvent();
 
   // Pools for unused objects
-  final List<ContactEquation> _worldStepOldContacts = [];
-  final List<FrictionEquation> _worldStepFrictionEquationPool = [];
+  List<ContactEquation> worldStepOldContacts = [];
+  List<FrictionEquation> worldStepFrictionEquationPool = [];
 
   // Reusable arrays for collision pairs
-  final List<Body> _worldStepP1 = [];
-  final List<Body> _worldStepP2 = [];
+  List<Body> worldStepP1 = [];
+  List<Body> worldStepP2 = [];
 
   // Stuff for emitContactEvents
-  final List<int> additions = [];
-  final List<int> removals = [];
+  List<int> additions = [];
+  List<int> removals = [];
   ContactEvent beginContactEvent = ContactEvent(
     type: 'beginContact',
   );
@@ -500,8 +500,8 @@ class World extends EventTarget {
     //final world = this;
     //final that = this;
     final contacts = this.contacts;
-    final p1 = _worldStepP1;
-    final p2 = _worldStepP2;
+    final p1 = worldStepP1;
+    final p2 = worldStepP2;
     int N = this.bodies.length;
     final bodies = this.bodies;
     final solver = this.solver;
@@ -510,7 +510,7 @@ class World extends EventTarget {
     final profile = this.profile;
     int profilingStart = -1;
     final constraints = this.constraints;
-    final frictionEquationPool = _worldStepFrictionEquationPool;
+    final frictionEquationPool = worldStepFrictionEquationPool;
     //final gnorm = gravity.length();
     final gx = gravity.x;
     final gy = gravity.y;
@@ -571,7 +571,7 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-    final oldcontacts = _worldStepOldContacts;
+    final oldcontacts = worldStepOldContacts;
     final nOldContacts = contacts.length;
 
     for (i = 0; i != nOldContacts; i++) {

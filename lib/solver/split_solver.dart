@@ -9,13 +9,16 @@ import './gs_solver.dart';
 class SplitSolverNode{
   SplitSolverNode({
     this.body,
-    this.children = const [],
-    this.eqs = const [],
+    List<SplitSolverNode>? children,
+    List<Equation>? eqs,
     this.visited = false
-  });
+  }){
+    this.children = children ?? [];
+    this.eqs = eqs ?? [];
+  }
   Body? body;
-  List<SplitSolverNode> children;
-  List<Equation> eqs;
+  late List<SplitSolverNode> children;
+  late List<Equation> eqs;
   bool visited;
 }
 
@@ -37,18 +40,18 @@ class SplitSolver extends Solver {
   }
 
   // Returns the number of subsystems
-  final List<SplitSolverNode> _splitSolverSolveNodes = []; // All allocated node objects
+  List<SplitSolverNode> splitSolverSolveNodes = []; // All allocated node objects
   //final List<SplitSolverNode> _splitSolverSolveNodePool = []; // All allocated node objects
-  final List<Equation> _splitSolverSolveEqs = []; // Temp array
+  List<Equation> splitSolverSolveEqs = []; // Temp array
   //final List<Body> _splitSolverSolveBds = []; // Temp array
-  final List<Body> _splitSolverSolveDummyWorld = [];// { bodies: Body[] } = { bodies: [] }; // Temp object
-  final List<SplitSolverNode> _queue = [];
+  List<Body> splitSolverSolveDummyWorld = [];// { bodies: Body[] } = { bodies: [] }; // Temp object
+  List<SplitSolverNode> queue = [];
 
   /// Solve the subsystems
   /// @return number of iterations performed
   @override
   int solve(double dt, World world) {
-    final nodes = _splitSolverSolveNodes;
+    final nodes = splitSolverSolveNodes;
     final nodePool = this.nodePool;
     final bodies = world.bodies;
     final equations = this.equations;
@@ -87,12 +90,12 @@ class SplitSolver extends Solver {
 
     //:  | false;
     int n = 0;
-    List<Equation> eqs = _splitSolverSolveEqs;
+    List<Equation> eqs = splitSolverSolveEqs;
 
     subsolver.tolerance = tolerance;
     subsolver.iterations = iterations;
 
-    final dummyWorld = _splitSolverSolveDummyWorld;
+    final dummyWorld = splitSolverSolveDummyWorld;
     while(true) {
       SplitSolverNode? child = getUnvisitedNode(nodes);
       if(child == null) break;
@@ -136,17 +139,17 @@ class SplitSolver extends Solver {
     List<Body?> bds,
     List<Equation> eqs
   ) {
-    _queue.add(root);
+    queue.add(root);
     root.visited = true;
     visitFunc(root, bds, eqs);
-    while (_queue.isNotEmpty) {
-      final node = _queue.removeLast();
+    while (queue.isNotEmpty) {
+      final node = queue.removeLast();
       while(true) {
         SplitSolverNode? child = getUnvisitedNode(node.children);
         if(child == null) break;
         child.visited = true;
         visitFunc(child, bds, eqs);
-        _queue.add(child);
+        queue.add(child);
       }
     }
   }

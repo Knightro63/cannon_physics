@@ -68,7 +68,7 @@ class Heightfield extends Shape {
     updateBoundingSphereRadius();
   }
 
-  final List<int> _getHeightAtIdx = [];
+  List<int> getHeightAtIdx = [];
   final _getHeightAtWeights = Vec3();
   final _getHeightAtA = Vec3();
   final _getHeightAtB = Vec3();
@@ -194,7 +194,7 @@ class Heightfield extends Shape {
   }
 
   bool getTriangleAt(double x, double y, bool edgeClamp,Vec3 a,Vec3 b, Vec3 c) {
-    final idx = _getHeightAtIdx;
+    final idx = getHeightAtIdx;
     getIndexOfPosition(x, y, idx, edgeClamp);
     int xi = idx[0];
     int yi = idx[1];
@@ -246,7 +246,7 @@ class Heightfield extends Shape {
     final a = _getHeightAtA;
     final b = _getHeightAtB;
     final c = _getHeightAtC;
-    final idx = _getHeightAtIdx;
+    final idx = getHeightAtIdx;
 
     getIndexOfPosition(x, y, idx, edgeClamp);
     int xi = idx[0];

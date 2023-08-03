@@ -51,9 +51,7 @@ class LockConstraint extends PointToPointConstraint {
     rotationalEquation3 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
     final r3 = rotationalEquation3;
 
-    equations.add(r1);
-    equations.add(r2);
-    equations.add(r3);
+    equations.addAll([r1,r2,r3]);
   }
 
 

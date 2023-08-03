@@ -51,9 +51,7 @@ class PointToPointConstraint extends Constraint {
     final z = equationZ;
 
     // Equations to be fed to the solver
-    equations.add(x);
-    equations.add(y);
-    equations.add(z);
+    equations.addAll([x,y,z]);
 
     // Make the equations bidirectional
     x.minForce = y.minForce = z.minForce = -maxForce;

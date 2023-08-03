@@ -36,9 +36,9 @@ class Cylinder extends ConvexPolyhedron {
     }
 
     final int N = numSegments;
-    final List<int> bottomface = [];
-    final List<int> topface = [];
-    final List<Vec3> axes =[];
+    List<int> bottomface = [];
+    List<int> topface = [];
+    List<Vec3> axes =[];
 
     // First bottom point
     vertices.add(Vec3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
@@ -74,7 +74,7 @@ class Cylinder extends ConvexPolyhedron {
     axes.add(Vec3(0, 1, 0));
 
     // Reorder top face
-    final List<int> temp = [];
+    List<int> temp = [];
     for (int i = 0; i < topface.length; i++) {
       temp.add(topface[topface.length - i - 1]);
     }

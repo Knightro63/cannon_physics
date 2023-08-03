@@ -1,4 +1,4 @@
-import 'package:cannon/math/vec3.dart';
+import '../math/vec3.dart';
 
 /// For pooling objects that can be reused.
 class Pool {
@@ -8,7 +8,8 @@ class Pool {
   Object type = Object();//: any = Object
 
   /// Release an object after use
-  Pool release([List args = const []]){
+  Pool release([List? args]){
+    args ??= [];
     final nargs = args.length;
     for (int i = 0; i != nargs; i++) {
       objects.add(args[i]);

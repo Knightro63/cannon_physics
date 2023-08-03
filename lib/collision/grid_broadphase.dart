@@ -7,10 +7,8 @@ import '../shapes/sphere.dart';
 import '../shapes/plane.dart';
 import '../world/world_class.dart';
 
-/**
- * Axis aligned uniform grid broadphase.
- * @todo Needs support for more than just planes and spheres.
- */
+/// Axis aligned uniform grid broadphase.
+/// @todo Needs support for more than just planes and spheres.
 class GridBroadphase extends Broadphase {
   /// Number of boxes along x
   int nx;
@@ -49,12 +47,8 @@ class GridBroadphase extends Broadphase {
     if (nbins <= 0) {
       throw"GridBroadphase: Each dimension's n must be >0";
     }
-    bins.length = nbins;
-    binLengths.length = nbins;
-    for (int i = 0; i < nbins; i++) {
-      bins[i] = [];
-      binLengths[i] = 0;
-    }
+    bins = List.filled(nbins, []);
+    binLengths = List.filled(nbins, 0);
   }
 
   final _gridBroadphaseCollisionPairsD = Vec3();

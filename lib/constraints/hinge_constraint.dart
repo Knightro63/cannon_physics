@@ -45,9 +45,7 @@ class HingeConstraint extends PointToPointConstraint {
     motor.enabled = false; // Not enabled by default
 
     // Equations to be fed to the solver
-    equations.add(rotational1);
-    equations.add(rotational2);
-    equations.add(motor);
+    equations.addAll([rotational1,rotational2,motor]);
   }
 
   final _hingeConstraintUpdateTmpVec1 = Vec3();

@@ -180,7 +180,7 @@ class Narrowphase {
   final _sphereTrimeshVb = Vec3();
   final _sphereTrimeshVc = Vec3();
   final _sphereTrimeshLocalSphereAABB = AABB();
-  final List<int> _sphereTrimeshTriangles = [];
+  List<int> sphereTrimeshTriangles = [];
 
   final _pointOnPlaneToSphere = Vec3();
   final _planeToSphereOrtho = Vec3();
@@ -195,7 +195,7 @@ class Narrowphase {
   final _sphereBoxNs = Vec3();
   final _sphereBoxNs1 = Vec3();
   final _sphereBoxNs2 = Vec3();
-  final _sphereBoxSides = [Vec3(), Vec3(), Vec3(), Vec3(), Vec3(), Vec3()];
+  List<Vec3> sphereBoxSides = [Vec3(), Vec3(), Vec3(), Vec3(), Vec3(), Vec3()];
   final _sphereBoxSphereToCorner = Vec3();
   final _sphereBoxSideNs = Vec3();
   final _sphereBoxSideNs1 = Vec3();
@@ -239,7 +239,7 @@ class Narrowphase {
 
   final _convexHeightfieldTmp1 = Vec3();
   final _convexHeightfieldTmp2 = Vec3();
-  final _convexHeightfieldFaceList = [0];
+  List<int> convexHeightfieldFaceList = [0];
 
   final _sphereHeightfieldTmp1 = Vec3();
   final _sphereHeightfieldTmp2 = Vec3();
@@ -470,16 +470,16 @@ class Narrowphase {
           // Get contacts
           final resolverIndex = getCollisionType(si.type, sj.type)!;//(si.type | sj.type) as CollisionType;
           final resolver = this[resolverIndex];
-          if (resolver) {
+          if (resolver != null) {
             bool retval = false;
 
             // TO DO: investigate why sphereParticle and convexParticle
             // resolvers expect si and sj shapes to be in reverse order
             // (i.e. larger integer value type first instead of smaller first)
             if (si.type.index < sj.type.index) {
-              retval = resolver.call(this, si, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
+              retval = resolver.call(si, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest) ?? false;
             } else {
-              retval = resolver.call(this, sj, si, xj, xi, qj, qi, bj, bi, si, sj, justTest);
+              retval = resolver.call(sj, si, xj, xi, qj, qi, bj, bi, si, sj, justTest) ?? false;
             }
 
             if (retval && justTest) {
@@ -606,19 +606,43 @@ class Narrowphase {
     sj.convexPolyhedronRepresentation?.material = sj.material;
     si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
     sj.convexPolyhedronRepresentation?.collisionResponse = sj.collisionResponse;
-    return convexConvex(
-      si.convexPolyhedronRepresentation!,
-      sj.convexPolyhedronRepresentation!,
-      xi,
-      xj,
-      qi,
-      qj,
-      bi,
-      bj,
-      si,
-      sj,
-      justTest
-    );
+    return convexConvex(si.convexPolyhedronRepresentation!,sj.convexPolyhedronRepresentation!,xi,xj,qi,qj,bi,bj,si,sj,justTest);
+  }
+  bool?  boxConvex(
+    Box si,
+    ConvexPolyhedron sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
+    [
+      Shape? rsi,
+      Shape? rsj,
+      bool justTest = false
+  ]){
+    si.convexPolyhedronRepresentation?.material = si.material;
+    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
+    return convexConvex(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+  }
+  bool? boxParticle(
+    Box si,
+    Particle sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
+    [
+      Shape? rsi,
+      Shape? rsj,
+      bool justTest = false
+  ]){
+    si.convexPolyhedronRepresentation?.material = si.material;
+    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
+    return convexParticle(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
   }
 
   bool? sphereBox(
@@ -638,7 +662,7 @@ class Narrowphase {
     final v3pool = this.v3pool;
 
     // we refer to the box as body j
-    final sides = _sphereBoxSides;
+    final sides = sphereBoxSides;
     xi.vsub(xj, _boxToSphere);
     sj.getSideNormals(sides, qj);
     final R = si.radius;
@@ -1232,25 +1256,6 @@ class Narrowphase {
     return null;
   }
 
-  bool?  boxConvex(
-    Box si,
-    ConvexPolyhedron sj,
-    Vec3 xi,
-    Vec3 xj,
-    Quaternion qi,
-    Quaternion qj,
-    Body bi,
-    Body bj,
-    [
-      Shape? rsi,
-      Shape? rsj,
-      bool justTest = false
-  ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexConvex(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
-  }
-
   bool? sphereHeightfield(
     Sphere si,
     Heightfield sj,
@@ -1434,7 +1439,7 @@ class Narrowphase {
     final w = sj.elementSize;
     final radius = si.boundingSphereRadius;
     final worldPillarOffset = _convexHeightfieldTmp2;
-    final faceList = _convexHeightfieldFaceList;
+    final faceList = convexHeightfieldFaceList;
 
     // Get sphere position to heightfield local!
     final localConvexPos = _convexHeightfieldTmp1;
@@ -1635,25 +1640,6 @@ class Narrowphase {
     return null;
   }
 
-  bool? boxParticle(
-    Box si,
-    Particle sj,
-    Vec3 xi,
-    Vec3 xj,
-    Quaternion qi,
-    Quaternion qj,
-    Body bi,
-    Body bj,
-    [
-      Shape? rsi,
-      Shape? rsj,
-      bool justTest = false
-  ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexParticle(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
-  }
-
   bool? convexParticle(
     ConvexPolyhedron sj,
     Particle si,
@@ -1813,7 +1799,7 @@ class Narrowphase {
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
     final v2 = _sphereTrimeshV2;
     final relpos = _sphereTrimeshRelpos;
-    final triangles = _sphereTrimeshTriangles;
+    final triangles = sphereTrimeshTriangles;
 
     // Convert sphere position to local in the trimesh
     Transform.pointToLocalFrame(xj, qj, xi, localSpherePos);
@@ -1912,8 +1898,8 @@ class Narrowphase {
             tmp.vsub(localSpherePos, r.ni);
             r.ni.normalize();
             r.ni.scale(si.radius, r.ri);
-            r.ri.vadd(xi, r.ri);
-            r.ri.vsub(bi.position, r.ri);
+            //r.ri.vadd(xi, r.ri);
+            //r.ri.vsub(bi.position, r.ri);
 
             Transform.pointToWorldFrame(xj, qj, tmp, tmp);
             tmp.vsub(bj.position, r.rj);
@@ -1952,8 +1938,8 @@ class Narrowphase {
         tmp.vsub(localSpherePos, r.ni);
         r.ni.normalize();
         r.ni.scale(si.radius, r.ri);
-        r.ri.vadd(xi, r.ri);
-        r.ri.vsub(bi.position, r.ri);
+        //r.ri.vadd(xi, r.ri);
+        //r.ri.vsub(bi.position, r.ri);
 
         Transform.pointToWorldFrame(xj, qj, tmp, tmp);
         tmp.vsub(bj.position, r.rj);
@@ -1971,14 +1957,14 @@ class Narrowphase {
   }
 
   bool? planeTrimesh(
-    Plane si,
-    Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
-    Quaternion qi,
-    Quaternion qj,
-    Body bi,
-    Body bj,
+    Plane planeShape,
+    Trimesh trimeshShape,
+    Vec3 planePos,
+    Vec3 trimeshPos,
+    Quaternion planeQuat,
+    Quaternion trimeshQuat,
+    Body planeBody,
+    Body trimeshBody,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1989,20 +1975,20 @@ class Narrowphase {
 
     final normal = _planeTrimeshNormal;
     normal.set(0, 0, 1);
-    qi.vmult(normal, normal) ;// Turn normal according to plane
+    planeQuat.vmult(normal, normal) ;// Turn normal according to plane
 
-    for (int i = 0; i < sj.vertices.length / 3; i++) {
+    for (int i = 0; i < trimeshShape.vertices.length / 3; i++) {
       // Get world vertex from trimesh
-      sj.getVertex(i, v);
+      trimeshShape.getVertex(i, v);
 
       // Safe up
       final v2 = Vec3();
       v2.copy(v);
-      Transform.pointToWorldFrame(xj, qj, v2, v);
+      Transform.pointToWorldFrame(trimeshPos, trimeshQuat, v2, v);
 
       // Check plane side
       final relpos = _planeTrimeshRelpos;
-      v.vsub(xi, relpos);
+      v.vsub(planePos, relpos);
       final dot = normal.dot(relpos);
 
       if (dot <= 0.0) {
@@ -2010,7 +1996,7 @@ class Narrowphase {
           return true;
         }
 
-        final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
+        final r = createContactEquation(planeBody,trimeshBody,planeShape,trimeshShape, rsi, rsj);
 
         r.ni.copy(normal); // Contact normal is the plane normal
 
@@ -2021,10 +2007,10 @@ class Narrowphase {
 
         // ri is the projected world position minus plane position
         r.ri.copy(projected);
-        r.ri.vsub(bi.position, r.ri);
+        r.ri.vsub(planeBody.position, r.ri);
 
         r.rj.copy(v);
-        r.rj.vsub(bj.position, r.rj);
+        r.rj.vsub(trimeshBody.position, r.rj);
 
         // Store result
         result.add(r);

@@ -14,9 +14,9 @@ class GSSolver extends Solver {
   }):super();
 
   // Just temporary number holders that we want to reuse each iteration.
-  final List<double> _gsSolverSolveLambda = [];
-  final List<double> _gsSolverSolveInvCs = [];
-  final List<double> _gsSolverSolveBs = [];
+  List<double> gsSolverSolveLambda = [];
+  List<double> gsSolverSolveInvCs = [];
+  List<double> gsSolverSolveBs = [];
 
   /// Solve
   /// @return number of iterations performed
@@ -46,10 +46,10 @@ class GSSolver extends Solver {
     }
 
     // Things that do not change during iteration can be computed once
-    final invCs = _gsSolverSolveInvCs;
-
-    final bs = _gsSolverSolveBs;
-    final lambda = _gsSolverSolveLambda;
+    final invCs = gsSolverSolveInvCs;
+    final bs = gsSolverSolveBs;
+    final lambda = gsSolverSolveLambda;
+    
     invCs.length = nEq;
     bs.length = nEq;
     lambda.length = nEq;

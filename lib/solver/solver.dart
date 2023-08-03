@@ -4,7 +4,7 @@ import '../world/world_class.dart';
 /// Constraint equation solver base class.
 class Solver {
   /// All equations to be solved
-  List<Equation> equations;
+  late List<Equation> equations;
   
   /// The number of solver iterations determines quality of the constraints in the world.
   /// The number of solver iterations determines quality of the constraints in the world. The more iterations, the more correct simulation. More iterations need more computations though. If you have a large gravity force in your world, you will need more iterations.
@@ -12,9 +12,11 @@ class Solver {
 
   /// @todo remove useless constructor
   Solver({
-    this.equations = const [],
+    List<Equation>? equations,
     this.iterations = 10,
-  });
+  }){
+    this.equations = equations ?? [];
+  }
 
   /// Should be implemented in subclasses!
   /// @todo use abstract
@@ -38,6 +40,6 @@ class Solver {
   }
   
   void removeAllEquations() {
-    equations.length = 0;
+    equations.clear();
   }
 }

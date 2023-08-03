@@ -16,9 +16,9 @@ class OctreeNode {
   /// Boundary of this node
   late AABB aabb;
   /// Contained data at the current node level
-  List<int> data = const [];
+  List<int> data = [];
   /// Children to this node
-  List<OctreeNode> children = const [];
+  List<OctreeNode> children = [];
 
   final halfDiagonal = Vec3();
 

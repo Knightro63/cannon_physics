@@ -6,7 +6,7 @@ import '../math/transform.dart';
 import '../constraints/constraint_class.dart';
 import '../world/world_class.dart';
 import 'dart:math' as math;
-import 'package:cannon/utils/utils.dart';
+import '../utils/utils.dart';
 
 /// Vehicle helper class that casts rays from the wheel positions towards the ground and applies forces.
 class RaycastVehicle {
@@ -53,11 +53,11 @@ class RaycastVehicle {
   final _castRayRayvector = Vec3();
   final _castRayTarget = Vec3();
 
-  final directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
+  List<Vec3> directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
 
   final _updateFrictionSurfNormalWSScaledProj = Vec3();
-  final List<Vec3> _updateFrictionAxle =  [];
-  final List<Vec3> _updateFrictionForwardWS = [];
+  List<Vec3> updateFrictionAxle =  [];
+  List<Vec3> updateFrictionForwardWS = [];
   final _sideFrictionStiffness2 = 1;
 
   final _calcRollingFrictionVel1 = Vec3();
@@ -201,7 +201,7 @@ class RaycastVehicle {
     }
   }
 
-void   updateSuspension(num? deltaTime){
+  void updateSuspension(num? deltaTime){
     final chassisBody = this.chassisBody;
     final chassisMass = chassisBody.mass;
     final wheelInfos = this.wheelInfos;
@@ -383,8 +383,8 @@ void   updateSuspension(num? deltaTime){
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
     final chassisBody = this.chassisBody;
-    final forwardWS = _updateFrictionForwardWS;
-    final axle = _updateFrictionAxle;
+    List<Vec3> forwardWS = updateFrictionForwardWS;
+    List<Vec3> axle = updateFrictionAxle;
 
     numWheelsOnGround = 0;
     final int forwardWSLength = forwardWS.length;

@@ -36,7 +36,9 @@ class NaiveBroadphase extends Broadphase {
   /// Returns all the bodies within an AABB.
   /// [result] An array to store resulting bodies in.
   @override
-  List<Body> aabbQuery(World world, AABB aabb, [List<Body> result = const []]){
+  List<Body> aabbQuery(World world, AABB aabb, [List<Body>? result]){
+    result ??= [];
+    
     for (int i = 0; i < world.bodies.length; i++) {
       final b = world.bodies[i];
 

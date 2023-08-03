@@ -1,4 +1,4 @@
-import 'package:cannon/utils/utils.dart';
+import '../utils/utils.dart';
 
 import '../collision/broadphase.dart';
 import '../collision/aabb.dart';
@@ -242,7 +242,8 @@ class SAPBroadphase extends Broadphase {
   /// Returns all the bodies within an AABB.
   /// @param result An array to store resulting bodies in.
   @override
-  List<Body> aabbQuery(World world, AABB aabb, [List<Body> result = const []]){
+  List<Body> aabbQuery(World world, AABB aabb, [List<Body>? result]){
+    result ??= [];
     if (dirty) {
       sortList();
       dirty = false;

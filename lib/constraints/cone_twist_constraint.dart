@@ -57,8 +57,7 @@ class ConeTwistConstraint extends PointToPointConstraint {
     t.maxForce = 0;
     t.minForce = -maxForce;
 
-    equations.add(c);
-    equations.add(t);
+    equations.addAll([c,t]);
   }
 
   // final _coneTwistConstraintUpdateTmpVec1 = Vec3();

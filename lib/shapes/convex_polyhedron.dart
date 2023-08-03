@@ -50,10 +50,10 @@ class Polygon{
 ///     world.addBody(convexBody)
 
 class ConvexPolyhedron extends Shape {
-  List<Vec3> vertices;
+  late List<Vec3> vertices;
   /// Array of integer arrays, indicating which vertices each face consists of
-  List<List<int>>faces;
-  List<Vec3> faceNormals;
+  late List<List<int>>faces;
+  late List<Vec3> faceNormals;
   late List<Vec3> worldVertices;
   late bool worldVerticesNeedsUpdate;
   late List<Vec3> worldFaceNormals;
@@ -65,14 +65,16 @@ class ConvexPolyhedron extends Shape {
   /// @param vertices An array of Vec3's
   /// @param faces Array of integer arrays, describing which vertices that is included in each face.
   ConvexPolyhedron({
-    this.vertices = const [],
-    this.faces = const [],
-    this.faceNormals = const [],
+    List<Vec3>?  vertices,
+    List<List<int>>? faces ,
+    List<Vec3>? faceNormals,
     List<Vec3>? axes,
     double? boundingSphereRadius
   }):super(type: ShapeType.convex){
     //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
-
+    this.vertices = vertices ?? [];
+    this.faceNormals = faceNormals = [];
+    this.faces = faces ?? [];
     if (faceNormals.isEmpty) {
       computeNormals();
     }
@@ -92,8 +94,8 @@ class ConvexPolyhedron extends Shape {
     computeEdges();
   }
 
-  final List<double> _maxminA = const [];
-  final List<double> _maxminB = const [];
+  List<double> maxminA = [];
+  List<double> maxminB = [];
 
   /// Computes uniqueEdges
   void computeEdges() {
@@ -205,7 +207,7 @@ class ConvexPolyhedron extends Shape {
       }
     }
 
-    final List<Vec3> worldVertsB1 = [];
+    List<Vec3> worldVertsB1 = [];
 
     for (int i = 0; i < hullB.faces[closestFaceB].length; i++) {
       final b = hullB.vertices[hullB.faces[closestFaceB][i]];
@@ -360,12 +362,12 @@ class ConvexPolyhedron extends Shape {
     Quaternion quatB 
   ){
     final hullA = this;
-    ConvexPolyhedron.project(hullA, axis, posA, quatA, _maxminA);
-    ConvexPolyhedron.project(hullB, axis, posB, quatB, _maxminB);
-    final maxA = _maxminA[0];
-    final minA = _maxminA[1];
-    final maxB = _maxminB[0];
-    final minB = _maxminB[1];
+    ConvexPolyhedron.project(hullA, axis, posA, quatA, maxminA);
+    ConvexPolyhedron.project(hullB, axis, posB, quatB, maxminB);
+    final maxA = maxminA[0];
+    final minA = maxminA[1];
+    final maxB = maxminB[0];
+    final minB = maxminB[1];
     if (maxA < minB || maxB < minA) {
       return null; // Separated
     }
@@ -421,7 +423,7 @@ class ConvexPolyhedron extends Shape {
     final localPlaneNormal = Vec3();
     final planeNormalWS = Vec3();
     final hullA = this;
-    final List<Vec3> worldVertsB2 = [];
+    List<Vec3> worldVertsB2 = [];
     final pVtxIn = worldVertsB1;
     final pVtxOut = worldVertsB2;
 

@@ -63,6 +63,8 @@ class _ClothPageState extends State<Cloth> {
 
   @override
   void initState() {
+    mass = (clothMass / Nx) * Ny;
+    restDistance = clothSize / Nx;
     super.initState();
   }
   @override
@@ -93,8 +95,10 @@ class _ClothPageState extends State<Cloth> {
   Future<void> initThree() async {
     scene = Scene();
 
-    camera = PerspectiveCamera(60, width / height, 1, 10000);
-    camera.position.set(0,160,400);
+    camera = PerspectiveCamera(30, width / height, 0.5, 10000);
+    camera.position.set(Math.cos( Math.PI/4 ) * 3,
+                                    0,
+                                    Math.sin( Math.PI/4 ) * 3);
     camera.rotation.order = 'YXZ';
 
     controls = OrbitControls(camera, _globalKey);
@@ -115,7 +119,7 @@ class _ClothPageState extends State<Cloth> {
     scene.add( light );
 
     // Cloth material
-    three.Texture clothTexture = await three.TextureLoader(null).loadAsync('images/sunflower.jpg');
+    three.Texture clothTexture = await three.TextureLoader(null).loadAsync('assets/images/sunflower.jpg');
     clothTexture.wrapS = three.RepeatWrapping;
     clothTexture.wrapT = three.RepeatWrapping;
     clothTexture.anisotropy = 16;
@@ -130,6 +134,7 @@ class _ClothPageState extends State<Cloth> {
 
     // Cloth mesh
     three.Mesh clothMesh = three.Mesh(clothGeometry, clothMaterial);
+    //clothMesh.position.set(0,-1,0);
     scene.add(clothMesh);
 
     // Sphere
@@ -147,14 +152,11 @@ class _ClothPageState extends State<Cloth> {
   //----------------------------------
 
   void initCannonPhysics(){
-    mass = (clothMass / Nx) * Ny;
-    restDistance = clothSize / Nx;
-
     world = cannon.World();
     world.gravity.set(0, -9.81, 0);
 
     // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
-    world.solver.iterations = 20;
+    world.solver.iterations = 10;
     // Materials
     cannon.Material clothMaterial = cannon.Material(name: 'cloth');
     cannon.Material sphereMaterial = cannon.Material(name: 'sphere');
@@ -178,7 +180,8 @@ class _ClothPageState extends State<Cloth> {
     // so the cloth doesn't clip thruogh
     cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
     sphereBody = cannon.Body(
-      type: cannon.BodyTypes.kinematic,
+      //type: cannon.BodyTypes.kinematic,
+      mass: 0
     );
     sphereBody.addShape(sphereShape);
     world.addBody(sphereBody);
@@ -195,7 +198,7 @@ class _ClothPageState extends State<Cloth> {
           mass: j == Ny ? 0 : mass,
         );
         particle.addShape(cannon.Particle());
-        particle.linearDamping = 0.5;
+        particle.linearDamping = 1;
         particle.position.set(point.x, point.y - Ny * 0.9 * restDistance, point.z);
         particle.velocity.set(0, 0, -0.1 * (Ny - j));
 
@@ -232,10 +235,13 @@ class _ClothPageState extends State<Cloth> {
     for (int i = 0; i < Nx + 1; i++) {
       for (int j = 0; j < Ny + 1; j++) {
         int index = j * (Nx + 1) + i;
-        clothGeometry.attributes['vertices'][index].copy(particles[i][j].position);
+        var v = particles[i][j].position;
+        clothGeometry.attributes["position"].setXYZ(index, v.x, v.y, v.z);
       }
     }
+    clothGeometry.attributes["position"].needsUpdate = true;
 
+    clothGeometry.computeVertexNormals();
     clothGeometry.normalsNeedUpdate = true;
     clothGeometry.verticesNeedUpdate = true;
 
@@ -254,7 +260,7 @@ class _ClothPageState extends State<Cloth> {
 
     render();
 
-    Future.delayed(const Duration(milliseconds: 1000~/60), () {
+    Future.delayed(const Duration(milliseconds: 16), () {
       updateCannonPhysics();
       animate();
     });
@@ -263,6 +269,7 @@ class _ClothPageState extends State<Cloth> {
     final _gl = three3dRender.gl;
     renderer!.render(scene, camera);
     _gl.flush();
+    world.fixedStep();
     controls.update();
     if(!kIsWeb) {
       three3dRender.updateTexture(sourceTexture);

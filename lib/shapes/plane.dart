@@ -45,7 +45,7 @@ class Plane extends Shape {
     // The plane AABB is infinite, except if the normal is pointing along any axis
     _tempNormal.set(0, 0, 1); // Default plane normal is z
     quat.vmult(_tempNormal, _tempNormal);
-    final maxVal = double.infinity;
+    const maxVal = double.infinity;
     min.set(-maxVal, -maxVal, -maxVal);
     max.set(maxVal, maxVal, maxVal);
 

@@ -1,11 +1,10 @@
-import 'package:cannon/math/quaternion.dart';
-
+import 'quaternion.dart';
 import  'mat3.dart';
 import 'dart:math' as math;
 
-final Vec3_tangents_n = new Vec3();
-final Vec3_tangents_randVec = new Vec3();
-final antip_neg = new Vec3();
+final vec3TangentsN = Vec3();
+final vec3TangentsRandVec = Vec3();
+final antipNeg = Vec3();
 
 /// 3-dimensional vector
 /// @example
@@ -253,10 +252,10 @@ class Vec3 {
   void tangents(Vec3 t1, Vec3 t2){
     final norm = length();
     if (norm > 0.0) {
-      final n = Vec3_tangents_n;
+      final n = vec3TangentsN;
       final inorm = 1 / norm;
       n.set(x * inorm, y * inorm, z * inorm);
-      final randVec = Vec3_tangents_randVec;
+      final randVec = vec3TangentsRandVec;
       if (n.x.abs() < 0.9) {
         randVec.set(1, 0, 0);
         n.cross(randVec, t1);
@@ -326,8 +325,8 @@ class Vec3 {
   /// Check if the vector is anti-parallel to another vector.
   /// @param precision Set to zero for exact comparisons
   bool isAntiparallelTo(Vec3 vector, [double? precision]) {
-    negate(antip_neg);
-    return antip_neg.almostEquals(vector, precision);
+    negate(antipNeg);
+    return antipNeg.almostEquals(vector, precision);
   }
 
   /// Clone the vector

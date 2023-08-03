@@ -18,16 +18,18 @@ class OverlapKeeper {
     final key = getKey(i, j);
     final current = this.current;
     int index = 0;
-    while (key > current[index]) {
-      index++;
+    if(current.isNotEmpty){
+      while (key > current[index]) {
+        index++;
+      }
+      if (key == current[index]) {
+        return; // Pair was already added
+      }
+      for (int j = current.length - 1; j >= index; j--) {
+        current[j + 1] = current[j];
+      }
+      current[index] = key;
     }
-    if (key == current[index]) {
-      return; // Pair was already added
-    }
-    for (int j = current.length - 1; j >= index; j--) {
-      current[j + 1] = current[j];
-    }
-    current[index] = key;
   }
 
   /// tick
@@ -73,7 +75,6 @@ class OverlapKeeper {
     }
   }
   void _unpackAndPush(List<int> array, int key) {
-    array.add((key & 0xffff0000) >> 16);
-    array.add(key & 0x0000ffff);
+    array.addAll([(key & 0xffff0000) >> 16, key & 0x0000ffff]);
   }
 }
