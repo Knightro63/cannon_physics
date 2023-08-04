@@ -602,13 +602,13 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    sj.convexPolyhedronRepresentation?.material = sj.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    sj.convexPolyhedronRepresentation?.collisionResponse = sj.collisionResponse;
+    si.convexPolyhedronRepresentation!.material = si.material;
+    sj.convexPolyhedronRepresentation!.material = sj.material;
+    si.convexPolyhedronRepresentation!.collisionResponse = si.collisionResponse;
+    sj.convexPolyhedronRepresentation!.collisionResponse = sj.collisionResponse;
     return convexConvex(si.convexPolyhedronRepresentation!,sj.convexPolyhedronRepresentation!,xi,xj,qi,qj,bi,bj,si,sj,justTest);
   }
-  bool?  boxConvex(
+  bool? boxConvex(
     Box si,
     ConvexPolyhedron sj,
     Vec3 xi,
@@ -751,7 +751,7 @@ class Narrowphase {
     for (int j = 0; j != 2 && !found; j++) {
       for (int k = 0; k != 2 && !found; k++) {
         for (int l = 0; l != 2 && !found; l++) {
-          rj.set(0, 0, 0);
+          rj.set(0.0, 0.0, 0.0);
           if (j != 0) {
             rj.vadd(sides[0], rj);
           } else {
@@ -796,7 +796,7 @@ class Narrowphase {
         }
       }
     }
-    v3pool.release(rj);
+    v3pool.release([rj]);
     rj = null;
 
     // Check edges
@@ -986,7 +986,7 @@ class Narrowphase {
 
       // World position of corner
       final worldCorner = _sphereConvexWorldCorner;
-      qj.vmult(v!, worldCorner);
+      qj.vmult(v, worldCorner);
       xj.vadd(worldCorner, worldCorner);
       final sphereToCorner = _sphereConvexSphereToCorner;
       worldCorner.vsub(xi, sphereToCorner);
@@ -1023,11 +1023,11 @@ class Narrowphase {
 
       // Get world-transformed normal of the face
       final worldNormal = _sphereConvexWorldNormal;
-      qj.vmult(normal!, worldNormal);
+      qj.vmult(normal, worldNormal);
 
       // Get a world vertex from the face
       final worldPoint = _sphereConvexWorldPoint;
-      qj.vmult(verts[face![0]]!, worldPoint);
+      qj.vmult(verts[face[0]], worldPoint);
       worldPoint.vadd(xj, worldPoint);
 
       // Get a point on the sphere, closest to the face normal
@@ -1050,7 +1050,7 @@ class Narrowphase {
         final List<Vec3> faceVerts = []; // Face vertices, in world coords
         for (int j = 0, nVerts = face.length; j != nVerts; j++) {
           final worldVertex = v3pool.get();
-          qj.vmult(verts[face[j]]!, worldVertex);
+          qj.vmult(verts[face[j]], worldVertex);
           xj.vadd(worldVertex, worldVertex);
           faceVerts.add(worldVertex);
         }
@@ -1102,8 +1102,8 @@ class Narrowphase {
             // Get two world transformed vertices
             final v1 = v3pool.get();
             final v2 = v3pool.get();
-            qj.vmult(verts[face[(j + 1) % face.length]]!, v1);
-            qj.vmult(verts[face[(j + 2) % face.length]]!, v2);
+            qj.vmult(verts[face[(j + 1) % face.length]], v1);
+            qj.vmult(verts[face[(j + 2) % face.length]], v2);
             xj.vadd(v1, v1);
             xj.vadd(v2, v2);
 
@@ -1678,7 +1678,7 @@ class Narrowphase {
       // For each world polygon in the polyhedra
       for (int i = 0, nfaces = sj.faces.length; i != nfaces; i++) {
         // Construct world face vertices
-        final verts = [sj.worldVertices[sj.faces[i]![0]]];
+        final verts = [sj.worldVertices[sj.faces[i][0]]];
         final normal = sj.worldFaceNormals[i];
 
         // Check how much the particle penetrates the polygon plane.
@@ -2020,77 +2020,6 @@ class Narrowphase {
 
     return null;
   }
-
-  // convexTrimesh(
-  //   si: ConvexPolyhedron, sj: Trimesh, xi: Vec3, xj: Vec3, qi: Quaternion, qj: Quaternion,
-  //   bi: Body, bj: Body, rsi?: Shape | null, rsj?: Shape | null,
-  //   faceListA?: number[] | null, faceListB?: number[] | null,
-  // ) {
-  //   final sepAxis = convexConvex_sepAxis;
-
-  //   if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
-  //       return;
-  //   }
-
-  //   // Construct a temp hull for each triangle
-  //   final hullB = ConvexPolyhedron();
-
-  //   hullB.faces = [[0,1,2]];
-  //   final va = Vec3();
-  //   final vb = Vec3();
-  //   final vc = Vec3();
-  //   hullB.vertices = [
-  //       va,
-  //       vb,
-  //       vc
-  //   ];
-
-  //   for (let i = 0; i < sj.indices.length / 3; i++) {
-
-  //       final triangleNormal = Vec3();
-  //       sj.getNormal(i, triangleNormal);
-  //       hullB.faceNormals = [triangleNormal];
-
-  //       sj.getTriangleVertices(i, va, vb, vc);
-
-  //       let d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
-  //       if(!d){
-  //           triangleNormal.scale(-1, triangleNormal);
-  //           d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
-
-  //           if(!d){
-  //               continue;
-  //           }
-  //       }
-
-  //       final res: ConvexPolyhedronContactPoint[] = [];
-  //       final q = convexConvex_q;
-  //       si.clipAgainstHull(xi,qi,hullB,xj,qj,triangleNormal,-100,100,res);
-  //       for(let j = 0; j !== res.length; j++){
-  //           final r = this.createContactEquation(bi,bj,si,sj,rsi,rsj),
-  //               ri = r.ri,
-  //               rj = r.rj;
-  //           r.ni.copy(triangleNormal);
-  //           r.ni.negate(r.ni);
-  //           res[j].normal.negate(q);
-  //           q.mult(res[j].depth, q);
-  //           res[j].point.vadd(q, ri);
-  //           rj.copy(res[j].point);
-
-  //           // Contact points are in world coordinates. Transform back to relative
-  //           ri.vsub(xi,ri);
-  //           rj.vsub(xj,rj);
-
-  //           // Make relative to bodies
-  //           ri.vadd(xi, ri);
-  //           ri.vsub(bi.position, ri);
-  //           rj.vadd(xj, rj);
-  //           rj.vsub(bj.position, rj);
-
-  //           result.push(r);
-  //       }
-  //   }
-  // }
 
   bool _pointInPolygon(List<Vec3> verts, Vec3 normal, Vec3 p) {
     bool? positiveResult;

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import '../utils/event_target.dart';
+import '../utils/utils.dart';
 import '../solver/gs_solver.dart';
 import '../collision/naive_broadphase.dart';
 import '../world/narrow_phase.dart';
@@ -19,71 +20,6 @@ import '../equations/contact_equation.dart';
 import '../equations/friction_equation.dart';
 import '../constraints/constraint_class.dart';
 import '../shapes/shape.dart';
-
-class CollideEvent{
-  CollideEvent({
-    this.type = '',
-    this.body,
-    this.contact
-  });
-  String type;
-  Body? body; 
-  ContactEquation? contact; 
-}
-
-class ContactEvent{
-  ContactEvent({
-    required this.type,
-    this.bodyA,
-    this.bodyB
-  });
-  String type;
-  Body? bodyA;
-  Body? bodyB;
-}
-
-class ShapeContactEvent{
-  ShapeContactEvent({
-    required this.type,
-    this.bodyA,
-    this.bodyB,
-    this.shapeA,
-    this.shapeB
-  });
-  String type;
-  Body? bodyA;
-  Body? bodyB;
-  Shape? shapeA;
-  Shape? shapeB;
-}
-
-class BodyEvent{
-  BodyEvent({
-    this.type = '',
-    this.target
-  });
-  String type;
-  Body? target;
-}
-
-class Timing{
-  DateTime? navigationStart;
-}
-
-class Performance{
-  Timing? timing;
-  DateTime? nowOffset;// = DateTime.now();
-  int now() => nowOffset == null?0:DateTime.now().difference(nowOffset!).inMilliseconds;
-
-  void init(){
-    if(now() == 0) {
-      nowOffset = DateTime.now();
-      if (timing != null && timing!.navigationStart != null) {
-        nowOffset = timing!.navigationStart;
-      }
-    }
-  }
-}
 
 class Profile{
   Profile({
@@ -515,7 +451,6 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-
     // Add gravity to all objects
     for (i = 0; i != N; i++) {
       final bi = bodies[i];
@@ -529,7 +464,6 @@ class World extends EventTarget {
         f.z += m * gz;
       }
     }
-
     // Update subsystems
     for (int i = 0, nSubsystems = subsystems.length; i != nSubsystems; i++) {
       subsystems[i].update();
@@ -545,7 +479,6 @@ class World extends EventTarget {
     if (doProfiling) {
       profile.broadphase = performance.now() - profilingStart;
     }
-
     // Remove constrained pairs with collideConnected == false
     int nConstraints = constraints.length;
     for (i = 0; i != nConstraints; i++) {
@@ -559,8 +492,7 @@ class World extends EventTarget {
         }
       }
     }
-
-   collisionMatrixTick();
+    collisionMatrixTick();
 
     // Generate contacts
     if (doProfiling) {
@@ -580,7 +512,6 @@ class World extends EventTarget {
       frictionEquationPool.add(frictionEquations[i]);
     }
     frictionEquations.clear();
-
     narrowphase.getContacts(
       p1,
       p2,
@@ -599,7 +530,6 @@ class World extends EventTarget {
     if (doProfiling) {
       profilingStart = performance.now();
     }
-
     // Add all friction eqs
     for (i = 0; i < frictionEquations.length; i++) {
       solver.addEquation(frictionEquations[i]);
@@ -617,76 +547,14 @@ class World extends EventTarget {
       final si = c.si;
       final sj = c.sj;
 
-      // Get collision properties
-      // ContactMaterial cm;
-      // if (bi.material != null && bj.material != null) {
-      //   cm = getContactMaterial(bi.material!, bj.material!) ?? this.defaultContactMaterial;
-      // } else {
-      //   cm = defaultContactMaterial;
-      // }
-
-      // c.enabled = bi.collisionResponse && bj.collisionResponse && si.collisionResponse && sj.collisionResponse;
-
-      //double mu = cm.friction;
-      // c.restitution = cm.restitution;
-
       // If friction or restitution were specified in the material, use them
       if (bi.material != null && bj.material != null) {
-        // if (bi.material!.friction >= 0 && bj.material!.friction >= 0) {
-        //   mu = bi.material!.friction * bj.material!.friction;
-        // }
-
         if (bi.material!.restitution >= 0 && bj.material!.restitution >= 0) {
           c.restitution = bi.material!.restitution * bj.material!.restitution;
         }
       }
 
-      // c.setSpookParams(
-      //           cm.contactEquationStiffness,
-      //           cm.contactEquationRelaxation,
-      //           dt
-      //       );
-
       solver.addEquation(c);
-
-      // // Add friction constraint equation
-      // if(mu > 0){
-
-      // 	// Create 2 tangent equations
-      // 	final mug = mu * gnorm;
-      // 	final reducedMass = (bi.invMass + bj.invMass);
-      // 	if(reducedMass > 0){
-      // 		reducedMass = 1/reducedMass;
-      // 	}
-      // 	final pool = frictionEquationPool;
-      // 	final c1 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
-      // 	final c2 = pool.length ? pool.pop() : FrictionEquation(bi,bj,mug*reducedMass);
-      // 	this.frictionEquations.push(c1, c2);
-
-      // 	c1.bi = c2.bi = bi;
-      // 	c1.bj = c2.bj = bj;
-      // 	c1.minForce = c2.minForce = -mug*reducedMass;
-      // 	c1.maxForce = c2.maxForce = mug*reducedMass;
-
-      // 	// Copy over the relative vectors
-      // 	c1.ri.copy(c.ri);
-      // 	c1.rj.copy(c.rj);
-      // 	c2.ri.copy(c.ri);
-      // 	c2.rj.copy(c.rj);
-
-      // 	// Construct tangents
-      // 	c.ni.tangents(c1.t, c2.t);
-
-      //           // Set spook params
-      //           c1.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, dt);
-      //           c2.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, dt);
-
-      //           c1.enabled = c2.enabled = c.enabled;
-
-      // 	// Add equations to solver
-      // 	solver.addEquation(c1);
-      // 	solver.addEquation(c2);
-      // }
 
       if (
         bi.allowSleep &&
@@ -780,18 +648,16 @@ class World extends EventTarget {
         final v = bi.velocity;
         v.scale(ld, v);
         final av = bi.angularVelocity;
-        //if (av) {
+        if (av.sum() != 0) {
           final ad = math.pow(1.0 - bi.angularDamping, dt).toDouble();
           av.scale(ad, av);
-        //}
+        }
       }
     }
 
    dispatchEvent(_worldStepPreStepEvent);
 
     // Leap frog
-    // vnew = v + h*f/m
-    // xnew = x + h*vnew
     if (doProfiling) {
       profilingStart = performance.now();
     }

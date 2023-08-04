@@ -10,6 +10,12 @@ import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
 
+extension on cannon.Vec3{
+  Vector3 toVector3(){
+    return Vector3(x,y,z);
+  }
+}
+
 class Cloth extends StatefulWidget {
   const Cloth({
     Key? key,
@@ -70,6 +76,7 @@ class _ClothPageState extends State<Cloth> {
   @override
   void dispose() {
     disposed = true;
+    controls.clearListeners(); 
     three3dRender.dispose();
     super.dispose();
   }
@@ -96,12 +103,11 @@ class _ClothPageState extends State<Cloth> {
     scene = Scene();
 
     camera = PerspectiveCamera(30, width / height, 0.5, 10000);
-    camera.position.set(Math.cos( Math.PI/4 ) * 3,
-                                    0,
-                                    Math.sin( Math.PI/4 ) * 3);
-    camera.rotation.order = 'YXZ';
+    camera.position.set(Math.cos(Math.PI/4) * 3,0,Math.sin(Math.PI/4) * 3);
+    //camera.rotation.order = 'YXZ';
 
-    controls = OrbitControls(camera, _globalKey);
+    final OrbitControls _controls = OrbitControls(camera, _globalKey);
+    controls = _controls;
     //controls.target.set(0,20,0);
     //controls.update();
     
@@ -180,7 +186,7 @@ class _ClothPageState extends State<Cloth> {
     // so the cloth doesn't clip thruogh
     cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
     sphereBody = cannon.Body(
-      type: cannon.BodyTypes.kinematic,
+      //type: cannon.BodyTypes.kinematic,
       mass: 0
     );
     sphereBody.addShape(sphereShape);
@@ -190,15 +196,15 @@ class _ClothPageState extends State<Cloth> {
     for (int i = 0; i < Nx + 1; i++) {
       particles.add([]);
       for (int j = 0; j < Ny + 1; j++) {
-        int index = j * (Nx + 1) + i;
+        //int index = j * (Nx + 1) + i;
 
-        three.Vector3 point = clothFunction(i / (Nx + 1), j / (Ny + 1), three.Vector3());
+        late final three.Vector3 point = three.Vector3();
+        clothFunction(i / (Nx + 1), j / (Ny + 1), point);
         cannon.Body particle = cannon.Body(
-          // Fix in place the first row
           mass: j == Ny ? 0 : mass,
         );
         particle.addShape(cannon.Particle());
-        particle.linearDamping = 1;
+        particle.linearDamping = 0.5;
         particle.position.set(point.x, point.y - Ny * 0.9 * restDistance, point.z);
         particle.velocity.set(0, 0, -0.1 * (Ny - j));
 
@@ -235,7 +241,7 @@ class _ClothPageState extends State<Cloth> {
     for (int i = 0; i < Nx + 1; i++) {
       for (int j = 0; j < Ny + 1; j++) {
         int index = j * (Nx + 1) + i;
-        var v = particles[i][j].position;
+        cannon.Vec3 v = particles[i][j].position;
         clothGeometry.attributes["position"].setXYZ(index, v.x, v.y, v.z);
       }
     }
@@ -247,11 +253,11 @@ class _ClothPageState extends State<Cloth> {
 
     // Move the ball in a circular motion
     double time = world.time;
-    sphereBody.position.set(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
+    sphereBody.position.set(movementRadius * Math.sin(time), movementRadius * Math.cos(time), movementRadius * Math.cos(time));
 
     // Make the three.js ball follow the cannon.js one
     // Copying quaternion is not needed since it's a sphere
-    sphereMesh.position.copy(sphereBody.position);
+    sphereMesh.position.copy(sphereBody.position.toVector3());
   }
   void animate() {
     if (!mounted || disposed) {

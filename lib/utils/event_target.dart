@@ -1,3 +1,7 @@
+import '../objects/body.dart';
+import '../shapes/shape.dart';
+import '../equations/contact_equation.dart';
+
 /// Base class for objects that dispatches events.
 class EventTarget {
   Map<String,List<Function>>? _listeners;//private _listeners: Record<string, Function[]> | null;
@@ -70,4 +74,50 @@ class EventTarget {
     }
     return this;
   }
+}
+
+class CollideEvent{
+  CollideEvent({
+    this.type = '',
+    this.body,
+    this.contact
+  });
+  String type;
+  Body? body; 
+  ContactEquation? contact; 
+}
+
+class ContactEvent{
+  ContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
+}
+
+class ShapeContactEvent{
+  ShapeContactEvent({
+    required this.type,
+    this.bodyA,
+    this.bodyB,
+    this.shapeA,
+    this.shapeB
+  });
+  String type;
+  Body? bodyA;
+  Body? bodyB;
+  Shape? shapeA;
+  Shape? shapeB;
+}
+
+class BodyEvent{
+  BodyEvent({
+    this.type = '',
+    this.target
+  });
+  String type;
+  Body? target;
 }

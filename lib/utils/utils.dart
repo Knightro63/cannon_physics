@@ -15,3 +15,22 @@ class Utils {
     return options;
   }
 }
+
+class Timing{
+  DateTime? navigationStart;
+}
+
+class Performance{
+  Timing? timing;
+  DateTime? nowOffset;// = DateTime.now();
+  int now() => nowOffset == null?0:DateTime.now().difference(nowOffset!).inMilliseconds;
+
+  void init(){
+    if(now() == 0) {
+      nowOffset = DateTime.now();
+      if (timing != null && timing!.navigationStart != null) {
+        nowOffset = timing!.navigationStart;
+      }
+    }
+  }
+}

@@ -42,7 +42,6 @@ class _FPSGamePageState extends State<FPSGame> {
   late FlutterGlPlugin three3dRender;
   WebGLRenderTarget? renderTarget;
   WebGLRenderer? renderer;
-  //late OrbitControls controls;
   int? fboId;
   late double width;
   late double height;
@@ -50,6 +49,7 @@ class _FPSGamePageState extends State<FPSGame> {
   late Scene scene;
   late Camera camera;
   double dpr = 1.0;
+  bool isReady = false;
   bool verbose = false;
   bool disposed = false;
   final GlobalKey<DomLikeListenableState> _globalKey = GlobalKey<DomLikeListenableState>();
@@ -104,11 +104,10 @@ class _FPSGamePageState extends State<FPSGame> {
   Future<void> initThree() async {
     scene = Scene();
 
-    camera = PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.rotation.order = 'YXZ';
+    camera = PerspectiveCamera(95, width / height, 0.1, 10000);
+    scene.add(AmbientLight( 0x111111 ) );
     
-    scene.add(AmbientLight( 0x3D4143 ) );
-    DirectionalLight light = DirectionalLight( 0xffffff , 1.4);
+    DirectionalLight light = DirectionalLight( 0xffffff,1.4);
     light.position.set( 300, 1000, 500 );
     light.target!.position.set( 0, 0, 0 );
     light.castShadow = true;
@@ -120,12 +119,15 @@ class _FPSGamePageState extends State<FPSGame> {
 
     scene.add( light );
 
-    material = three.MeshLambertMaterial({ 'color': 0xdddddd });
+    
 
     // floor
-    three.PlaneGeometry floorGeometry = three.PlaneGeometry(300, 300, 100, 100);
+    three.PlaneGeometry floorGeometry = three.PlaneGeometry(300, 300, 50, 50);
+    floorGeometry.applyMatrix4(three.Matrix4().makeRotationX( - Math.PI / 2 ) );
+    material = three.MeshLambertMaterial({ 'color': 0xdddddd });
     three.Mesh floor = three.Mesh(floorGeometry, material);
     floor.receiveShadow = true;
+    floor.castShadow = true;
     scene.add(floor);
 
     animationReady = true;
@@ -136,25 +138,32 @@ class _FPSGamePageState extends State<FPSGame> {
   //----------------------------------
   void initCannonPhysics(){
     world = cannon.World();
-    lastCallTime = world.performance.now().toDouble();
-    // Tweak contact properties.
-    // Contact stiffness - use to make softer/harder contacts
-    world.defaultContactMaterial.contactEquationStiffness = 1e9;
-
-    // Stabilization time in number of timesteps
-    world.defaultContactMaterial.contactEquationRelaxation = 4;
+    world.quatNormalizeSkip = 0;
+    world.quatNormalizeFast = false;
 
     cannon.GSSolver solver = cannon.GSSolver();
+
+    lastCallTime = world.performance.now().toDouble();
+    world.defaultContactMaterial.contactEquationStiffness = 1e9;
+    world.defaultContactMaterial.contactEquationRelaxation = 4;
+
     solver.iterations = 7;
     solver.tolerance = 0.1;
     world.solver = cannon.SplitSolver(solver);
-    // use this to test non-split solver
-    // world.solver = solver
+
+    bool split = false;
+    if(split){
+      world.solver = cannon.SplitSolver(solver);
+    }
+    else{
+        world.solver = solver;
+    }
 
     world.gravity.set(0, -20, 0);
+    world.broadphase = cannon.NaiveBroadphase();
 
     // Create a slippery material (friction coefficient = 0.0)
-    physicsMaterial = cannon.Material(name:'physics');
+    physicsMaterial = cannon.Material(name:'slipperyMaterial');
     cannon.ContactMaterial physics_physics = cannon.ContactMaterial(
       physicsMaterial, 
       physicsMaterial,
@@ -166,9 +175,10 @@ class _FPSGamePageState extends State<FPSGame> {
     world.addContactMaterial(physics_physics);
 
     // Create the user collision sphere
+    const double mass = 5;
     const radius = 1.3;
     sphereShape = cannon.Sphere(radius);
-    sphereBody = cannon.Body( mass: 5, material: physicsMaterial );
+    sphereBody = cannon.Body(mass: mass, material: physicsMaterial);
     sphereBody.addShape(sphereShape);
     sphereBody.position.set(0, 5, 0);
     sphereBody.linearDamping = 0.9;
@@ -176,9 +186,9 @@ class _FPSGamePageState extends State<FPSGame> {
 
     // Create the ground plane
     cannon.Plane groundShape = cannon.Plane();
-    cannon.Body groundBody = cannon.Body(mass: 0, material: physicsMaterial );
+    cannon.Body groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromAxisAngle(cannon.Vec3(1,0,0),(-Math.PI / 2));
     world.addBody(groundBody);
 
     // Add boxes both in cannon.js and three.js
@@ -207,55 +217,76 @@ class _FPSGamePageState extends State<FPSGame> {
       boxMeshes.add(boxMesh);
     }
 
+    addBoxes();
+  }
+  void addBoxes(){
     // Add linked boxes
-    const size = 0.5;
-    const mass = 0.3;
-    const space = 0.1 * size;
-    const N = 5;
-    cannon.Vec3 halfExtents2 = cannon.Vec3(size, size, size * 0.1);
-    cannon.Box boxShape2 = cannon.Box(halfExtents2);
-    three.BoxGeometry boxGeometry2 = three.BoxGeometry(halfExtents2.x * 2, halfExtents2.y * 2, halfExtents2.z * 2);
-
-    late cannon.Body last;
-    for (int i = 0; i < N; i++) {
-      // Make the fist one static to support the others
-      cannon.Body boxBody = cannon.Body( mass: i == 0 ? 0 : mass );
-      boxBody.addShape(boxShape2);
-      three.Mesh boxMesh = three.Mesh(boxGeometry2, material);
-      boxBody.position.set(5, (N - i) * (size * 2 + 2 * space) + size * 2 + space, 0);
-      boxBody.linearDamping = 0.01;
-      boxBody.angularDamping = 0.01;
-
-      boxMesh.castShadow = true;
-      boxMesh.receiveShadow = true;
-
+    var halfExtents = cannon.Vec3(1,1,1);
+    var boxShape = cannon.Box(halfExtents);
+    var boxGeometry = three.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
+    for(var i=0; i<7; i++){
+      final double x = (Math.random()-0.5)*20;
+      final double y = 1 + (Math.random()-0.5)*1;
+      final double z = (Math.random()-0.5)*20;
+      final boxBody = cannon.Body(mass: 5 );
+      boxBody.addShape(boxShape);
+      final boxMesh = three.Mesh( boxGeometry, material );
       world.addBody(boxBody);
       scene.add(boxMesh);
+      boxBody.position.set(x,y,z);
+      boxMesh.position.set(x,y,z);
+      boxMesh.castShadow = true;
+      boxMesh.receiveShadow = true;
       boxes.add(boxBody);
       boxMeshes.add(boxMesh);
+    }
 
-      if (i > 0) {
-        // Connect the body to the last one
-        cannon.PointToPointConstraint constraint1 = cannon.PointToPointConstraint(
-          boxBody,
+
+    // Add linked boxes
+    const size = 0.5;
+    cannon.Vec3 he = cannon.Vec3(size,size,size*0.1);
+    cannon.Box boxShape2 = cannon.Box(he);
+    double mass = 0;
+    const double space = 0.1 * size;
+    var N = 5;
+    late cannon.Body last;
+    three.BoxGeometry boxGeometry2 = three.BoxGeometry(he.x*2,he.y*2,he.z*2);
+    for(var i=0; i<N; i++){
+      var boxbody = cannon.Body( mass: mass );
+      boxbody.addShape(boxShape2);
+      var boxMesh = three.Mesh(boxGeometry2, material);
+      boxbody.position.set(5,(N-i)*(size*2+2*space) + size*2+space,0);
+      boxbody.linearDamping = 0.01;
+      boxbody.angularDamping = 0.01;
+      // boxMesh.castShadow = true;
+      boxMesh.receiveShadow = true;
+      world.addBody(boxbody);
+      scene.add(boxMesh);
+      boxes.add(boxbody);
+      boxMeshes.add(boxMesh);
+
+      if(i!=0){
+        // Connect this body to the last one
+        cannon.PointToPointConstraint c1 = cannon.PointToPointConstraint(
+          boxbody,
           last,
-          cannon.Vec3(-size, size + space, 0),
-          cannon.Vec3(-size, -size - space, 0)
+          cannon.Vec3(-size,size+space,0),
+          cannon.Vec3(-size,-size-space,0)
         );
-        cannon.PointToPointConstraint constranit2 = cannon.PointToPointConstraint(
-          boxBody,
+        cannon.PointToPointConstraint c2 = cannon.PointToPointConstraint(
+          boxbody,
           last,
-          cannon.Vec3(size, size + space, 0),
-          cannon.Vec3(size, -size - space, 0)
+          cannon.Vec3(size,size+space,0),
+          cannon.Vec3(size,-size-space,0)
         );
-        world.addConstraint(constraint1);
-        world.addConstraint(constranit2);
+        world.addConstraint(c1);
+        world.addConstraint(c2);
+      } else {
+        mass=0.3;
       }
-
-      last = boxBody;
+      last = boxbody;
     }
   }
-
   void throwBall() {
     const shootVelocity = 15;
     cannon.Sphere ballShape = cannon.Sphere(0.2);
@@ -292,7 +323,7 @@ class _FPSGamePageState extends State<FPSGame> {
     double y = sphereBody.position.y + shootDirection.y * (radius * 1.02 + ballShape.radius);
     double z = sphereBody.position.z + shootDirection.z * (radius * 1.02 + ballShape.radius);
     ballBody.position.set(x, y, z);
-    ballMesh.position.copy(ballBody.position);
+    ballMesh.position.copy(ballBody.position.toVector3());
   }
 
   void animate() {
@@ -310,14 +341,9 @@ class _FPSGamePageState extends State<FPSGame> {
     final _gl = three3dRender.gl;
     renderer!.render(scene, camera);
     _gl.flush();
-    //controls.update();
 
-    double time = world.performance.now() / 1000;
-    double dt = time - lastCallTime;
-    lastCallTime = time;
-
-    if (dt != 0) {
-      world.fixedStep();
+    if (isReady) {
+      world.step(1/60,);
 
       // Update ball positions
       for (int i = 0; i < balls.length; i++) {
@@ -334,6 +360,7 @@ class _FPSGamePageState extends State<FPSGame> {
     if(!kIsWeb) {
       three3dRender.updateTexture(sourceTexture);
     }
+    isReady = true;
   }
   void initRenderer() {
     Map<String, dynamic> _options = {

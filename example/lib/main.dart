@@ -1,3 +1,4 @@
+import 'package:cannon_physics_example/basic_physics.dart';
 import 'package:cannon_physics_example/fps.dart';
 import 'package:flutter/material.dart';
 import 'package:cannon_physics_example/cloth.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const FPSGame(),
+      home: const BasicPhysics(),
     );
   }
 }

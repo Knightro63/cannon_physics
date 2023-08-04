@@ -30,7 +30,7 @@ class Body extends EventTarget {
     this.mass = 0,
     this.material,
     this.linearDamping = 0.01,
-    this.type = BodyTypes.static,
+    BodyTypes? type,
     this.allowSleep = true,
     this.sleepSpeedLimit = 0.1,
     this.sleepTimeLimit = 1,
@@ -56,10 +56,10 @@ class Body extends EventTarget {
     }
 
     invMass = mass > 0 ? 1.0 / mass : 0;
-    type = mass <= 0.0 ? BodyTypes.static : BodyTypes.dynamic;
-    // if ( type ==  Body.static) {
-    //   type = type!;
-    // }
+    this.type = mass <= 0.0 ? BodyTypes.static : BodyTypes.dynamic;
+    if (type == BodyTypes.static) {
+      this.type = type!;
+    }
 
     if (quaternion != null) {
       this.quaternion.copy(quaternion);
@@ -155,7 +155,7 @@ class Body extends EventTarget {
   double linearDamping;
 
   /// One of: `Body.DYNAMIC`, `Body.static` and `Body.kinematic`.
-  BodyTypes type;
+  late BodyTypes type;
 
   /// If true, the body will automatically fall to sleep.
   bool allowSleep;

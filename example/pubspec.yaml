@@ -20,9 +20,14 @@ dependencies:
 
   cannon_physics:
     path: ../
-  flutter_gl: 0.0.20
-  three_dart: 0.0.14
-  three_dart_jsm: 0.0.8
+  flutter_gl: ^0.0.21
+  three_dart:
+    git:
+      url: https://github.com/Knightro63/three_dart.git
+  three_dart_jsm:
+    path: ../../three_dart_jsm
+    # git:
+    #   url: https://github.com/Knightro63/three_dart_jsm.git
   
   cupertino_icons: ^1.0.2
 

@@ -44,6 +44,7 @@ final _v0 = Vec3();
 final _intersect = Vec3();
 final _v1 = Vec3();
 final _v2 = Vec3();
+final _intersectHeightfieldLocalRay = Ray();
 
 /// A line in 3D space that intersects bodies and return points.
 class Ray {
@@ -329,7 +330,7 @@ class Ray {
     //final data = shape.data;
     //final w = shape.elementSize;
     // Convert the ray to local heightfield coordinates
-    final localRay = Ray(from, to);//_intersectHeightfieldLocalRay; //
+    final localRay = _intersectHeightfieldLocalRay; //Ray(from, to);
     localRay.from.copy(from);
     localRay.to.copy(to);
     Transform.pointToLocalFrame(position, quat, localRay.from, localRay.from);

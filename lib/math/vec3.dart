@@ -84,15 +84,12 @@ class Vec3 {
   }
 
   /// Vector addition
-  Vec3? vadd(Vec3? vector, [Vec3? target]){
-    if(vector == null){
-      return Vec3(x - 0, y - 0, z - 0);
-    }
+  Vec3 vadd(Vec3 vector, [Vec3? target]){
     if (target != null) {
       target.x = vector.x + x;
       target.y = vector.y + y;
       target.z = vector.z + z;
-      return null;
+      return target;
     } else {
       return Vec3(x + vector.x, y + vector.y, z + vector.z);
     }
@@ -100,15 +97,12 @@ class Vec3 {
 
   /// Vector subtraction
   ///  @param target Optional target to save in.
-  Vec3? vsub(Vec3? vector, [Vec3? target]){
-    if(vector == null){
-      return Vec3(x - 0, y - 0, z - 0);
-    }
+  Vec3 vsub(Vec3 vector, [Vec3? target]){
     if (target != null) {
       target.x = x - vector.x;
       target.y = y - vector.y;
       target.z = z - vector.z;
-      return null;
+      return target;
     } else {
       return Vec3(x - vector.x, y - vector.y, z - vector.z);
     }
@@ -211,7 +205,13 @@ class Vec3 {
     target.z = scalar * z;
     return target;
   }
+  int sum(){
+    final x = this.x;
+    final y = this.y;
+    final z = this.z;
 
+    return (x+y+z).toInt();
+  }
   /// Multiply the vector with an other vector, component-wise.
   /// @param target The vector to save the result in.
   Vec3 vmul(Vec3 vector, [Vec3? target]){
@@ -290,8 +290,7 @@ class Vec3 {
   }
 
   /// Copies value of source to this vector.
-  Vec3 copy(Vec3? vector) {
-    if(vector == null) return Vec3();
+  Vec3 copy(Vec3 vector) {
     x = vector.x;
     y = vector.y;
     z = vector.z;
