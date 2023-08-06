@@ -234,8 +234,7 @@ class Vec3 {
 
   /// Calculate dot product
   /// @param vector
-  double dot(Vec3? vector) {
-    if(vector == null) return 0;
+  double dot(Vec3 vector) {
     return x * vector.x + y * vector.y + z * vector.z;
   }
 
@@ -245,8 +244,7 @@ class Vec3 {
 
   /// Make the vector point in the opposite direction.
   /// @param target Optional target to save in
-  Vec3 negate([Vec3? target]) {
-    target ??= Vec3();
+  Vec3 negate(Vec3 target) {
     target.x = -x;
     target.y = -y;
     target.z = -z;

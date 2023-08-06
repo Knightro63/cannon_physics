@@ -44,7 +44,6 @@ class Body extends EventTarget {
     this.isTrigger = true,
   }):super() {
     id = Body.idCounter++;
-
     if (position != null) {
       this.position.copy(position);
       previousPosition.copy(position);

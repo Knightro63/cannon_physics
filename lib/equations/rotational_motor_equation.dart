@@ -20,12 +20,6 @@ class RotationalMotorEquation extends Equation {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
 
-    // g = 0
-    // gdot = axisA * wi - axisB * wj
-    // gdot = G * W = G * [vi wi vj wj]
-    // =>
-    // G = [0 axisA 0 -axisB]
-
     ga.rotational.copy(axisA);
     axisB.negate(gb.rotational);
 

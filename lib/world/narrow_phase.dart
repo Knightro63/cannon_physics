@@ -394,7 +394,6 @@ class Narrowphase {
     f2.rj.copy(f1.rj);
     _averageNormal.normalize();
     _averageNormal.tangents(f1.t, f2.t);
-    // return eq;
   }
 
   /// Generate all contacts between a list of body pairs
@@ -437,13 +436,11 @@ class Narrowphase {
         (bi.type == BodyTypes.kinematic && bj.type == BodyTypes.static) ||
         (bi.type == BodyTypes.static && bj.type == BodyTypes.kinematic) ||
         (bi.type == BodyTypes.kinematic && bj.type == BodyTypes.kinematic);
-
       for (int i = 0; i < bi.shapes.length; i++) {
         bi.quaternion.mult(bi.shapeOrientations[i], qi);
         bi.quaternion.vmult(bi.shapeOffsets[i], xi);
         xi.vadd(bi.position, xi);
         final si = bi.shapes[i];
-
         for (int j = 0; j < bj.shapes.length; j++) {
           // Compute world transform of shapes
           bj.quaternion.mult(bj.shapeOrientations[j], qj);
@@ -454,11 +451,9 @@ class Narrowphase {
           if (!((si.collisionFilterMask & sj.collisionFilterGroup) != 0 && (sj.collisionFilterMask & si.collisionFilterGroup) != 0)) {
             continue;
           }
-
           if (xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius) {
             continue;
           }
-
           // Get collision material
           ContactMaterial? shapeContactMaterial;
           if (si.material != null && sj.material != null) {
@@ -624,7 +619,7 @@ class Narrowphase {
   ]){
     si.convexPolyhedronRepresentation?.material = si.material;
     si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexConvex(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+    return convexConvex(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
   bool? boxParticle(
     Box si,
@@ -640,9 +635,9 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexParticle(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+    si.convexPolyhedronRepresentation!.material = si.material;
+    si.convexPolyhedronRepresentation!.collisionResponse = si.collisionResponse;
+    return convexParticle(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
 
   bool? sphereBox(
@@ -1084,8 +1079,7 @@ class Narrowphase {
           r.ri.vadd(xi, r.ri);
           r.ri.vsub(bi.position, r.ri);
 
-          v3pool.release(penetrationVec2);
-          v3pool.release(penetrationSpherePoint);
+          v3pool.release([penetrationVec2,penetrationSpherePoint]);
 
           result.add(r);
           createFrictionEquationsFromContact(r, frictionResult);
@@ -1159,27 +1153,20 @@ class Narrowphase {
                 v3pool.release([faceVerts[j]]);
               }
 
-              v3pool.release(v1);
-              v3pool.release(v2);
-              v3pool.release(p);
-              v3pool.release(xiToP);
-              v3pool.release(v1ToXi);
-
+              v3pool.release([v1,v2,p,xiToP,v1ToXi]);
               return null;
             }
 
-            v3pool.release(v1);
-            v3pool.release(v2);
-            v3pool.release(p);
-            v3pool.release(xiToP);
-            v3pool.release(v1ToXi);
+            v3pool.release([v1,v2,p,xiToP,v1ToXi]);
           }
         }
 
         // Release world vertices
+        List<Vec3> toRelease = [];
         for (int j = 0, nFaceverts = faceVerts.length; j != nFaceverts; j++) {
-          v3pool.release([faceVerts[j]]);
+          toRelease.add(faceVerts[j]);
         }
+        v3pool.release(toRelease);
       }
     }
 
@@ -1561,12 +1548,12 @@ class Narrowphase {
   bool? sphereParticle(
     Sphere sj,
     Particle si,
-    Vec3 xi,
     Vec3 xj,
-    Quaternion qi,
+    Vec3 xi,
     Quaternion qj,
-    Body bi,
+    Quaternion qi,
     Body bj,
+    Body bi,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1599,12 +1586,12 @@ class Narrowphase {
   bool? planeParticle(
     Plane sj,
     Particle si,
-    Vec3 xi,
     Vec3 xj,
-    Quaternion qi,
+    Vec3 xi,
     Quaternion qj,
-    Body bi,
+    Quaternion qi,
     Body bj,
+    Body bi,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1643,12 +1630,12 @@ class Narrowphase {
   bool? convexParticle(
     ConvexPolyhedron sj,
     Particle si,
-    Vec3 xi,
     Vec3 xj,
-    Quaternion qi,
+    Vec3 xi,
     Quaternion qj,
-    Body bi,
+    Quaternion qi,
     Body bj,
+    Body bi,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1678,11 +1665,11 @@ class Narrowphase {
       // For each world polygon in the polyhedra
       for (int i = 0, nfaces = sj.faces.length; i != nfaces; i++) {
         // Construct world face vertices
-        final verts = [sj.worldVertices[sj.faces[i][0]]];
+        final verts = sj.worldVertices[sj.faces[i][0]];
         final normal = sj.worldFaceNormals[i];
 
         // Check how much the particle penetrates the polygon plane.
-        xi.vsub(verts[0], _convexParticleVertexToParticle);
+        xi.vsub(verts, _convexParticleVertexToParticle);
         final penetration = -normal.dot(_convexParticleVertexToParticle);
         if (minPenetration == null || penetration.abs() < minPenetration.abs()) {
           if (justTest) {
@@ -1710,11 +1697,12 @@ class Narrowphase {
 
         //qj.vmult(r.rj,r.rj);
         penetratedFaceNormal.negate(r.ni); // Contact normal
-        r.ri.set(0, 0, 0); // Center of particle
+        
 
         final ri = r.ri;
         final rj = r.rj;
-
+        
+        ri.set(0, 0, 0); // Center of particle
         // Make relative to bodies
         ri.vadd(xi, ri);
         ri.vsub(bi.position, ri);
@@ -1759,7 +1747,7 @@ class Narrowphase {
     );
   }
 
-  bool?  particleCylinder(
+  bool? particleCylinder(
     Particle si,
     Cylinder sj,
     Vec3 xi,
@@ -1776,7 +1764,7 @@ class Narrowphase {
     return convexParticle(sj, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
   }
 
-  bool?  sphereTrimesh(
+  bool? sphereTrimesh(
     Sphere si,
     Trimesh sj,
     Vec3 xi,

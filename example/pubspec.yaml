@@ -25,9 +25,8 @@ dependencies:
     git:
       url: https://github.com/Knightro63/three_dart.git
   three_dart_jsm:
-    path: ../../three_dart_jsm
-    # git:
-    #   url: https://github.com/Knightro63/three_dart_jsm.git
+    git:
+      url: https://github.com/Knightro63/three_dart_jsm.git
   
   cupertino_icons: ^1.0.2
 

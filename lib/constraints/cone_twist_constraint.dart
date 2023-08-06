@@ -35,7 +35,7 @@ class ConeTwistConstraint extends PointToPointConstraint {
       double maxForce = 1e6,
       bool collideConnected = false
     }
-  ):super(bodyA, bodyB,pivotA, pivotB, maxForce){
+  ):super(bodyA, bodyB, pivotA, pivotB, maxForce){
 
     // Set pivot point in between
     this.pivotA = pivotA?.clone() ?? Vec3();

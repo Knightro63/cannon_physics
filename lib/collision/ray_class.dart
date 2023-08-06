@@ -480,7 +480,7 @@ class Ray {
       // note: this works regardless of the direction of the face normal
 
       // Get plane point in world coordinates...
-      vector.copy(vertices[face![0]]);
+      vector.copy(vertices[face[0]]);
       q.vmult(vector, vector);
       vector.vadd(x, vector);
 
@@ -488,7 +488,7 @@ class Ray {
       vector.vsub(from, vector);
 
       // Get plane normal
-      q.vmult(faceNormal!, normal);
+      q.vmult(faceNormal, normal);
 
       // If this dot product is negative, we have something interesting
       final dot = direction.dot(normal);
@@ -528,7 +528,7 @@ class Ray {
 
         final distance = _intersectPoint.distanceTo(from);
 
-        if (!(pointInTriangle(_intersectPoint, a, b, c) || pointInTriangle(_intersectPoint, b, a, c)) || distance > fromToDistance) {
+        if (!(Ray.pointInTriangle(_intersectPoint, a, b, c) || Ray.pointInTriangle(_intersectPoint, b, a, c)) || distance > fromToDistance) {
           continue;
         }
 

@@ -44,10 +44,6 @@ class RotationalEquation extends Equation {
     ni.cross(nj, nixnj);
     nj.cross(ni, njxni);
 
-    // g = ni * nj
-    // gdot = (nj x ni) * wi + (ni x nj) * wj
-    // G = [0 njxni 0 nixnj]
-    // W = [vi wi vj wj]
     ga.rotational.copy(njxni);
     ga.rotational.copy(nixnj);
 

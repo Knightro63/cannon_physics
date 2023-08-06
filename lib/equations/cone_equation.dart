@@ -44,13 +44,6 @@ class ConeEquation extends Equation {
     ni.cross(nj, nixnj);
     nj.cross(ni, njxni);
 
-    // The angle between two vector is:
-    // cos(theta) = a * b / (length(a) * length(b) = { len(a) = len(b) = 1 } = a * b
-
-    // g = a * b
-    // gdot = (b x a) * wi + (a x b) * wj
-    // G = [0 bxa 0 axb]
-    // W = [vi wi vj wj]
     ga.rotational.copy(njxni);
     gb.rotational.copy(nixnj);
 

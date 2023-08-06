@@ -24,10 +24,6 @@ class Constraint {
       bool wakeUpBodies = true
     }
   ) {
-    // options = Utils.defaults(options, {
-    //   collideConnected: true,
-    //   wakeUpBodies: true,
-    // });
     id = Constraint.idCounter++;
     if (wakeUpBodies) {
       bodyA.wakeUp();

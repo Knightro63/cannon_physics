@@ -52,12 +52,11 @@ class ContactEquation extends Equation {
     ri.cross(n, rixn);
     rj.cross(n, rjxn);
 
-    // g = xj+rj -(xi+ri)
-    // G = [ -ni  -rixn  ni  rjxn ]
     n.negate(ga.spatial);
     rixn.negate(ga.rotational);
     gb.spatial.copy(n);
     gb.rotational.copy(rjxn);
+
     // Calculate the penetration vector
     penetrationVec.copy(bj.position);
     penetrationVec.vadd(rj, penetrationVec);

@@ -23,6 +23,19 @@ class Box extends Shape {
     updateBoundingSphereRadius();
   }
 
+  final Vec3 _worldCornerTempPos = Vec3();
+
+  final List<Vec3> _worldCornersTemp = [
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+    Vec3(),
+  ];
+
   /// Updates the local convex polyhedron representation used for some collisions.
   void updateConvexPolyhedronRepresentation(){
     double sx = halfExtents.x;
@@ -51,7 +64,7 @@ class Box extends Shape {
 
     final List<Vec3> axes = [Vec3(0, 0, 1), Vec3(0, 1, 0), Vec3(1, 0, 0)];
 
-    final ConvexPolyhedron h = ConvexPolyhedron(vertices:vertices, faces:faces, axes:axes );
+    final ConvexPolyhedron h = ConvexPolyhedron(vertices:vertices, faces:faces, axes:axes,type: ShapeType.box );
     convexPolyhedronRepresentation = h;
     h.material = material;
   }
@@ -60,7 +73,7 @@ class Box extends Shape {
   @override
   Vec3 calculateLocalInertia(num mass,[ Vec3? target]){
     target ??= Vec3();
-    calculateInertia(halfExtents, mass, target);
+    Box.calculateInertia(halfExtents, mass, target);
     return target;
   }
 
@@ -117,32 +130,32 @@ class Box extends Shape {
       [e.x, -e.y, e.z],
     ];
     for (int i = 0; i < corners.length; i++) {
-      worldCornerTempPos.set(corners[i][0], corners[i][1], corners[i][2]);
-      quat.vmult(worldCornerTempPos, worldCornerTempPos);
-      pos.vadd(worldCornerTempPos, worldCornerTempPos);
-      callback(worldCornerTempPos.x, worldCornerTempPos.y, worldCornerTempPos.z);
+      _worldCornerTempPos.set(corners[i][0], corners[i][1], corners[i][2]);
+      quat.vmult(_worldCornerTempPos, _worldCornerTempPos);
+      pos.vadd(_worldCornerTempPos, _worldCornerTempPos);
+      callback(_worldCornerTempPos.x, _worldCornerTempPos.y, _worldCornerTempPos.z);
     }
   }
 
   @override
   void calculateWorldAABB(Vec3 pos, Quaternion quat,Vec3 min, Vec3 max) {
     final Vec3 e = halfExtents;
-    worldCornersTemp[0].set(e.x, e.y, e.z);
-    worldCornersTemp[1].set(-e.x, e.y, e.z);
-    worldCornersTemp[2].set(-e.x, -e.y, e.z);
-    worldCornersTemp[3].set(-e.x, -e.y, -e.z);
-    worldCornersTemp[4].set(e.x, -e.y, -e.z);
-    worldCornersTemp[5].set(e.x, e.y, -e.z);
-    worldCornersTemp[6].set(-e.x, e.y, -e.z);
-    worldCornersTemp[7].set(e.x, -e.y, e.z);
+    _worldCornersTemp[0].set(e.x, e.y, e.z);
+    _worldCornersTemp[1].set(-e.x, e.y, e.z);
+    _worldCornersTemp[2].set(-e.x, -e.y, e.z);
+    _worldCornersTemp[3].set(-e.x, -e.y, -e.z);
+    _worldCornersTemp[4].set(e.x, -e.y, -e.z);
+    _worldCornersTemp[5].set(e.x, e.y, -e.z);
+    _worldCornersTemp[6].set(-e.x, e.y, -e.z);
+    _worldCornersTemp[7].set(e.x, -e.y, e.z);
 
-    final Vec3 wc = worldCornersTemp[0];
+    final Vec3 wc = _worldCornersTemp[0];
     quat.vmult(wc, wc);
     pos.vadd(wc, wc);
     max.copy(wc);
     min.copy(wc);
     for (int i = 1; i < 8; i++) {
-      final Vec3 wc = worldCornersTemp[i];
+      final Vec3 wc = _worldCornersTemp[i];
       quat.vmult(wc, wc);
       pos.vadd(wc, wc);
       double x = wc.x;
@@ -168,43 +181,5 @@ class Box extends Shape {
         min.z = z;
       }
     }
-
-    // Get each axis max
-    // min.set(Infinity,Infinity,Infinity);
-    // max.set(-Infinity,-Infinity,-Infinity);
-    // this.forEachWorldCorner(pos,quat,function(x,y,z){
-    //     if(x > max.x){
-    //         max.x = x;
-    //     }
-    //     if(y > max.y){
-    //         max.y = y;
-    //     }
-    //     if(z > max.z){
-    //         max.z = z;
-    //     }
-
-    //     if(x < min.x){
-    //         min.x = x;
-    //     }
-    //     if(y < min.y){
-    //         min.y = y;
-    //     }
-    //     if(z < min.z){
-    //         min.z = z;
-    //     }
-    // });
   }
 }
-
-Vec3 worldCornerTempPos = Vec3();
-
-List<Vec3> worldCornersTemp = [
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-  Vec3(),
-];

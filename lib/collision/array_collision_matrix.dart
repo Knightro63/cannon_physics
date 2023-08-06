@@ -5,6 +5,7 @@ import '../objects/body.dart';
 class ArrayCollisionMatrix {
   /// The matrix storage.
   late Map<int,double> matrix = {};
+  List<double> _temp = [];
 
   ArrayCollisionMatrix([List<double>? matrix]){
     if(matrix != null) this.matrix.addAll(matrix.asMap());
@@ -31,7 +32,7 @@ class ArrayCollisionMatrix {
       j = i;
       i = temp;
     }
-
+  
     matrix[((i * (i + 1)) >> 1) + j - 1] = value ? 1 : 0;
   }
  
@@ -44,7 +45,7 @@ class ArrayCollisionMatrix {
   
   /// Sets the max number of objects
   void setNumObjects(int n) {
-    Map<int,double> mat = List.filled(n * (n - 1) >> 1,0.0).asMap();
-    matrix.addAll(mat);
+    _temp.addAll(List.filled(n * (n - 1) >> 1,0.0));
+    matrix.addAll(_temp.asMap());
   }
 }

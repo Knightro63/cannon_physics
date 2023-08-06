@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 import 'dart:io';
 
@@ -15,7 +16,11 @@ extension on cannon.Vec3{
     return Vector3(x,y,z);
   }
 }
-
+extension on cannon.Quaternion{
+  Quaternion toQuaternion(){
+    return Quaternion(x,y,z,w);
+  }
+}
 class Cloth extends StatefulWidget {
   const Cloth({
     Key? key,
@@ -142,9 +147,9 @@ class _ClothPageState extends State<Cloth> {
     three.Mesh clothMesh = three.Mesh(clothGeometry, clothMaterial);
     //clothMesh.position.set(0,-1,0);
     scene.add(clothMesh);
-
+ 
     // Sphere
-    three.SphereGeometry sphereGeometry = three.SphereGeometry(sphereSize, 20, 20);
+    three.BoxGeometry sphereGeometry = three.BoxGeometry(sphereSize*2,sphereSize*2,sphereSize*2);
     three.MeshPhongMaterial sphereMaterial = three.MeshPhongMaterial({'color': 0x888888 });
 
     sphereMesh = three.Mesh(sphereGeometry, sphereMaterial);
@@ -163,6 +168,7 @@ class _ClothPageState extends State<Cloth> {
 
     // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
     world.solver.iterations = 10;
+
     // Materials
     cannon.Material clothMaterial = cannon.Material(name: 'cloth');
     cannon.Material sphereMaterial = cannon.Material(name: 'sphere');
@@ -177,7 +183,7 @@ class _ClothPageState extends State<Cloth> {
     // Contact stiffness - use to make softer/harder contacts
     clothSphere.contactEquationStiffness = 1e9;
     // Stabilization time in number of timesteps
-    clothSphere.contactEquationRelaxation = 3;
+    clothSphere.contactEquationRelaxation = 4;
     // Add contact material to the world
     world.addContactMaterial(clothSphere);
 
@@ -185,11 +191,20 @@ class _ClothPageState extends State<Cloth> {
     // Make it a little bigger than the three.js sphere
     // so the cloth doesn't clip thruogh
     cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
+    //cannon.Box sphereShape = cannon.Box(cannon.Vec3(sphereSize,sphereSize,sphereSize));
+    // cannon.Cylinder sphereShape = cannon.Cylinder(
+    //   radiusTop:  sphereSize * 1.3,
+    //   radiusBottom: sphereSize * 1.3,
+    //   height: sphereSize * 1.3
+    // );
     sphereBody = cannon.Body(
       //type: cannon.BodyTypes.kinematic,
       mass: 0
     );
+
     sphereBody.addShape(sphereShape);
+    sphereMesh.position.copy(sphereBody.shapeOffsets[0].toVector3());
+    sphereMesh.quaternion.copy(sphereBody.shapeOrientations[0].toQuaternion());
     world.addBody(sphereBody);
 
     // Create cannon particles
@@ -253,11 +268,12 @@ class _ClothPageState extends State<Cloth> {
 
     // Move the ball in a circular motion
     double time = world.time;
-    sphereBody.position.set(movementRadius * Math.sin(time), movementRadius * Math.cos(time), movementRadius * Math.cos(time));
+    sphereBody.position.set(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
 
     // Make the three.js ball follow the cannon.js one
     // Copying quaternion is not needed since it's a sphere
     sphereMesh.position.copy(sphereBody.position.toVector3());
+    sphereMesh.quaternion.copy(sphereBody.quaternion.toQuaternion());
   }
   void animate() {
     if (!mounted || disposed) {

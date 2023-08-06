@@ -235,18 +235,6 @@ class GridBroadphase extends Broadphase {
       }
     }
 
-    //	for (let zi = 0, zoff=0; zi < nz; zi++, zoff+= zstep) {
-    //		console.log("layer "+zi);
-    //		for (let yi = 0, yoff=0; yi < ny; yi++, yoff += ystep) {
-    //			final row = '';
-    //			for (let xi = 0, xoff=0; xi < nx; xi++, xoff += xstep) {
-    //				final idx = xoff + yoff + zoff;
-    //				row += ' ' + binLengths[idx];
-    //			}
-    //			console.log(row);
-    //		}
-    //	}
-
     makePairsUnique(pairs1, pairs2);
   }
 }

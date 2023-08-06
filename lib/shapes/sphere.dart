@@ -43,17 +43,13 @@ class Sphere extends Shape {
   @override
   void calculateWorldAABB(Vec3 pos,Quaternion quat,Vec3 min,Vec3 max) {
     num r = radius;
-    //List<int> axes = [0,1,2] ;
-    //for (int i = 0; i < axes.length; i++) {
-      //int ax = axes[i];
-      min.x = pos.x - r;
-      max.x = pos.x + r;
+    min.x = pos.x - r;
+    max.x = pos.x + r;
 
-      min.y = pos.y - r;
-      max.y = pos.y + r;
-  
-      min.z = pos.z - r;
-      max.z = pos.z + r;
-    //}
+    min.y = pos.y - r;
+    max.y = pos.y + r;
+
+    min.z = pos.z - r;
+    max.z = pos.z + r;
   }
 }

@@ -120,7 +120,7 @@ class GSSolver extends Solver {
       // Set the `.multiplier` property of each equation
       int l = equations.length-1;
       double invDt = 1 / h;
-      while(l > 0) {
+      while(l >= 0) {
         equations[l].multiplier = lambda[l]! * invDt;
         l--;
       }

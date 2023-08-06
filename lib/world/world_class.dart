@@ -201,7 +201,7 @@ class World extends EventTarget {
 
   /// Get the contact material between materials m1 and m2
   /// @return The contact material if it was found.
-  ContactMaterial getContactMaterial(Material m1, Material m2){
+  ContactMaterial? getContactMaterial(Material m1, Material m2){
     return contactMaterialTable.get(m1.id, m2.id);
   }
 
@@ -300,8 +300,9 @@ class World extends EventTarget {
     body.world = null;
     final n = this.bodies.length - 1;
     final bodies = this.bodies;
-    bodies.remove(body);
-    if (bodies.isNotEmpty) {
+    final idx = bodies.indexOf(body);
+    if (idx != -1) {
+      bodies.remove(body);
       // Recompute index
       for (int i = 0; i != bodies.length; i++) {
         bodies[i].index = i;
@@ -700,7 +701,6 @@ class World extends EventTarget {
   void emitContactEvents() {
     final hasBeginContact = hasAnyEventListener('beginContact');
     final hasEndContact = hasAnyEventListener('endContact');
-
     if (hasBeginContact || hasEndContact) {
       bodyOverlapKeeper.getDiff(additions, removals);
     }
@@ -728,7 +728,6 @@ class World extends EventTarget {
 
     final hasBeginShapeContact = hasAnyEventListener('beginShapeContact');
     final hasEndShapeContact = hasAnyEventListener('endShapeContact');
-
     if (hasBeginShapeContact || hasEndShapeContact) {
       shapeOverlapKeeper.getDiff(additions, removals);
     }

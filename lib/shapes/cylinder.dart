@@ -26,7 +26,12 @@ class Cylinder extends ConvexPolyhedron {
   /// @param radiusBottom The radius of the bottom of the Cylinder.
   /// @param height The height of the Cylinder.
   /// @param numSegments The number of segments to build the cylinder out of.
-  Cylinder({this.radiusTop = 1, this.radiusBottom = 1, this.height = 1, this.numSegments = 8}):super() {
+  Cylinder({
+    this.radiusTop = 1, 
+    this.radiusBottom = 1, 
+    this.height = 1, 
+    this.numSegments = 8
+  }):super(type: ShapeType.cylinder){
     if (radiusTop < 0) {
       throw('The cylinder radiusTop cannot be negative.');
     }
@@ -40,6 +45,8 @@ class Cylinder extends ConvexPolyhedron {
     List<int> topface = [];
     List<Vec3> axes =[];
 
+    vertices = [];
+    faces = [];
     // First bottom point
     vertices.add(Vec3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
     bottomface.add(0);
@@ -85,5 +92,7 @@ class Cylinder extends ConvexPolyhedron {
     radiusBottom = radiusBottom;
     height = height;
     numSegments = numSegments;
+
+    init(vertices, faces, faceNormals, axes, boundingSphereRadius);
   }
 }

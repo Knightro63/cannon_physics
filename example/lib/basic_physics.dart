@@ -67,7 +67,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
 
   List<int> fps = [0,0,0,0];
   double toRad = 0.0174532925199432957;
-  int type = 3;
+  int type = 4;
 
   @override
   void initState() {
@@ -256,7 +256,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     int t;
     for(int i = 0; i < max;i++){
       if(type==4) {
-        t = Math.floor(Math.random()*2)+1;
+        t = Math.floor(Math.random()*3)+1;
       }
       else {
         t = type;
@@ -286,7 +286,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         three.Material mat = mats['box']!;
         mat.color = randColor;
         cannon.Body sbody = cannon.Body(
-          shape: cannon.Box(cannon.Vec3(w,h,d)),
+          shape: cannon.Box(cannon.Vec3(w/2,h/2,d/2)),
           position:cannon.Vec3(x,y,z),
           mass: 1
         );
