@@ -149,7 +149,16 @@ class _ClothPageState extends State<Cloth> {
     scene.add(clothMesh);
  
     // Sphere
-    three.BoxGeometry sphereGeometry = three.BoxGeometry(sphereSize*2,sphereSize*2,sphereSize*2);
+    // three.CylinderGeometry sphereGeometry = three.CylinderGeometry(
+    //   sphereSize * 1.3,
+    //   sphereSize * 1.3,
+    //   sphereSize * 1.3
+    // );
+    three.BoxGeometry sphereGeometry = three.BoxGeometry(
+      sphereSize * 2,
+      sphereSize * 2,
+      sphereSize * 2
+    );
     three.MeshPhongMaterial sphereMaterial = three.MeshPhongMaterial({'color': 0x888888 });
 
     sphereMesh = three.Mesh(sphereGeometry, sphereMaterial);
@@ -190,8 +199,8 @@ class _ClothPageState extends State<Cloth> {
     // Create sphere
     // Make it a little bigger than the three.js sphere
     // so the cloth doesn't clip thruogh
-    cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
-    //cannon.Box sphereShape = cannon.Box(cannon.Vec3(sphereSize,sphereSize,sphereSize));
+    //cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
+    cannon.Box sphereShape = cannon.Box(cannon.Vec3(sphereSize,sphereSize,sphereSize));
     // cannon.Cylinder sphereShape = cannon.Cylinder(
     //   radiusTop:  sphereSize * 1.3,
     //   radiusBottom: sphereSize * 1.3,

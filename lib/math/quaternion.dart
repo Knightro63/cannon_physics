@@ -94,7 +94,7 @@ class Quaternion {
       x = a.x;
       y = a.y;
       z = a.z;
-      w = math.sqrt(u.length() * 2 * v.length() * 2) + u.dot(v);
+      w = math.sqrt(math.pow(u.length(),2) * math.pow(v.length(),2)) + u.dot(v);
       normalize();
     }
     return this;

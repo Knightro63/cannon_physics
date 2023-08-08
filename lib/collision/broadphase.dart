@@ -75,7 +75,7 @@ class Broadphase {
   void doBoundingSphereBroadphase(Body bodyA, Body bodyB, List<Body> pairs1, List<Body> pairs2) {
     final r = _broadphaseCollisionPairsR;
     bodyB.position.vsub(bodyA.position, r);
-    final boundingRadiusSum2 = math.pow(bodyA.boundingRadius + bodyB.boundingRadius,2);// ** 2
+    final boundingRadiusSum2 = math.pow(bodyA.boundingRadius + bodyB.boundingRadius,2);
     final norm2 = r.lengthSquared();
     if (norm2 < boundingRadiusSum2) {
       pairs1.add(bodyA);

@@ -61,6 +61,7 @@ class EventTarget {
   /// Emit an event.
   /// @return The self object, for chainability.
   EventTarget dispatchEvent(dynamic event){
+    
     if (_listeners == null) {
       return this;
     }

@@ -99,9 +99,9 @@ class Vec3 {
   ///  @param target Optional target to save in.
   Vec3 vsub(Vec3 vector, [Vec3? target]){
     if (target != null) {
-      target.x = x - vector.x;
-      target.y = y - vector.y;
-      target.z = z - vector.z;
+      target.x =  x-vector.x;
+      target.y =  y-vector.y;
+      target.z =  z-vector.z;
       return target;
     } else {
       return Vec3(x - vector.x, y - vector.y, z - vector.z);

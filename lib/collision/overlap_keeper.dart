@@ -2,6 +2,11 @@ class OverlapKeeper {
   List<int> current = [];
   List<int> previous = [];
 
+  OverlapKeeper([List<int>? current,List<int>? previous]){
+    this.current = current ?? [];
+    this.previous = previous ?? [];
+  }
+
   /// getKey
   int getKey(int i, int j) {
     if (j < i) {

@@ -21,6 +21,25 @@ class SAPBroadphase extends Broadphase {
   late void Function(Body body) _addBodyHandler;
   late void Function(Body body) _removeBodyHandler;
 
+  SAPBroadphase(world):super() {
+    final axisList = this.axisList;
+
+    _addBodyHandler = (Body body){
+      axisList.add(body);
+    };
+
+    _removeBodyHandler = (Body body){
+      final idx = axisList.indexOf(body);
+      if (idx != -1) {
+        axisList.removeAt(idx);
+      }
+    };
+
+    if (world) {
+      setWorld(world);
+    }
+  }
+
   /// Check if the bounds of two bodies overlap, along the given SAP axis.
   static bool checkBounds(Body bi,Body bj, AxisIndex axisIndex) {
     late double biPos;
@@ -92,25 +111,6 @@ class SAPBroadphase extends Broadphase {
       a[j + 1] = v;
     }
     return a;
-  }
-
-  SAPBroadphase(world):super() {
-    final axisList = this.axisList;
-
-    _addBodyHandler = (Body body){
-      axisList.add(body);
-    };
-
-    _removeBodyHandler = (Body body){
-      final idx = axisList.indexOf(body);
-      if (idx != -1) {
-        axisList.removeAt(idx);
-      }
-    };
-
-    if (world) {
-      setWorld(world);
-    }
   }
 
   /// Change the world

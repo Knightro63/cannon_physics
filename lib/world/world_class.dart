@@ -128,7 +128,7 @@ class World extends EventTarget {
   World({
     Vec3? gravity,
     Vec3? frictionGravity,
-    this.allowSleep = false,
+    this.allowSleep = true,
     Broadphase? broadphase,
     Solver? solver,
     bool? quatNormalizeFast,
@@ -198,7 +198,6 @@ class World extends EventTarget {
     type: 'endShapeContact',
   );
 
-
   /// Get the contact material between materials m1 and m2
   /// @return The contact material if it was found.
   ContactMaterial? getContactMaterial(Material m1, Material m2){
@@ -207,9 +206,9 @@ class World extends EventTarget {
 
   /// Store old collision state info
   void collisionMatrixTick() {
-    final temp = collisionMatrixPrevious;
+    //final temp = collisionMatrixPrevious;
     collisionMatrixPrevious = collisionMatrix;
-    collisionMatrix = temp;
+    //collisionMatrix = temp;
     collisionMatrix.reset();
 
     bodyOverlapKeeper.tick();
@@ -302,7 +301,7 @@ class World extends EventTarget {
     final bodies = this.bodies;
     final idx = bodies.indexOf(body);
     if (idx != -1) {
-      bodies.remove(body);
+      bodies.removeAt(idx);
       // Recompute index
       for (int i = 0; i != bodies.length; i++) {
         bodies[i].index = i;
@@ -310,7 +309,7 @@ class World extends EventTarget {
 
       collisionMatrix.setNumObjects(n);
       removeBodyEvent.target = body;
-      idToBodyMap.remove(body.id);//delete this.idToBodyMap[body.id];
+      idToBodyMap.remove(body);//delete this.idToBodyMap[body.id];
       dispatchEvent(removeBodyEvent);
     }
   }

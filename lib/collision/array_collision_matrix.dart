@@ -4,11 +4,10 @@ import '../objects/body.dart';
 /// It's actually a triangular-shaped array of whether two bodies are touching this step, for reference next step
 class ArrayCollisionMatrix {
   /// The matrix storage.
-  late Map<int,double> matrix = {};
-  List<double> _temp = [];
+  late List<double> matrix = [];
 
   ArrayCollisionMatrix([List<double>? matrix]){
-    if(matrix != null) this.matrix.addAll(matrix.asMap());
+    this.matrix = matrix ?? [];
   }
 
   /// Get an element
@@ -20,7 +19,7 @@ class ArrayCollisionMatrix {
       j = i;
       i = temp;
     }
-    return matrix[((i * (i + 1)) >> 1) + j - 1] ?? 0;
+    return matrix[((i * (i + 1)) >> 1) + j - 1];
   }
 
   /// Set an element
@@ -45,7 +44,6 @@ class ArrayCollisionMatrix {
   
   /// Sets the max number of objects
   void setNumObjects(int n) {
-    _temp.addAll(List.filled(n * (n - 1) >> 1,0.0));
-    matrix.addAll(_temp.asMap());
+    matrix.addAll(List.filled((n * (n - 1)) >> 1,0.0));
   }
 }

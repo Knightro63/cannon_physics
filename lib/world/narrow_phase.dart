@@ -149,6 +149,13 @@ class Narrowphase {
   }
 
   Narrowphase(this.world) {
+    contactPointPool = [];
+    frictionEquationPool = [];
+    result = [];
+    frictionResult = [];
+    v3pool = Vec3Pool();
+    world = world;
+    enableFrictionReduction = false;
     currentContactMaterial = world.defaultContactMaterial;
   }
 
@@ -195,7 +202,7 @@ class Narrowphase {
   final _sphereBoxNs = Vec3();
   final _sphereBoxNs1 = Vec3();
   final _sphereBoxNs2 = Vec3();
-  List<Vec3> sphereBoxSides = [Vec3(), Vec3(), Vec3(), Vec3(), Vec3(), Vec3()];
+  final List<Vec3> sphereBoxSides = [Vec3(), Vec3(), Vec3(), Vec3(), Vec3(), Vec3()];
   final _sphereBoxSphereToCorner = Vec3();
   final _sphereBoxSideNs = Vec3();
   final _sphereBoxSideNs1 = Vec3();
@@ -345,7 +352,8 @@ class Narrowphase {
       c1.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, world.dt);
       c2.setSpookParams(cm.frictionEquationStiffness, cm.frictionEquationRelaxation, world.dt);
 
-      c1.enabled = c2.enabled = contactEquation.enabled;
+      c1.enabled = contactEquation.enabled;
+      c2.enabled = contactEquation.enabled;
 
       outArray.addAll([c1, c2]);
 
@@ -441,14 +449,15 @@ class Narrowphase {
         bi.quaternion.vmult(bi.shapeOffsets[i], xi);
         xi.vadd(bi.position, xi);
         final si = bi.shapes[i];
+
         for (int j = 0; j < bj.shapes.length; j++) {
           // Compute world transform of shapes
           bj.quaternion.mult(bj.shapeOrientations[j], qj);
           bj.quaternion.vmult(bj.shapeOffsets[j], xj);
           xj.vadd(bj.position, xj);
           final sj = bj.shapes[j];
-
-          if (!((si.collisionFilterMask & sj.collisionFilterGroup) != 0 && (sj.collisionFilterMask & si.collisionFilterGroup) != 0)) {
+   
+          if (!(si.collisionFilterMask & sj.collisionFilterGroup != 0 && sj.collisionFilterMask & si.collisionFilterGroup != 0)) {
             continue;
           }
           if (xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius) {
@@ -472,9 +481,9 @@ class Narrowphase {
             // resolvers expect si and sj shapes to be in reverse order
             // (i.e. larger integer value type first instead of smaller first)
             if (si.type.index < sj.type.index) {
-              retval = resolver.call(si, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest) ?? false;
+              retval = resolver.call(si, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
             } else {
-              retval = resolver.call(sj, si, xj, xi, qj, qi, bj, bi, si, sj, justTest) ?? false;
+              retval = resolver.call(sj, si, xj, xi, qj, qi, bj, bi, si, sj, justTest);
             }
 
             if (retval && justTest) {
@@ -488,7 +497,7 @@ class Narrowphase {
     }
   }
 
-  bool? sphereSphere(
+  bool sphereSphere(
     Sphere si,
     Sphere sj,
     Vec3 xi,
@@ -529,10 +538,10 @@ class Narrowphase {
 
     createFrictionEquationsFromContact(contactEq, frictionResult);
 
-    return null;
+    return false;
   }
 
-  bool? spherePlane(
+  bool spherePlane(
     Sphere si,
     Plane sj,
     Vec3 xi,
@@ -580,10 +589,10 @@ class Narrowphase {
       createFrictionEquationsFromContact(r, frictionResult);
     }
 
-    return null;
+    return false;
   }
 
-  bool? boxBox(
+  bool boxBox(
     Box si,
     Box sj,
     Vec3 xi,
@@ -597,13 +606,14 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation!.material = si.material;
-    sj.convexPolyhedronRepresentation!.material = sj.material;
-    si.convexPolyhedronRepresentation!.collisionResponse = si.collisionResponse;
-    sj.convexPolyhedronRepresentation!.collisionResponse = sj.collisionResponse;
-    return convexConvex(si.convexPolyhedronRepresentation!,sj.convexPolyhedronRepresentation!,xi,xj,qi,qj,bi,bj,si,sj,justTest);
+    si.convexPolyhedronRepresentation.material = si.material;
+    sj.convexPolyhedronRepresentation.material = sj.material;
+    si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
+    sj.convexPolyhedronRepresentation.collisionResponse = sj.collisionResponse;
+    return convexConvex(si.convexPolyhedronRepresentation,sj.convexPolyhedronRepresentation,xi,xj,qi,qj,bi,bj,si,sj,justTest);
   }
-  bool? boxConvex(
+  
+  bool boxConvex(
     Box si,
     ConvexPolyhedron sj,
     Vec3 xi,
@@ -617,11 +627,12 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexConvex(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
+    si.convexPolyhedronRepresentation.material = si.material;
+    si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
+    return convexConvex(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
-  bool? boxParticle(
+
+  bool boxParticle(
     Box si,
     Particle sj,
     Vec3 xi,
@@ -635,12 +646,12 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation!.material = si.material;
-    si.convexPolyhedronRepresentation!.collisionResponse = si.collisionResponse;
-    return convexParticle(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
+    si.convexPolyhedronRepresentation.material = si.material;
+    si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
+    return convexParticle(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
 
-  bool? sphereBox(
+  bool sphereBox(
     Sphere si,
     Box sj,
     Vec3 xi,
@@ -861,10 +872,10 @@ class Narrowphase {
     }
     v3pool.release([edgeTangent, edgeCenter, r, orthogonal, dist]);
 
-    return null;
+    return false;
   }
 
-  bool? planeBox(
+  bool planeBox(
     Plane si,
     Box sj,
     Vec3 xi,
@@ -878,13 +889,13 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    sj.convexPolyhedronRepresentation?.material = sj.material;
-    sj.convexPolyhedronRepresentation?.collisionResponse = sj.collisionResponse;
-    sj.convexPolyhedronRepresentation?.id = sj.id;
-    return planeConvex(si, sj.convexPolyhedronRepresentation!, xi, xj, qi, qj, bi, bj, si, sj, justTest);
+    sj.convexPolyhedronRepresentation.material = sj.material;
+    sj.convexPolyhedronRepresentation.collisionResponse = sj.collisionResponse;
+    sj.convexPolyhedronRepresentation.id = sj.id;
+    return planeConvex(si, sj.convexPolyhedronRepresentation, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
 
-  bool? convexConvex(
+  bool convexConvex(
     ConvexPolyhedron si,
     ConvexPolyhedron sj,
     Vec3 xi,
@@ -903,7 +914,7 @@ class Narrowphase {
     final sepAxis = _convexConvexSepAxis;
 
     if (xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius) {
-      return null;
+      return false;
     }
 
     if (si.findSeparatingAxis(sj, xi, qi, xj, qj, sepAxis, faceListA, faceListB)) {
@@ -945,10 +956,10 @@ class Narrowphase {
       }
     }
 
-    return null;
+    return false;
   }
 
-  bool? sphereConvex(
+  bool sphereConvex(
     Sphere si,
     ConvexPolyhedron sj,
     Vec3 xi,
@@ -1007,7 +1018,7 @@ class Narrowphase {
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
-        return null;
+        return false;
       }
     }
 
@@ -1089,7 +1100,7 @@ class Narrowphase {
             v3pool.release([faceVerts[j]]);
           }
 
-          return null; // We only expect *one* face contact
+          return false; // We only expect *one* face contact
         } else {
           // Edge?
           for (int j = 0; j != face.length; j++) {
@@ -1154,7 +1165,7 @@ class Narrowphase {
               }
 
               v3pool.release([v1,v2,p,xiToP,v1ToXi]);
-              return null;
+              return false;
             }
 
             v3pool.release([v1,v2,p,xiToP,v1ToXi]);
@@ -1170,10 +1181,10 @@ class Narrowphase {
       }
     }
 
-    return null;
+    return false;
   }
 
-  bool? planeConvex(
+  bool planeConvex(
     Plane si,
     ConvexPolyhedron sj,
     Vec3 xi,
@@ -1240,10 +1251,10 @@ class Narrowphase {
       createFrictionFromAverage(numContacts);
     }
 
-    return null;
+    return false;
   }
 
-  bool? sphereHeightfield(
+  bool sphereHeightfield(
     Sphere si,
     Heightfield sj,
     Vec3 xi,
@@ -1275,7 +1286,7 @@ class Narrowphase {
 
     // Bail out if we are out of the terrain
     if (iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length) {
-      return null;
+      return false;
     }
 
     // Clamp index to edges
@@ -1311,7 +1322,7 @@ class Narrowphase {
 
     // Bail out if we can't touch the bounding height box
     if (localSpherePos.z - radius > max || localSpherePos.z + radius < min) {
-      return null;
+      return false;
     }
 
     final result = this.result;
@@ -1343,7 +1354,7 @@ class Narrowphase {
           );
         }
 
-        if (justTest && intersecting != null) {
+        if (justTest && intersecting) {
           return true;
         }
 
@@ -1369,14 +1380,14 @@ class Narrowphase {
           );
         }
 
-        if (justTest && intersecting != null) {
+        if (justTest && intersecting) {
           return true;
         }
 
         final numContacts = result.length - numContactsBefore;
 
         if (numContacts > 2) {
-          return null;
+          return false;
         }
         /*
           // Skip all but 1
@@ -1386,10 +1397,10 @@ class Narrowphase {
         */
       }
     }
-    return null;
+    return false;
   }
 
-  bool? boxHeightfield(
+  bool boxHeightfield(
     Box si,
     Heightfield sj,
     Vec3 xi,
@@ -1403,12 +1414,12 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    si.convexPolyhedronRepresentation?.material = si.material;
-    si.convexPolyhedronRepresentation?.collisionResponse = si.collisionResponse;
-    return convexHeightfield(si.convexPolyhedronRepresentation!, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+    si.convexPolyhedronRepresentation.material = si.material;
+    si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
+    return convexHeightfield(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
   }
 
-  bool? convexHeightfield(
+  bool convexHeightfield(
     ConvexPolyhedron si,
     Heightfield sj,
     Vec3 xi,
@@ -1441,7 +1452,7 @@ class Narrowphase {
 
     // Bail out if we are out of the terrain
     if (iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length) {
-      return null;
+      return false;
     }
 
     // Clamp index to edges
@@ -1477,7 +1488,7 @@ class Narrowphase {
 
     // Bail out if we're cant touch the bounding height box
     if (localConvexPos.z - radius > max || localConvexPos.z + radius < min) {
-      return null;
+      return false;
     }
 
     for (int i = iMinX; i < iMaxX; i++) {
@@ -1508,7 +1519,7 @@ class Narrowphase {
           );
         }
 
-        if (justTest && intersecting != null) {
+        if (justTest && intersecting) {
           return true;
         }
 
@@ -1536,16 +1547,16 @@ class Narrowphase {
           );
         }
 
-        if (justTest && intersecting != null) {
+        if (justTest && intersecting) {
           return true;
         }
       }
     }
 
-    return null;
+    return false;
   }
 
-  bool? sphereParticle(
+  bool sphereParticle(
     Sphere sj,
     Particle si,
     Vec3 xj,
@@ -1580,10 +1591,10 @@ class Narrowphase {
       createFrictionEquationsFromContact(r, frictionResult);
     }
 
-    return null;
+    return false;
   }
 
-  bool? planeParticle(
+  bool planeParticle(
     Plane sj,
     Particle si,
     Vec3 xj,
@@ -1624,10 +1635,10 @@ class Narrowphase {
       result.add(r);
       createFrictionEquationsFromContact(r, frictionResult);
     }
-    return null;
+    return false;
   }
 
-  bool? convexParticle(
+  bool convexParticle(
     ConvexPolyhedron sj,
     Particle si,
     Vec3 xj,
@@ -1687,7 +1698,6 @@ class Narrowphase {
         // Setup contact
         final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
         penetratedFaceNormal.scale(minPenetration!, worldPenetrationVec);
-
         // rj is the particle position projected to the face
         worldPenetrationVec.vadd(xi, worldPenetrationVec);
         worldPenetrationVec.vsub(xj, worldPenetrationVec);
@@ -1697,12 +1707,11 @@ class Narrowphase {
 
         //qj.vmult(r.rj,r.rj);
         penetratedFaceNormal.negate(r.ni); // Contact normal
-        
+        r.ri.set(0, 0, 0); // Center of particle
 
         final ri = r.ri;
         final rj = r.rj;
-        
-        ri.set(0, 0, 0); // Center of particle
+
         // Make relative to bodies
         ri.vadd(xi, ri);
         ri.vsub(bi.position, ri);
@@ -1715,10 +1724,10 @@ class Narrowphase {
         print('Point found inside convex, but did not find penetrating face!');
       }
     }
-    return null;
+    return false;
   }
 
-  bool? heightfieldCylinder(
+  bool heightfieldCylinder(
     Heightfield sj,
     Cylinder si,
     Vec3 xj,
@@ -1747,7 +1756,7 @@ class Narrowphase {
     );
   }
 
-  bool? particleCylinder(
+  bool particleCylinder(
     Particle si,
     Cylinder sj,
     Vec3 xi,
@@ -1764,7 +1773,7 @@ class Narrowphase {
     return convexParticle(sj, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
   }
 
-  bool? sphereTrimesh(
+  bool sphereTrimesh(
     Sphere si,
     Trimesh sj,
     Vec3 xi,
@@ -1941,10 +1950,10 @@ class Narrowphase {
     }
 
     triangles.clear();
-    return null;
+    return false;
   }
 
-  bool? planeTrimesh(
+  bool planeTrimesh(
     Plane planeShape,
     Trimesh trimeshShape,
     Vec3 planePos,
@@ -2006,7 +2015,7 @@ class Narrowphase {
       }
     }
 
-    return null;
+    return false;
   }
 
   bool _pointInPolygon(List<Vec3> verts, Vec3 normal, Vec3 p) {

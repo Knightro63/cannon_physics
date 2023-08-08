@@ -18,12 +18,16 @@ class Transform {
 
   /// Get a global point in local transform coordinates.
   Vec3 pointToLocal(Vec3 worldPoint, [Vec3? result]) {
-    return pointToLocalFrame(position, quaternion, worldPoint, result);
+    result ??= Vec3();
+    pointToLocalFrame(position, quaternion, worldPoint, result);
+    return result;
   }
 
   /// Get a local point in global transform coordinates.
   Vec3 pointToWorld(Vec3 localPoint, Vec3? result) {
-    return pointToWorldFrame(position, quaternion, localPoint, result);
+    result ??= Vec3();
+    pointToWorldFrame(position, quaternion, localPoint, result);
+    return result;
   }
 
   Vec3 vectorToWorld(Vec3 localVector, [Vec3? result]) {

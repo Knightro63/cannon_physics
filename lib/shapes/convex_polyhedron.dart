@@ -9,10 +9,10 @@ final _projectLocalOrigin = Vec3();
 // final _projectWorldVertex = Vec3();
 
 class ConvexPolyhedronContactPoint{
-  ConvexPolyhedronContactPoint(this.point,this.normal,this.depth);
-  Vec3 point;
-  Vec3 normal;
-  double depth;
+  const ConvexPolyhedronContactPoint(this.point,this.normal,this.depth);
+  final Vec3 point;
+  final Vec3 normal;
+  final double depth;
 }
 
 class Polygon{
@@ -742,9 +742,15 @@ class ConvexPolyhedron extends Shape {
         final v = faceNormals[i];
         quat.vmult(v, v);
       }
+
+      // Rotate edges
+      for(int i=0; i< uniqueEdges.length; i++){
+        final v = uniqueEdges[i];
+        quat.vmult(v,v);
+      }
     }
 
-    // Apply offset
+    // // Apply offset
     if (offset != null) {
       for (int i = 0; i < n; i++) {
         final v = verts[i];

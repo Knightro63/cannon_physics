@@ -5,6 +5,10 @@ class ObjectCollisionMatrix {
   /// The matrix storage.
   Map<String, bool> matrix = {};
 
+  ObjectCollisionMatrix(Map<String, bool>? matrix){
+    this.matrix = matrix ?? {};
+  }
+
   /// get
   bool get(Body bi, Body bj) {
     int i = bi.id;

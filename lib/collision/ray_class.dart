@@ -266,7 +266,7 @@ class Ray {
   }
 
   void _intersectBox(Box box, Quaternion quat, Vec3 position, Body body, Shape reportedShape) {
-    return _intersectConvex(box.convexPolyhedronRepresentation!, quat, position, body, reportedShape);
+    return _intersectConvex(box.convexPolyhedronRepresentation, quat, position, body, reportedShape);
   }
 
   void _intersectPlane(Plane shape, Quaternion quat, Vec3 position, Body body, Shape reportedShape) {

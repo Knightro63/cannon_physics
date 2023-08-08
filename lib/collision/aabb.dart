@@ -7,21 +7,22 @@ import '../math/quaternion.dart';
 /// Axis aligned bounding box class.
 class AABB {
   /// The lower bound of the bounding box
-  late Vec3 lowerBound;
+  Vec3 lowerBound = Vec3();
   /// The upper bound of the bounding box
-  late Vec3 upperBound;
+  Vec3 upperBound = Vec3();
 
   AABB({
     Vec3? upperBound,
     Vec3? lowerBound 
   }) 
   {
-    this.lowerBound = lowerBound ?? Vec3();
-    this.upperBound = upperBound ?? Vec3();
-    // final that = this;
-    // this.preStepCallback = (){
-    //   that.setFromPoints([Vec3()]);
-    // };
+    if(lowerBound != null){
+      this.lowerBound = this.lowerBound.copy(lowerBound);
+    }
+    if(upperBound != null){
+      this.upperBound = this.upperBound.copy(upperBound);
+    }
+    
   }
 
   final Vec3 _tmp = Vec3();

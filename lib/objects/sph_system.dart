@@ -27,6 +27,7 @@ class SPHSystem {
   List<double> densities = [];
   List<List<Body>> neighbors = [];
 
+  SPHSystem();
 
   final _sphSystemGetNeighborsDist = Vec3();
 
@@ -170,14 +171,14 @@ class SPHSystem {
   double w(double r) {
     // 315
     final h = smoothingRadius;
-    return math.pow((315.0 / (64.0 * math.pi * math.pow(h, 9))) * (h * h - r * r), 3).toDouble();
+    return 315.0 / (64.0 * math.pi * math.pow(h, 9)) * math.pow((h * h - r * r), 3).toDouble();
   }
 
   // calculate gradient of the weight function
   void gradw(Vec3 rVec,Vec3 resultVec) {
     final r = rVec.length();
     final h = smoothingRadius;
-    rVec.scale(math.pow((945.0 / (32.0 * math.pi * math.pow(h, 9))) * (h * h - r * r), 2).toDouble(), resultVec);
+    rVec.scale(945.0 / (32.0 * math.pi * math.pow(h, 9)) * math.pow((h * h - r * r), 2).toDouble(), resultVec);
   }
 
   // Calculate nabla(W)

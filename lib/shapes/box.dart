@@ -15,7 +15,7 @@ class Box extends Shape {
   Vec3 halfExtents;
 
   /// Used by the contact generator to make contacts with other convex polyhedra for example.
-  ConvexPolyhedron? convexPolyhedronRepresentation;
+  late ConvexPolyhedron convexPolyhedronRepresentation;
 
   Box(this.halfExtents):super(type: ShapeType.box){
     //this.convexPolyhedronRepresentation = null as unknown as ConvexPolyhedron;
@@ -64,9 +64,14 @@ class Box extends Shape {
 
     final List<Vec3> axes = [Vec3(0, 0, 1), Vec3(0, 1, 0), Vec3(1, 0, 0)];
 
-    final ConvexPolyhedron h = ConvexPolyhedron(vertices:vertices, faces:faces, axes:axes,type: ShapeType.box );
-    convexPolyhedronRepresentation = h;
-    h.material = material;
+    convexPolyhedronRepresentation = ConvexPolyhedron(
+      vertices:vertices, 
+      faces:faces,
+      axes:axes,
+      boundingSphereRadius: boundingSphereRadius,
+      //type: ShapeType.box 
+    );
+    convexPolyhedronRepresentation.material = material;
   }
 
   /// Calculate the inertia of the box.
@@ -102,7 +107,6 @@ class Box extends Shape {
         quat.vmult(sides[i], sides[i]);
       }
     }
-
     return sides;
   }
 
