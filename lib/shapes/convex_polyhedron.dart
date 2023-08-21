@@ -160,7 +160,7 @@ class ConvexPolyhedron extends Shape {
       final Vec3 n = faceNormals[i];
       getFaceNormal(i, n);
       n.negate(n);
-      faceNormals[i] = n;
+      faceNormals[i].copy(n);
       final Vec3 vertex = vertices[faces[i][0]];
       if (n.dot(vertex) < 0) {
         print(
@@ -175,16 +175,17 @@ class ConvexPolyhedron extends Shape {
   }
 
   /// Compute the normal of a face from its vertices
-  void getFaceNormal(int i, Vec3 target) {
+  Vec3 getFaceNormal(int i, Vec3 target) {
     final List<int> f = faces[i];
     final Vec3 va = vertices[f[0]];
     final Vec3 vb = vertices[f[1]];
     final Vec3 vc = vertices[f[2]];
     ConvexPolyhedron.computeNormal(va, vb, vc, target);
+    return target;
   }
 
   /// Get face normal given 3 vertices
-  static void computeNormal(Vec3 va, Vec3 vb, Vec3 vc, Vec3 target) {
+  static Vec3 computeNormal(Vec3 va, Vec3 vb, Vec3 vc, Vec3 target) {
     final cb = Vec3();
     final ab = Vec3();
     vb.vsub(va, ab);
@@ -193,6 +194,8 @@ class ConvexPolyhedron extends Shape {
     if (!target.isZero()) {
       target.normalize();
     }
+
+    return target;
   }
 
   /// @param minDist Clamp distance
@@ -600,10 +603,10 @@ class ConvexPolyhedron extends Shape {
     }
 
     final verts = vertices;
-    final worldVerts = worldVertices;
+    //final worldVerts = worldVertices;
     for (int i = 0; i != n; i++) {
-      quat.vmult(verts[i], worldVerts[i]);
-      position.vadd(worldVerts[i], worldVerts[i]);
+      quat.vmult(verts[i], worldVertices[i]);
+      position.vadd(worldVertices[i], worldVertices[i]);
     }
 
     worldVerticesNeedsUpdate = false;
@@ -643,9 +646,9 @@ class ConvexPolyhedron extends Shape {
     }
 
     final normals = faceNormals;
-    final worldNormals = worldFaceNormals;
+    //final worldNormals = worldFaceNormals;
     for (int i = 0; i != N; i++) {
-      quat.vmult(normals[i], worldNormals[i]);
+      quat.vmult(normals[i], worldFaceNormals[i]);
     }
 
     worldFaceNormalsNeedsUpdate = false;
@@ -785,7 +788,7 @@ class ConvexPolyhedron extends Shape {
       final r2 = n.dot(vToPointInside);
 
       if ((r1 < 0 && r2 > 0) || (r1 > 0 && r2 < 0)) {
-        return false; // Encountered some other sign. Exit.
+        //return false; // Encountered some other sign. Exit.
       }
     }
     // If we got here, all dot products were of the same sign.
