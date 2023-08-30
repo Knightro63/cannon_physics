@@ -192,9 +192,9 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     world.defaultContactMaterial.contactEquationStiffness = 1e9;
     world.defaultContactMaterial.contactEquationRelaxation = 4;
 
-    solver.iterations = 7;
+    solver.iterations = 20;
     solver.tolerance = 0.1;
-    world.solver = cannon.SplitSolver(solver);
+    //world.solver = cannon.SplitSolver(solver);
 
     bool split = false;
     if(split){
@@ -204,7 +204,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         world.solver = solver;
     }
 
-    world.gravity.set(0, -20, 0);
+    world.gravity.set(0, -200, 0);
     world.broadphase = cannon.NaiveBroadphase();
     populate(type);
   }

@@ -75,9 +75,9 @@ class ConvexPolyhedron extends Shape {
     init(vertices,faces,normals,axes,boundingSphereRadius);
   }
 
-  // final Vec3 _convexPolyhedronPointIsInside = Vec3();
-  // final Vec3 _convexPolyhedronVToP = Vec3();
-  //final Vec3 _convexPolyhedronVToPointInside = Vec3();
+  final Vec3 _convexPolyhedronPointIsInside = Vec3();
+  final Vec3 _convexPolyhedronVToP = Vec3();
+  final Vec3 _convexPolyhedronVToPointInside = Vec3();
   void init(
     List<Vec3>?  vertices,
     List<List<int>>? faces,
@@ -92,18 +92,19 @@ class ConvexPolyhedron extends Shape {
     if (faceNormals.isEmpty) {
       computeNormals();
     }
-    worldVertices = []; // World transformed version of .vertices
-    worldVerticesNeedsUpdate = true;
-    worldFaceNormals = []; // World transformed version of .faceNormals
-    worldFaceNormalsNeedsUpdate = true;
-    uniqueAxes = axes?.sublist(0);
-    uniqueEdges = [];
-    computeEdges();
     if (boundingSphereRadius == null) {
       updateBoundingSphereRadius();
     } else {
       this.boundingSphereRadius = boundingSphereRadius;
     }
+
+    worldVertices = []; // World transformed version of .vertices
+    worldVerticesNeedsUpdate = true;
+    worldFaceNormals = []; // World transformed version of .faceNormals
+    worldFaceNormalsNeedsUpdate = true;
+    uniqueAxes = axes;
+    uniqueEdges = [];
+    computeEdges();
   }
 
   /// Computes uniqueEdges
@@ -366,8 +367,8 @@ class ConvexPolyhedron extends Shape {
     Quaternion quatB 
   ){
     final hullA = this;
-    final List<double> maxminA = [];
-    final List<double> maxminB = [];
+    final List<double> maxminA = [0,0];
+    final List<double> maxminB = [0,0];
     ConvexPolyhedron.project(hullA, axis, posA, quatA, maxminA);
     ConvexPolyhedron.project(hullB, axis, posB, quatB, maxminB);
     final maxA = maxminA[0];
@@ -383,19 +384,20 @@ class ConvexPolyhedron extends Shape {
     return depth;
   }
 
+  final aabbmax = Vec3();
+  final aabbmin = Vec3();
   @override
-  Vec3 calculateLocalInertia(double mass, Vec3 target) {
+  Vec3 calculateLocalInertia(double mass, final Vec3 target) {
     // Approximate with box inertia
     // Exact inertia calculation is overkill, but see http://geometrictools.com/Documentation/PolyhedralMassProperties.pdf for the correct way to do it
-    final aabbmax = Vec3();
-    final aabbmin = Vec3();
+
     computeLocalAABB(aabbmin, aabbmax);
     final x = aabbmax.x - aabbmin.x;
     final y = aabbmax.y - aabbmin.y;
     final z = aabbmax.z - aabbmin.z;
-    target.x = 1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * z * 2 * z);
-    target.y = 1.0 / 12.0 * mass * (2 * x * 2 * x + 2 * z * 2 * z);
-    target.z = 1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * x * 2 * x);
+    target.x = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z);
+    target.y = (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z);
+    target.z = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x);
 
     return target;
   }
@@ -527,7 +529,7 @@ class ConvexPolyhedron extends Shape {
 
       if (depth <= maxDist) {
         final point = pVtxIn[i];
-        if (depth <= 0) {
+        if (depth <= 1e-6) {
           final p = ConvexPolyhedronContactPoint(
             point,
             planeNormalWS,
@@ -757,9 +759,6 @@ class ConvexPolyhedron extends Shape {
   /// of all the vectors from it to those other points are on less than one half of a sphere around it.
   /// @param p A point given in local coordinates
   bool pointIsInside(Vec3 p){
-    final Vec3 _convexPolyhedronPointIsInside = Vec3();
-    final Vec3 _convexPolyhedronVToP = Vec3();
-    final Vec3 _convexPolyhedronvToPointIsInside = Vec3();
     final verts = vertices;
     final faces = this.faces;
     final normals = faceNormals;
@@ -776,7 +775,7 @@ class ConvexPolyhedron extends Shape {
       p.vsub(v, vToP);
       final r1 = n.dot(vToP);
 
-      final vToPointInside = _convexPolyhedronvToPointIsInside;//
+      final vToPointInside = _convexPolyhedronVToPointInside;//
       pointInside.vsub(v, vToPointInside);
       final r2 = n.dot(vToPointInside);
 

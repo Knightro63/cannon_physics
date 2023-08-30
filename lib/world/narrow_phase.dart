@@ -942,6 +942,7 @@ class Narrowphase {
         // Make relative to bodies
         ri.vadd(xi, ri);
         ri.vsub(bi.position, ri);
+        
         rj.vadd(xj, rj);
         rj.vsub(bj.position, rj);
 
@@ -1121,8 +1122,8 @@ class Narrowphase {
             edge.unit(edgeUnit);
 
             // p is xi projected onto the edge
-            final p = v3pool.get();
-            final v1ToXi = v3pool.get();
+            final p = v3pool.get() as Vec3;
+            final v1ToXi = v3pool.get() as Vec3;
             xi.vsub(v1, v1ToXi);
             final dot = v1ToXi.dot(edgeUnit);
             edgeUnit.scale(dot, p);
@@ -1660,14 +1661,14 @@ class Narrowphase {
 
     // Convert particle position xi to local coords in the convex
     final local = _convexParticleLocal;
-    final _cqj = Quaternion();
+    final cqj = Quaternion();
     local.copy(xi);
     local.vsub(xj, local); // Convert position to relative the convex origin
-    qj.conjugate(_cqj);
-    _cqj.vmult(local, local);
+    qj.conjugate(cqj);
+    cqj.vmult(local, local);
 
     if (sj.pointIsInside(local)) {
-      if (sj.worldVerticesNeedsUpdate) {
+      if (true||sj.worldVerticesNeedsUpdate) {
         sj.computeWorldVertices(xj, qj);
       }
       if (sj.worldFaceNormalsNeedsUpdate) {
@@ -1679,10 +1680,10 @@ class Narrowphase {
         // Construct world face vertices
         final verts = sj.worldVertices[sj.faces[i][0]];
         final normal = sj.worldFaceNormals[i];
-        final _convexParticleVertexToParticle = Vec3();
+        final convexParticleVertexToParticle = Vec3();
         // Check how much the particle penetrates the polygon plane.
-        xi.vsub(verts, _convexParticleVertexToParticle);
-        final penetration = -normal.dot(_convexParticleVertexToParticle);
+        xi.vsub(verts, convexParticleVertexToParticle);
+        final penetration = -normal.dot(convexParticleVertexToParticle);
         if (minPenetration == null || penetration.abs() < minPenetration.abs()) {
           if (justTest) {
             return true;

@@ -150,9 +150,9 @@ class _ClothPageState extends State<Cloth> {
  
     // Sphere
     // three.CylinderGeometry sphereGeometry = three.CylinderGeometry(
-    //   sphereSize * 1.3,
-    //   sphereSize * 1.3,
-    //   sphereSize * 1.3
+    //   sphereSize,
+    //   sphereSize,
+    //   sphereSize
     // );
     three.BoxGeometry sphereGeometry = three.BoxGeometry(
       sphereSize * 2,
@@ -178,7 +178,7 @@ class _ClothPageState extends State<Cloth> {
     world.gravity.set(0, -9.81, 0);
 
     // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
-    world.solver.iterations = 10;
+    world.solver.iterations = 20;
 
     // Materials
     cannon.Material clothMaterial = cannon.Material(name: 'cloth');
@@ -202,12 +202,12 @@ class _ClothPageState extends State<Cloth> {
     // Make it a little bigger than the three.js sphere
     // so the cloth doesn't clip thruogh
     //cannon.Sphere sphereShape = cannon.Sphere(sphereSize * 1.3);
-    //cannon.Box sphereShape = cannon.Box(cannon.Vec3(sphereSize,sphereSize,sphereSize));
-    cannon.Cylinder sphereShape = cannon.Cylinder(
-      radiusTop:  sphereSize * 1.3,
-      radiusBottom: sphereSize * 1.3,
-      height: sphereSize * 1.3
-    );
+    cannon.Box sphereShape = cannon.Box(cannon.Vec3(sphereSize,sphereSize,sphereSize));
+    // cannon.Cylinder sphereShape = cannon.Cylinder(
+    //   radiusTop:  sphereSize * 1.3,
+    //   radiusBottom: sphereSize * 1.3,
+    //   height: sphereSize * 1.3
+    // );
     sphereBody = cannon.Body(
       //type: cannon.BodyTypes.kinematic,
       mass: 0

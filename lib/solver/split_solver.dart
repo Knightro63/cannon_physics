@@ -4,8 +4,6 @@ import '../equations/equation.dart';
 import '../world/world_class.dart';
 import './gs_solver.dart';
 
-//type SplitSolverNode = { body: Body | null; children: SplitSolverNode[]; eqs: Equation[]; visited: boolean }
-
 class SplitSolverNode{
   SplitSolverNode({
     this.body,
@@ -17,8 +15,8 @@ class SplitSolverNode{
     this.eqs = eqs ?? [];
   }
   Body? body;
-  late List<SplitSolverNode> children;
-  late List<Equation> eqs;
+  late final List<SplitSolverNode> children;
+  late final List<Equation> eqs;
   bool visited;
 }
 
