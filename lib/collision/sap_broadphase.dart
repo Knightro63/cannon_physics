@@ -56,10 +56,10 @@ class SAPBroadphase extends Broadphase {
       bjPos = bj.position.z;
     }
 
-    final ri = bi.boundingRadius,
-      rj = bj.boundingRadius,
-      boundA2 = biPos + ri,
-      boundB1 = bjPos - rj;
+    final ri = bi.boundingRadius;
+    final rj = bj.boundingRadius;
+    final boundA2 = biPos + ri;
+    final boundB1 = bjPos - rj;
 
     return boundB1 < boundA2;
   }

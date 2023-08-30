@@ -38,9 +38,9 @@ class Box extends Shape {
 
   /// Updates the local convex polyhedron representation used for some collisions.
   void updateConvexPolyhedronRepresentation(){
-    double sx = halfExtents.x;
-    double sy = halfExtents.y;
-    double sz = halfExtents.z;
+    final double sx = halfExtents.x;
+    final double sy = halfExtents.y;
+    final double sz = halfExtents.z;
 
     List<Vec3> vertices = [
       Vec3(-sx, -sy, -sz),
@@ -62,14 +62,16 @@ class Box extends Shape {
       [1, 2, 6, 5], // +x
     ];
 
-    final List<Vec3> axes = [Vec3(0, 0, 1), Vec3(0, 1, 0), Vec3(1, 0, 0)];
+    final List<Vec3> axes = [
+      Vec3(0, 0, 1), 
+      Vec3(0, 1, 0), 
+      Vec3(1, 0, 0)
+    ];
 
     convexPolyhedronRepresentation = ConvexPolyhedron(
       vertices:vertices, 
       faces:faces,
       axes:axes,
-      boundingSphereRadius: boundingSphereRadius,
-      //type: ShapeType.box 
     );
     convexPolyhedronRepresentation.material = material;
   }
@@ -82,18 +84,19 @@ class Box extends Shape {
     return target;
   }
 
-  static void calculateInertia(Vec3 halfExtents,num mass, Vec3 target){
+  static Vec3 calculateInertia(Vec3 halfExtents,num mass, Vec3 target){
     final Vec3 e = halfExtents;
-    target.x = (1.0 / 12.0) * mass * (2 * e.y * 2 * e.y + 2 * e.z * 2 * e.z);
-    target.y = (1.0 / 12.0) * mass * (2 * e.x * 2 * e.x + 2 * e.z * 2 * e.z);
-    target.z = (1.0 / 12.0) * mass * (2 * e.y * 2 * e.y + 2 * e.x * 2 * e.x);
+    target.x = 1.0 / 12.0 * mass * (2 * e.y * 2 * e.y + 2 * e.z * 2 * e.z);
+    target.y = 1.0 / 12.0 * mass * (2 * e.x * 2 * e.x + 2 * e.z * 2 * e.z);
+    target.z = 1.0 / 12.0 * mass * (2 * e.y * 2 * e.y + 2 * e.x * 2 * e.x);
+    return target;
   }
 
   /// Get the box 6 side normals
   /// @param sixTargetVectors An array of 6 vectors, to store the resulting side normals in.
   /// @param quat Orientation to apply to the normal vectors. If not provided, the vectors will be in respect to the local frame.
   List<Vec3> getSideNormals(List<Vec3> sixTargetVectors, [Quaternion? quat ]){
-    final List<Vec3>  sides = sixTargetVectors;
+    final List<Vec3> sides = sixTargetVectors;
     final Vec3 ex = halfExtents;
     sides[0].set(ex.x, 0, 0);
     sides[1].set(0, ex.y, 0);

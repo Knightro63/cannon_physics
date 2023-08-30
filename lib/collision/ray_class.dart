@@ -472,7 +472,7 @@ class Ray {
       final fi = faceList != null? faceList[j] : j;
 
       final face = faces[fi];
-      final faceNormal = normals[fi];
+      final faceNormal = normals[fi]!;
       final q = quat;
       final x = position;
 

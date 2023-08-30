@@ -311,7 +311,8 @@ class Body extends EventTarget {
   }
 
   /// Convert a world point to local body frame.
-  Vec3 pointToLocalFrame(Vec3 worldPoint,Vec3 result){
+  Vec3 pointToLocalFrame(Vec3 worldPoint,Vec3? result){
+    result ??= Vec3();
     worldPoint.vsub(position, result);
     quaternion.conjugate().vmult(result, result);
     return result;
@@ -319,11 +320,14 @@ class Body extends EventTarget {
 
   /// Convert a world vector to local body frame
   Vec3 vectorToLocalFrame(Vec3 worldVector,[Vec3? result]){
-    return quaternion.conjugate().vmult(worldVector, result);
+    result ??= Vec3();
+    quaternion.conjugate().vmult(worldVector, result);
+    return result;
   }
 
   /// Convert a local body point to world frame.
-  Vec3 pointToWorldFrame(Vec3 localPoint, Vec3 result){
+  Vec3 pointToWorldFrame(Vec3 localPoint, Vec3? result){
+    result ??= Vec3();
     quaternion.vmult(localPoint, result);
     result.vadd(position, result);
     return result;
@@ -331,7 +335,9 @@ class Body extends EventTarget {
 
   /// Convert a local body point to world frame.
   Vec3 vectorToWorldFrame(Vec3 localVector, [Vec3? result]){
-    return quaternion.vmult(localVector, result);
+    result ??= Vec3();
+    quaternion.vmult(localVector, result);
+    return result;
   }
 
   /// Add a shape to the body with a local offset and orientation.

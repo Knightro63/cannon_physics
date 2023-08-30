@@ -161,7 +161,11 @@ class AABB {
     // |---------------|
     // l1              u1
 
-    return l1.x <= l2.x && u1.x >= u2.x && l1.y <= l2.y && u1.y >= u2.y && l1.z <= l2.z && u1.z >= u2.z;
+    return (
+      (l1.x <= l2.x && u1.x >= u2.x) && 
+      (l1.y <= l2.y && u1.y >= u2.y) && 
+      (l1.z <= l2.z && u1.z >= u2.z)
+    );
   }
 
   void getCorners(Vec3 a,Vec3 b,Vec3 c,Vec3 d,Vec3 e,Vec3 f,Vec3 g,Vec3 h) {

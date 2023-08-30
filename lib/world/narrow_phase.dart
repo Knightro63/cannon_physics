@@ -237,11 +237,11 @@ class Narrowphase {
   final _particleSphereNormal = Vec3();
 
   // WIP
-  final _cqj = Quaternion();
+  
   final _convexParticleLocal = Vec3();
   //final _convexParticleNormal = Vec3();
   final _convexParticlePenetratedFaceNormal = Vec3();
-  final _convexParticleVertexToParticle = Vec3();
+  
   final _convexParticleWorldPenetrationVec = Vec3();
 
   final _convexHeightfieldTmp1 = Vec3();
@@ -1024,7 +1024,7 @@ class Narrowphase {
 
     // Check side (plane) intersections
     for (int i = 0, nfaces = faces.length; i != nfaces && found == false; i++) {
-      final normal = normals[i];
+      final normal = normals[i]!;
       final face = faces[i];
 
       // Get world-transformed normal of the face
@@ -1660,6 +1660,7 @@ class Narrowphase {
 
     // Convert particle position xi to local coords in the convex
     final local = _convexParticleLocal;
+    final _cqj = Quaternion();
     local.copy(xi);
     local.vsub(xj, local); // Convert position to relative the convex origin
     qj.conjugate(_cqj);
@@ -1678,7 +1679,7 @@ class Narrowphase {
         // Construct world face vertices
         final verts = sj.worldVertices[sj.faces[i][0]];
         final normal = sj.worldFaceNormals[i];
-
+        final _convexParticleVertexToParticle = Vec3();
         // Check how much the particle penetrates the polygon plane.
         xi.vsub(verts, _convexParticleVertexToParticle);
         final penetration = -normal.dot(_convexParticleVertexToParticle);
@@ -1696,7 +1697,7 @@ class Narrowphase {
 
       if (penetratedFaceIndex != -1) {
         // Setup contact
-        final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
+        var r = createContactEquation(bi, bj, si, sj, rsi, rsj);
         penetratedFaceNormal.scale(minPenetration!, worldPenetrationVec);
         // rj is the particle position projected to the face
         worldPenetrationVec.vadd(xi, worldPenetrationVec);
@@ -2052,15 +2053,4 @@ class Narrowphase {
     // If we got here, all dot products were of the same sign.
     return true;
   }
-}
-
-int numWarnings = 0;
-const maxWarnings = 10;
-
-void warn(String msg) {
-  if (numWarnings > maxWarnings) {
-    return;
-  }
-  numWarnings++;
-  print(msg);
 }

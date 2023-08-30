@@ -53,7 +53,7 @@ class ConvexPolyhedron extends Shape {
   late List<Vec3> vertices = [];
   /// Array of integer arrays, indicating which vertices each face consists of
   late List<List<int>>faces;
-  late List<Vec3> faceNormals;
+  late List<Vec3?> faceNormals;
   late List<Vec3> worldVertices;
   late bool worldVerticesNeedsUpdate;
   late List<Vec3> worldFaceNormals;
@@ -67,49 +67,44 @@ class ConvexPolyhedron extends Shape {
   ConvexPolyhedron({
     List<Vec3>?  vertices,
     List<List<int>>? faces,
-    List<Vec3>? faceNormals,
+    List<Vec3>? normals,
     List<Vec3>? axes,
     double? boundingSphereRadius,
     ShapeType type = ShapeType.convex
   }):super(type: type){
-    init(vertices,faces,faceNormals,axes,boundingSphereRadius);
+    init(vertices,faces,normals,axes,boundingSphereRadius);
   }
 
-  final Vec3 _convexPolyhedronPointIsInside = Vec3();
-  final Vec3 _convexPolyhedronVToP = Vec3();
+  // final Vec3 _convexPolyhedronPointIsInside = Vec3();
+  // final Vec3 _convexPolyhedronVToP = Vec3();
   //final Vec3 _convexPolyhedronVToPointInside = Vec3();
   void init(
     List<Vec3>?  vertices,
     List<List<int>>? faces,
-    List<Vec3>? faceNormals,
+    List<Vec3?>? normals,
     List<Vec3>? axes,
     double? boundingSphereRadius
   ){
-    
     //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
     this.vertices = vertices ?? [];
-    this.faceNormals = faceNormals ?? [];
+    faceNormals = normals ?? [];
     this.faces = faces ?? [];
-    if (this.faceNormals.isEmpty) {
+    if (faceNormals.isEmpty) {
       computeNormals();
     }
+    worldVertices = []; // World transformed version of .vertices
+    worldVerticesNeedsUpdate = true;
+    worldFaceNormals = []; // World transformed version of .faceNormals
+    worldFaceNormalsNeedsUpdate = true;
+    uniqueAxes = axes?.sublist(0);
+    uniqueEdges = [];
+    computeEdges();
     if (boundingSphereRadius == null) {
       updateBoundingSphereRadius();
     } else {
       this.boundingSphereRadius = boundingSphereRadius;
     }
-
-    worldVertices = []; // World transformed version of .vertices
-    worldVerticesNeedsUpdate = true;
-    worldFaceNormals = []; // World transformed version of .faceNormals
-    worldFaceNormalsNeedsUpdate = true;
-    uniqueAxes = axes;
-    uniqueEdges = [];
-    computeEdges();
   }
-
-  List<double> maxminA = [0,0];
-  List<double> maxminB = [0,0];
 
   /// Computes uniqueEdges
   void computeEdges() {
@@ -146,21 +141,13 @@ class ConvexPolyhedron extends Shape {
   /// Compute the normals of the faces.
   /// Will reuse existing Vec3 objects in the `faceNormals` array if they exist.
   void computeNormals() {
-    faceNormals = List.filled(faces.length, Vec3());//.length = faces.length;
-
+    faceNormals.length = faces.length;
     // Generate normals
     for (int i = 0; i < faces.length; i++) {
-      // Check so all vertices exists for this face
-      for (int j = 0; j < faces[i].length; j++) {
-        if (vertices[faces[i][j]] == null) {
-          throw 'Vertex ${faces[i][j]} not found!';
-        }
-      }
-
-      final Vec3 n = faceNormals[i];
+      final Vec3 n = faceNormals[i] ?? Vec3();
       getFaceNormal(i, n);
       n.negate(n);
-      faceNormals[i].copy(n);
+      faceNormals[i] = n;
       final Vec3 vertex = vertices[faces[i][0]];
       if (n.dot(vertex) < 0) {
         print(
@@ -175,17 +162,16 @@ class ConvexPolyhedron extends Shape {
   }
 
   /// Compute the normal of a face from its vertices
-  Vec3 getFaceNormal(int i, Vec3 target) {
+  Vec3 getFaceNormal(int i, final Vec3 target) {
     final List<int> f = faces[i];
     final Vec3 va = vertices[f[0]];
     final Vec3 vb = vertices[f[1]];
     final Vec3 vc = vertices[f[2]];
-    ConvexPolyhedron.computeNormal(va, vb, vc, target);
-    return target;
+    return ConvexPolyhedron.computeNormal(va, vb, vc, target);
   }
 
   /// Get face normal given 3 vertices
-  static Vec3 computeNormal(Vec3 va, Vec3 vb, Vec3 vc, Vec3 target) {
+  static Vec3 computeNormal(final Vec3 va, final Vec3 vb, final Vec3 vc, final Vec3 target) {
     final cb = Vec3();
     final ab = Vec3();
     vb.vsub(va, ab);
@@ -201,21 +187,21 @@ class ConvexPolyhedron extends Shape {
   /// @param minDist Clamp distance
   /// @param result The an array of contact point objects, see clipFaceAgainstHull
   void clipAgainstHull(
-    Vec3 posA,
-    Quaternion quatA,
-    ConvexPolyhedron hullB ,
-    Vec3 posB,
-    Quaternion quatB,
-    Vec3 separatingNormal,
-    double minDist,
-    double maxDist,
-    List<ConvexPolyhedronContactPoint> result
+    final Vec3 posA,
+    final Quaternion quatA,
+    final ConvexPolyhedron hullB ,
+    final Vec3 posB,
+    final Quaternion quatB,
+    final Vec3 separatingNormal,
+    final double minDist,
+    final double maxDist,
+    final List<ConvexPolyhedronContactPoint> result
   ) {
     final worldNormal = Vec3();
     int closestFaceB = -1;
     double dmax = -double.infinity;
     for (int face = 0; face < hullB.faces.length; face++) {
-      worldNormal.copy(hullB.faceNormals[face]);
+      worldNormal.copy(hullB.faceNormals[face]!);
       quatB.vmult(worldNormal, worldNormal);
       final double d = worldNormal.dot(separatingNormal);
       if (d > dmax) {
@@ -249,7 +235,7 @@ class ConvexPolyhedron extends Shape {
     Quaternion quatA,
     Vec3 posB,
     Quaternion quatB,
-    Vec3 target,[
+    final Vec3 target,[
     List<int>? faceListA,
     List<int>? faceListB
   ]) {
@@ -272,7 +258,7 @@ class ConvexPolyhedron extends Shape {
         final fi = faceListA != null? faceListA[i] : i;
 
         // Get world face normal
-        faceANormalWS3.copy(hullA.faceNormals[fi]);
+        faceANormalWS3.copy(hullA.faceNormals[fi]!);
         quatA.vmult(faceANormalWS3, faceANormalWS3);
 
         final d = hullA.testSepAxis(faceANormalWS3, hullB, posA, quatA, posB, quatB);
@@ -307,7 +293,7 @@ class ConvexPolyhedron extends Shape {
       for (int i = 0; i < numFacesB; i++) {
         final fi = faceListB != null? faceListB[i] : i;
 
-        worldNormal1.copy(hullB.faceNormals[fi]);
+        worldNormal1.copy(hullB.faceNormals[fi]!);
         quatB.vmult(worldNormal1, worldNormal1);
         //curPlaneTests++;
         final d = hullA.testSepAxis(worldNormal1, hullB, posA, quatA, posB, quatB);
@@ -380,6 +366,8 @@ class ConvexPolyhedron extends Shape {
     Quaternion quatB 
   ){
     final hullA = this;
+    final List<double> maxminA = [];
+    final List<double> maxminB = [];
     ConvexPolyhedron.project(hullA, axis, posA, quatA, maxminA);
     ConvexPolyhedron.project(hullB, axis, posB, quatB, maxminB);
     final maxA = maxminA[0];
@@ -396,7 +384,7 @@ class ConvexPolyhedron extends Shape {
   }
 
   @override
-  void calculateLocalInertia(double mass, Vec3 target) {
+  Vec3 calculateLocalInertia(double mass, Vec3 target) {
     // Approximate with box inertia
     // Exact inertia calculation is overkill, but see http://geometrictools.com/Documentation/PolyhedralMassProperties.pdf for the correct way to do it
     final aabbmax = Vec3();
@@ -405,15 +393,17 @@ class ConvexPolyhedron extends Shape {
     final x = aabbmax.x - aabbmin.x;
     final y = aabbmax.y - aabbmin.y;
     final z = aabbmax.z - aabbmin.z;
-    target.x = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z);
-    target.y = (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z);
-    target.z = (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x);
+    target.x = 1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * z * 2 * z);
+    target.y = 1.0 / 12.0 * mass * (2 * x * 2 * x + 2 * z * 2 * z);
+    target.z = 1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * x * 2 * x);
+
+    return target;
   }
 
   /// @param face_i Index of the face
   double getPlaneConstantOfFace(int faceI) {
     final f = faces[faceI];
-    final n = faceNormals[faceI];
+    final n = faceNormals[faceI]!;
     final v = vertices[f[0]];
     final c = -n.dot(v);
     return c;
@@ -430,7 +420,7 @@ class ConvexPolyhedron extends Shape {
     List<Vec3> worldVertsB1,
     double minDist,
     double maxDist,
-    List<ConvexPolyhedronContactPoint> result
+    final List<ConvexPolyhedronContactPoint> result
   ) {
     final faceANormalWS = Vec3();
     final edge0 = Vec3();
@@ -450,7 +440,7 @@ class ConvexPolyhedron extends Shape {
 
     // Find the face with normal closest to the separating axis
     for (int face = 0; face < hullA.faces.length; face++) {
-      faceANormalWS.copy(hullA.faceNormals[face]);
+      faceANormalWS.copy(hullA.faceNormals[face]!);
       quatA.vmult(faceANormalWS, faceANormalWS);
       final double d = faceANormalWS.dot(separatingNormal);
       if (d < dmin) {
@@ -491,7 +481,7 @@ class ConvexPolyhedron extends Shape {
       worldEdge0.copy(edge0);
       quatA.vmult(worldEdge0, worldEdge0);
       posA.vadd(worldEdge0, worldEdge0);
-      worldPlaneAnormal1.copy(faceNormals[closestFaceA]);
+      worldPlaneAnormal1.copy(faceNormals[closestFaceA]!);
       quatA.vmult(worldPlaneAnormal1, worldPlaneAnormal1);
       posA.vadd(worldPlaneAnormal1, worldPlaneAnormal1);
       worldEdge0.cross(worldPlaneAnormal1, planeNormalWS1);
@@ -501,7 +491,7 @@ class ConvexPolyhedron extends Shape {
       posA.vadd(worldA1, worldA1);
 
       final otherFace = polyA.connectedFaces[i];
-      localPlaneNormal.copy(faceNormals[otherFace]);
+      localPlaneNormal.copy(faceNormals[otherFace]!);
       final localPlaneEq = getPlaneConstantOfFace(otherFace);
       planeNormalWS.copy(localPlaneNormal);
       quatA.vmult(planeNormalWS, planeNormalWS);
@@ -520,7 +510,7 @@ class ConvexPolyhedron extends Shape {
     }
 
     // only keep contact points that are behind the witness face
-    localPlaneNormal.copy(faceNormals[closestFaceA]);
+    localPlaneNormal.copy(faceNormals[closestFaceA]!);
 
     final localPlaneEq = getPlaneConstantOfFace(closestFaceA);
     planeNormalWS.copy(localPlaneNormal);
@@ -537,7 +527,7 @@ class ConvexPolyhedron extends Shape {
 
       if (depth <= maxDist) {
         final point = pVtxIn[i];
-        if (depth <= 1e-6) {
+        if (depth <= 0) {
           final p = ConvexPolyhedronContactPoint(
             point,
             planeNormalWS,
@@ -648,7 +638,7 @@ class ConvexPolyhedron extends Shape {
     final normals = faceNormals;
     //final worldNormals = worldFaceNormals;
     for (int i = 0; i != N; i++) {
-      quat.vmult(normals[i], worldFaceNormals[i]);
+      quat.vmult(normals[i]!, worldFaceNormals[i]);
     }
 
     worldFaceNormalsNeedsUpdate = false;
@@ -742,7 +732,7 @@ class ConvexPolyhedron extends Shape {
       }
       // Rotate face normals
       for (int i = 0; i < faceNormals.length; i++) {
-        final v = faceNormals[i];
+        final v = faceNormals[i]!;
         quat.vmult(v, v);
       }
 
@@ -767,6 +757,9 @@ class ConvexPolyhedron extends Shape {
   /// of all the vectors from it to those other points are on less than one half of a sphere around it.
   /// @param p A point given in local coordinates
   bool pointIsInside(Vec3 p){
+    final Vec3 _convexPolyhedronPointIsInside = Vec3();
+    final Vec3 _convexPolyhedronVToP = Vec3();
+    final Vec3 _convexPolyhedronvToPointIsInside = Vec3();
     final verts = vertices;
     final faces = this.faces;
     final normals = faceNormals;
@@ -775,7 +768,7 @@ class ConvexPolyhedron extends Shape {
     getAveragePointLocal(pointInside);
 
     for (int i = 0; i < this.faces.length; i++) {
-      Vec3 n = normals[i];
+      final n = normals[i]!;
       final v = verts[faces[i][0]]; // We only need one point in the face
 
       // This dot product determines which side of the edge the point is
@@ -783,12 +776,12 @@ class ConvexPolyhedron extends Shape {
       p.vsub(v, vToP);
       final r1 = n.dot(vToP);
 
-      final vToPointInside = _convexPolyhedronPointIsInside;//Vec3();
+      final vToPointInside = _convexPolyhedronvToPointIsInside;//
       pointInside.vsub(v, vToPointInside);
       final r2 = n.dot(vToPointInside);
 
       if ((r1 < 0 && r2 > 0) || (r1 > 0 && r2 < 0)) {
-        //return false; // Encountered some other sign. Exit.
+        return false; // Encountered some other sign. Exit.
       }
     }
     // If we got here, all dot products were of the same sign.
@@ -798,7 +791,7 @@ class ConvexPolyhedron extends Shape {
   /// Get max and min dot product of a convex hull at position (pos,quat) projected onto an axis.
   /// Results are saved in the array maxmin.
   /// @param result result[0] and result[1] will be set to maximum and minimum, respectively.
-  static void project(ConvexPolyhedron shape, Vec3 axis, Vec3 pos, Quaternion quat, List<double> result) {
+  static void project(ConvexPolyhedron shape, Vec3 axis, Vec3 pos, Quaternion quat, final List<double> result) {
     final int n = shape.vertices.length;
     //final worldVertex = project_worldVertex;
     final localAxis = _projectLocalAxis;

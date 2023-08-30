@@ -90,7 +90,7 @@ class Shape {
 
   /// Calculates the inertia in the local frame for this shape.
   /// @see http://en.wikipedia.org/wiki/List_of_moments_of_inertia
-  void calculateLocalInertia(double mass, Vec3 target) {
+  Vec3 calculateLocalInertia(double mass, Vec3 target) {
     throw 'calculateLocalInertia() not implemented for shape type $type';
   }
 
