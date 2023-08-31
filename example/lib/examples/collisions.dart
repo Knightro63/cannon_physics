@@ -36,7 +36,6 @@ class _CollisionsState extends State<Collisions> {
   void initState() {
     demo = Demo(
       onSetupComplete: (){setState(() {});},
-      updatePhysics: (){updateCannonPhysics();},
       settings: DemoSettings(
         gx: 0,
         gy: 0,
@@ -53,9 +52,9 @@ class _CollisionsState extends State<Collisions> {
   }
   void setScene(){
     //setScene0();
-    // setScene1();
-    setScene2();
-    // setScene3();
+    //setScene1();
+    //setScene2();
+    setScene3();
   }
   void setScene0(){
     final world = demo.world;

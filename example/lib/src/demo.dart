@@ -25,6 +25,11 @@ extension on cannon.Vec3{
     return Vector3(x,y,z);
   }
 }
+extension on three.Vector3{
+  cannon.Vec3 toVec3(){
+    return cannon.Vec3(x,y,z);
+  }
+}
 
 class DemoSettings{
   DemoSettings({
@@ -111,15 +116,11 @@ class Demo{
       _currentMaterial = _wireframeMaterial;
     }
 
-    bboxMeshCache = GeometryCache(scene, (){
-      return Mesh(three.BoxGeometry(1, 1, 1), bboxMaterial);
-    });
+    initGeometryCaches();
   }
 
   final GlobalKey<DomLikeListenableState> globalKey = GlobalKey<DomLikeListenableState>();
   FocusNode _node = FocusNode();
-
-  late GeometryCache bboxMeshCache;
 
   late cannon.World world;
   List<cannon.Body> bodies = [];
@@ -178,11 +179,122 @@ class Demo{
     resetCallTime = true;
   }
 
+  late GeometryCache bboxMeshCache;
+  late GeometryCache contactMeshCache;
+  late GeometryCache cm2contactMeshCache;
+  late GeometryCache distanceConstraintMeshCache;
+  late GeometryCache normalMeshCache;
+  late GeometryCache axesMeshCache;
+  late GeometryCache p2pConstraintMeshCache;
+
   void dispose(){
     disposed = true;
     three3dRender.dispose();
   }
+  void initGeometryCaches(){
+    // Material
+    int materialColor = 0xdddddd;
+    if(settings.rendermode == RenderMode.solid){
+      _currentMaterial = _solidMaterial;
+    }
+    else{
+      _currentMaterial = _wireframeMaterial;
+    }
 
+    three.MeshBasicMaterial contactDotMaterial = three.MeshBasicMaterial({ 'color': 0xffffff });
+
+    final contactPointGeometry = three.SphereGeometry(0.1, 6, 6);
+    contactMeshCache = GeometryCache(scene, (){
+      return three.Mesh(contactPointGeometry, contactDotMaterial);
+    });
+
+    cm2contactMeshCache = GeometryCache(scene, (){
+      BufferGeometry geometry = BufferGeometry();
+      geometry.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+      );
+      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+    });
+
+    three.BoxGeometry bboxGeometry = three.BoxGeometry(1, 1, 1);
+    three.MeshBasicMaterial bboxMaterial = three.MeshBasicMaterial({
+      'color': materialColor,
+      'wireframe': true,
+    });
+
+    bboxMeshCache = GeometryCache(scene, (){
+      return three.Mesh(bboxGeometry, bboxMaterial);
+    });
+
+    distanceConstraintMeshCache = GeometryCache(scene, (){
+      BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+      );
+      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+    });
+
+    p2pConstraintMeshCache = GeometryCache(scene, () {
+      BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+      );
+      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+    });
+
+    normalMeshCache = GeometryCache(scene, (){
+      BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+      );
+      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0x00ff00 }));
+    });
+
+    axesMeshCache = GeometryCache(scene, (){
+      three.Object3D mesh = three.Object3D();
+      List<double> origin = [0, 0, 0];
+      BufferGeometry gX = BufferGeometry();
+      BufferGeometry gY = BufferGeometry();
+      BufferGeometry gZ = BufferGeometry();
+      gX.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from(origin+[1,0,0]), 3, false)
+      );
+      gY.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from(origin+[0,1,0]), 3, false)
+      );
+      gZ.setAttribute(
+        'position',
+          Float32BufferAttribute(Float32Array.from(origin+[0,0,1]), 3, false)
+      );
+      three.Line lineX = three.Line(gX, three.LineBasicMaterial({ 'color': 0xff0000 }));
+      three.Line lineY = three.Line(gY, three.LineBasicMaterial({ 'color': 0x00ff00 }));
+      three.Line lineZ = three.Line(gZ, three.LineBasicMaterial({ 'color': 0x0000ff }));
+      mesh.add(lineX);
+      mesh.add(lineY);
+      mesh.add(lineZ);
+      return mesh;
+    });
+  }
+
+  void restartGeometryCaches () {
+    contactMeshCache.restart();
+    contactMeshCache.hideCached();
+
+    cm2contactMeshCache.restart();
+    cm2contactMeshCache.hideCached();
+
+    distanceConstraintMeshCache.restart();
+    distanceConstraintMeshCache.hideCached();
+
+    normalMeshCache.restart();
+    normalMeshCache.hideCached();
+  }
   void initSize(BuildContext context){
     if (screenSize != null) {
       return;
@@ -204,6 +316,7 @@ class Demo{
     Future.delayed(const Duration(milliseconds: 1000~/60), () {
       if(!pause){
         updatePhysics();
+        updateVisuals();
       }
       animate();
     });
@@ -455,7 +568,7 @@ class Demo{
         cannon.ContactEquation contact = world.contacts[i];
 
         for (int ij = 0; ij < 2; ij++) {
-          Mesh mesh = contactMeshCache.request();
+          Object3D mesh = contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
           cannon.Vec3 r = ij == 0 ? contact.ri : contact.rj;
           mesh.position.set(b.position.x + r.x, b.position.y + r.y, b.position.z + r.z);
@@ -471,7 +584,7 @@ class Demo{
         cannon.ContactEquation contact = world.contacts[i];
 
         for (int ij = 0; ij < 2; ij++) {
-          const line = cm2contactMeshCache.request();
+          Object3D line = cm2contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
           cannon.Vec3 r = ij == 0 ? contact.ri : contact.rj;
           line.scale.set(r.x, r.y, r.z);
@@ -486,57 +599,54 @@ class Demo{
     p2pConstraintMeshCache.restart();
     if (settings.constraints) {
       world.constraints.forEach((constraint){
-        switch (true) {
-          // Lines for distance constraints
-          case constraint is cannon.DistanceConstraint: {
-            constraint.equations.forEach((equation){
-              cannon.Body bi = equation.bi;
-              cannon.Body bj = equation.bj;
+        // Lines for distance constraints
+        if(constraint is cannon.DistanceConstraint){
+          constraint.equations.forEach((equation){
+            cannon.Body bi = equation.bi;
+            cannon.Body bj = equation.bj;
 
-              const line = this.distanceConstraintMeshCache.request();
+            Object3D line = distanceConstraintMeshCache.request();
 
-              // Remember, bj is either a Vec3 or a Body.
-              cannon.Vec3 vector = bj.position ?? bj;
+            // Remember, bj is either a Vec3 or a Body.
+            cannon.Vec3 vector = bj.position;
 
-              line.scale.set(vector.x - bi.position.x, vector.y - bi.position.y, vector.z - bi.position.z)
-              makeSureNotZero(line.scale);
-              line.position.copy(bi.position);
-            });
+            line.scale.set(vector.x - bi.position.x, vector.y - bi.position.y, vector.z - bi.position.z);
+            makeSureNotZero(line.scale);
+            line.position.copy(bi.position);
+          });
+        }
+        // Lines for point to point constraints
+        else if(constraint is cannon.PointToPointConstraint) {
+          constraint.equations.forEach((equation){
+            cannon.Body bi = equation.bi;
+            cannon.Body bj = equation.bj;
 
-            break;
-          }
+            Object3D relLine1 = p2pConstraintMeshCache.request();
+            Object3D relLine2 = p2pConstraintMeshCache.request();
+            Object3D diffLine = p2pConstraintMeshCache.request();
+            if(equation is cannon.ContactEquation){
+              relLine1.scale.set(equation.ri.x, equation.ri.y, equation.ri.z);
+              relLine2.scale.set(equation.rj.x, equation.rj.y, equation.rj.z);
+            }
+            else if(equation is cannon.FrictionEquation){
+              relLine1.scale.set(equation.ri.x, equation.ri.y, equation.ri.z);
+              relLine2.scale.set(equation.rj.x, equation.rj.y, equation.rj.z);
+            }
 
-          // Lines for point to point constraints
-          case constraint is cannon.PointToPointConstraint: {
-            constraint.equations.forEach((equation){
-              cannon.Body bi = equation.bi;
-              cannon.Body bj = equation.bj;
+            // BUG this is not exposed anymore in the ContactEquation, this sections needs to be updated
+            makeSureNotZero(relLine1.scale);
+            makeSureNotZero(relLine2.scale);
+            makeSureNotZero(diffLine.scale);
+            relLine1.position.copy(bi.position);
+            relLine2.position.copy(bj.position);
 
-              const relLine1 = p2pConstraintMeshCache.request();
-              const relLine2 = p2pConstraintMeshCache.request();
-              const diffLine = p2pConstraintMeshCache.request();
-              if (equation.ri) {
-                relLine1.scale.set(equation.ri.x, equation.ri.y, equation.ri.z);
-              }
-              if (equation.rj) {
-                relLine2.scale.set(equation.rj.x, equation.rj.y, equation.rj.z);
-              }
-              // BUG this is not exposed anymore in the ContactEquation, this sections needs to be updated
-              if (equation.penetrationVec) {
-                diffLine.scale.set(-equation.penetrationVec.x, -equation.penetrationVec.y, -equation.penetrationVec.z)
-              }
-              makeSureNotZero(relLine1.scale);
-              makeSureNotZero(relLine2.scale);
-              makeSureNotZero(diffLine.scale);
-              relLine1.position.copy(bi.position);
-              relLine2.position.copy(bj.position);
-
-              if (equation.bj && equation.rj) {
-                equation.bj.position.vadd(equation.rj, diffLine.position);
-              }
-            });
-            break;
-          }
+            if (equation is cannon.ContactEquation) {
+              equation.bj.position.vadd(equation.rj, diffLine.position.toVec3());
+            }
+            else if (equation is cannon.FrictionEquation) {
+              equation.bj.position.vadd(equation.rj, diffLine.position.toVec3());
+            }
+          });
         }
       });
     }
@@ -544,34 +654,34 @@ class Demo{
     distanceConstraintMeshCache.hideCached();
 
     // Normal lines
-    this.normalMeshCache.restart();
+    normalMeshCache.restart();
     if (settings.normals) {
       for (int i = 0; i < world.contacts.length; i++) {
         cannon.ContactEquation constraint = world.contacts[i];
 
         cannon.Body bi = constraint.bi;
         cannon.Body bj = constraint.bj;
-        const line = this.normalMeshCache.request();
+        Object3D line = normalMeshCache.request();
 
-        const constraintNormal = constraint.ni;
-        const body = bi;
+        cannon.Vec3 constraintNormal = constraint.ni;
+        cannon.Body body = bi;
         line.scale.set(constraintNormal.x, constraintNormal.y, constraintNormal.z);
         makeSureNotZero(line.scale);
         line.position.copy(body.position);
-        constraint.ri.vadd(line.position, line.position);
+        constraint.ri.vadd(line.position.toVec3(), line.position.toVec3());
       }
     }
-    this.normalMeshCache.hideCached();
+    normalMeshCache.hideCached();
 
     // Frame axes for each body
-    this.axesMeshCache.restart();
+    axesMeshCache.restart();
     if (settings.axes) {
       for (int i = 0; i < bodies.length; i++) {
         cannon.Body body = bodies[i];
 
-        const mesh = axesMeshCache.request();
-        mesh.position.copy(body.position);
-        mesh.quaternion.copy(body.quaternion);
+        Object3D mesh = axesMeshCache.request();
+        mesh.position.copy(body.position.toVector3());
+        mesh.quaternion.copy(body.quaternion.toQuaternion());
       }
     }
     axesMeshCache.hideCached();
@@ -581,36 +691,36 @@ class Demo{
     if (settings.aabbs) {
       for (int i = 0; i < bodies.length; i++) {
         cannon.Body body = bodies[i];
-        if (body.updateAABB) {
-          if (body.aabbNeedsUpdate) {
-            body.updateAABB();
-          }
 
-          // Todo: cap the infinite AABB to scene AABB, for now just dont render
-          if (
-            isFinite(body.aabb.lowerBound.x) &&
-            isFinite(body.aabb.lowerBound.y) &&
-            isFinite(body.aabb.lowerBound.z) &&
-            isFinite(body.aabb.upperBound.x) &&
-            isFinite(body.aabb.upperBound.y) &&
-            isFinite(body.aabb.upperBound.z) &&
-            body.aabb.lowerBound.x - body.aabb.upperBound.x != 0 &&
-            body.aabb.lowerBound.y - body.aabb.upperBound.y != 0 &&
-            body.aabb.lowerBound.z - body.aabb.upperBound.z != 0
-          ) {
-            const mesh = bboxMeshCache.request();
-            mesh.scale.set(
-              body.aabb.lowerBound.x - body.aabb.upperBound.x,
-              body.aabb.lowerBound.y - body.aabb.upperBound.y,
-              body.aabb.lowerBound.z - body.aabb.upperBound.z
-            );
-            mesh.position.set(
-              (body.aabb.lowerBound.x + body.aabb.upperBound.x) * 0.5,
-              (body.aabb.lowerBound.y + body.aabb.upperBound.y) * 0.5,
-              (body.aabb.lowerBound.z + body.aabb.upperBound.z) * 0.5
-            );
-          }
+        if (body.aabbNeedsUpdate) {
+          body.updateAABB();
         }
+
+        // Todo: cap the infinite AABB to scene AABB, for now just dont render
+        if (
+          isFinite(body.aabb.lowerBound.x) &&
+          isFinite(body.aabb.lowerBound.y) &&
+          isFinite(body.aabb.lowerBound.z) &&
+          isFinite(body.aabb.upperBound.x) &&
+          isFinite(body.aabb.upperBound.y) &&
+          isFinite(body.aabb.upperBound.z) &&
+          body.aabb.lowerBound.x - body.aabb.upperBound.x != 0 &&
+          body.aabb.lowerBound.y - body.aabb.upperBound.y != 0 &&
+          body.aabb.lowerBound.z - body.aabb.upperBound.z != 0
+        ) {
+          Object3D mesh = bboxMeshCache.request();
+          mesh.scale.set(
+            body.aabb.lowerBound.x - body.aabb.upperBound.x,
+            body.aabb.lowerBound.y - body.aabb.upperBound.y,
+            body.aabb.lowerBound.z - body.aabb.upperBound.z
+          );
+          mesh.position.set(
+            (body.aabb.lowerBound.x + body.aabb.upperBound.x) * 0.5,
+            (body.aabb.lowerBound.y + body.aabb.upperBound.y) * 0.5,
+            (body.aabb.lowerBound.z + body.aabb.upperBound.z) * 0.5
+          );
+        }
+        
       }
     }
     bboxMeshCache.hideCached();
