@@ -24,7 +24,6 @@ class SplitSolverNode{
 /// Splits the equations into islands and solves them independently. Can improve performance.
 class SplitSolver extends Solver {
   /// When tolerance is reached, the system is assumed to be converged.
-  double tolerance = 1e-7;
   /// subsolver
   GSSolver subsolver;
   List<SplitSolverNode> nodes = [];

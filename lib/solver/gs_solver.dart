@@ -6,12 +6,14 @@ import '../world/world_class.dart';
 /// @see https://www8.cs.umu.se/kurser/5DV058/VT09/lectures/spooknotes.pdf
 class GSSolver extends Solver {
   /// When tolerance is reached, the system is assumed to be converged.
-  double tolerance;
+  
 
   /// @todo remove useless constructor
   GSSolver({
-    this.tolerance = 1e-7,
-  }):super();
+    tolerance = 1e-7,
+  }):super(){
+    this.tolerance = tolerance;
+  }
 
   // Just temporary number holders that we want to reuse each iteration.
   List<double?> gsSolverSolveLambda = [];
