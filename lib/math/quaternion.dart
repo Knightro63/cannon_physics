@@ -279,34 +279,34 @@ class Quaternion {
     final s3 = math.sin(z / 2);
 
     if (order == Order.xyz) {
-      x = s1 * c2 * c3 + c1 * s2 * s3;
-      y = c1 * s2 * c3 - s1 * c2 * s3;
-      z = c1 * c2 * s3 + s1 * s2 * c3;
+      this.x = s1 * c2 * c3 + c1 * s2 * s3;
+      this.y = c1 * s2 * c3 - s1 * c2 * s3;
+      this.z = c1 * c2 * s3 + s1 * s2 * c3;
       w = c1 * c2 * c3 - s1 * s2 * s3;
     } else if (order == Order.yxz) {
-      x = s1 * c2 * c3 + c1 * s2 * s3;
-      y = c1 * s2 * c3 - s1 * c2 * s3;
-      z = c1 * c2 * s3 - s1 * s2 * c3;
+      this.x = s1 * c2 * c3 + c1 * s2 * s3;
+      this.y = c1 * s2 * c3 - s1 * c2 * s3;
+      this.z = c1 * c2 * s3 - s1 * s2 * c3;
       w = c1 * c2 * c3 + s1 * s2 * s3;
     } else if (order == Order.zxy) {
-      x = s1 * c2 * c3 - c1 * s2 * s3;
-      y = c1 * s2 * c3 + s1 * c2 * s3;
-      z = c1 * c2 * s3 + s1 * s2 * c3;
+      this.x = s1 * c2 * c3 - c1 * s2 * s3;
+      this.y = c1 * s2 * c3 + s1 * c2 * s3;
+      this.z = c1 * c2 * s3 + s1 * s2 * c3;
       w = c1 * c2 * c3 - s1 * s2 * s3;
     } else if (order == Order.zyx) {
-      x = s1 * c2 * c3 - c1 * s2 * s3;
-      y = c1 * s2 * c3 + s1 * c2 * s3;
-      z = c1 * c2 * s3 - s1 * s2 * c3;
+      this.x = s1 * c2 * c3 - c1 * s2 * s3;
+      this.y = c1 * s2 * c3 + s1 * c2 * s3;
+      this.z = c1 * c2 * s3 - s1 * s2 * c3;
       w = c1 * c2 * c3 + s1 * s2 * s3;
     } else if (order == Order.yzx) {
-      x = s1 * c2 * c3 + c1 * s2 * s3;
-      y = c1 * s2 * c3 + s1 * c2 * s3;
-      z = c1 * c2 * s3 - s1 * s2 * c3;
+      this.x = s1 * c2 * c3 + c1 * s2 * s3;
+      this.y = c1 * s2 * c3 + s1 * c2 * s3;
+      this.z = c1 * c2 * s3 - s1 * s2 * c3;
       w = c1 * c2 * c3 - s1 * s2 * s3;
     } else if (order == Order.xzy) {
-      x = s1 * c2 * c3 - c1 * s2 * s3;
-      y = c1 * s2 * c3 - s1 * c2 * s3;
-      z = c1 * c2 * s3 + s1 * s2 * c3;
+      this.x = s1 * c2 * c3 - c1 * s2 * s3;
+      this.y = c1 * s2 * c3 - s1 * c2 * s3;
+      this.z = c1 * c2 * s3 + s1 * s2 * c3;
       w = c1 * c2 * c3 + s1 * s2 * s3;
     }
 

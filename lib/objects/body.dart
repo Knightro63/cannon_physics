@@ -62,9 +62,9 @@ class Body extends EventTarget {
 
     if (quaternion != null) {
       this.quaternion.copy(quaternion);
-      initQuaternion.copy(quaternion);
       previousQuaternion.copy(quaternion);
       interpolatedQuaternion.copy(quaternion);
+      initQuaternion.copy(quaternion);
     }
     if (angularVelocity != null) {
       this.angularVelocity.copy(angularVelocity);

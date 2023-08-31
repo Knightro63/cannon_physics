@@ -1,4 +1,5 @@
 import 'package:cannon_physics_example/examples/basic_physics2.dart';
+import 'package:cannon_physics_example/examples/bounce.dart';
 import 'package:cannon_physics_example/examples/collisions.dart';
 import 'package:cannon_physics_example/examples/fps.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Collisions(),
+      home: const Bounce(),
     );
   }
 }

@@ -106,6 +106,8 @@ class _CollisionsState extends State<Collisions> {
 
     final boxShape = cannon.Box(cannon.Vec3(1, 1, 1));
     final sphereShape = cannon.Sphere(1);
+    final quaternion = cannon.Quaternion();
+    quaternion.setFromEuler(0, math.pi * 0.25, 0);
 
     // Box
     final body1 = cannon.Body(
@@ -113,12 +115,9 @@ class _CollisionsState extends State<Collisions> {
       position: cannon.Vec3(-5,0,0),
       velocity: cannon.Vec3(5,0,0),
       linearDamping: 0,
+      quaternion: quaternion,
       shape: boxShape
     );
-
-    final quaternion = cannon.Quaternion();
-    quaternion.setFromEuler(0, math.pi * 0.25, 0);
-    body1.quaternion.copy(quaternion);
     world.addBody(body1);
     demo.addVisual(body1);
 
@@ -163,34 +162,7 @@ class _CollisionsState extends State<Collisions> {
     demo.addVisual(body2);
   }
   void setupWorld(){
-    final world = demo.world;
-    world.broadphase = cannon.NaiveBroadphase();
     setScene();
-  }
-  void updateCannonPhysics() {
-    demo.world.fixedStep();
-    double x, y, z;
-    Object3D mesh; 
-    cannon.Body body;
-
-    for(int i = 0; i < demo.bodies.length;i++){
-      body = demo.bodies[i];
-      mesh = demo.visuals[i];
-
-      if(body.sleepState != cannon.BodySleepStates.sleeping){
-        
-        mesh.position.copy(body.position.toVector3());
-        mesh.quaternion.copy(body.quaternion.toQuaternion());
-
-        // reset position
-        if(mesh.position.y<-100){
-          x = -100 + Math.random()*200;
-          z = -100 + Math.random()*200;
-          y = 100 + Math.random()*1000;
-          body.position = cannon.Vec3(x,y,z);
-        }
-      } 
-    }
   }
   @override
   Widget build(BuildContext context) {
