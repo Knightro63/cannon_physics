@@ -1,15 +1,7 @@
-import 'dart:async';
-import 'dart:io';
-import 'dart:math' as math;
-
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-
 import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
-import 'package:three_dart_jsm/three_dart_jsm.dart';
 
 extension on cannon.Quaternion{
   Quaternion toQuaternion(){
@@ -19,6 +11,36 @@ extension on cannon.Quaternion{
 extension on cannon.Vec3{
   Vector3 toVector3(){
     return Vector3(x,y,z);
+  }
+}
+
+class GeometryCache {
+  List<Object3D> geometries = [];
+  List gone = [];
+
+  Scene scene;
+  Function createFunc;
+
+  GeometryCache(this.scene, this.createFunc);
+
+  Object3D request(){
+    Object3D geometry = geometries.isNotEmpty ? geometries.removeLast() : createFunc();
+
+    scene.add(geometry);
+    gone.add(geometry);
+    return geometry;
+  }
+
+  void restart(){
+    while (gone.isNotEmpty) {
+      geometries.add(gone.removeLast());
+    }
+  }
+
+  void hideCached(){
+    geometries.forEach((geometry){
+      scene.remove(geometry);
+    });
   }
 }
 
@@ -144,17 +166,18 @@ class ConversionUtils{
     }
   }
 
-  static three.Group bodyToMesh(cannon.Body body, material) {
-    final group = three.Group();
+  static List<Mesh> bodyToMesh(cannon.Body body, material) {
+    final List<Mesh> group = [];
 
-    group.position.copy(body.position.toVector3());
-    group.quaternion.copy(body.quaternion.toQuaternion());
+    // group.position.copy(body.position.toVector3());
+    // group.quaternion.copy(body.quaternion.toQuaternion());
 
     final meshes = body.shapes.map((shape){
       final geometry = shapeToGeometry(shape);
 
       return three.Mesh(geometry, material);
     });
+    
     int i = 0;
     meshes.forEach((three.Mesh mesh){
       final offset = body.shapeOffsets[i];

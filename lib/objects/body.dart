@@ -41,7 +41,7 @@ class Body extends EventTarget {
     Vec3? linearFactor,
     Vec3? angularFactor,
     Shape? shape,
-    this.isTrigger = true,
+    this.isTrigger = false,
   }):super() {
     id = Body.idCounter++;
     if (position != null) {
