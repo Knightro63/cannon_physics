@@ -8,7 +8,7 @@ class EventTarget {
 
   /// Add an event listener
   /// @return The self object, for chainability.
-  EventTarget addEventListener(String type, Function listener) {
+  EventTarget addEventListener(String type, Function(dynamic) listener) {
     _listeners ??= {};
     final listeners = _listeners;
     if (listeners?[type] == null) {
@@ -52,7 +52,7 @@ class EventTarget {
       return this;
     }
     final index = listeners?[type]?.indexOf(listener);
-    if (index != null) {
+    if (index != null && index != -1) {
       listeners?[type]?.removeAt(index);
     }
     return this;
@@ -60,65 +60,77 @@ class EventTarget {
 
   /// Emit an event.
   /// @return The self object, for chainability.
-  EventTarget dispatchEvent(dynamic event){
-    
+  EventTarget dispatchEvent(Event event){
+    if(event.type.contains('end')){
+      print(event.type);
+    }
     if (_listeners == null) {
       return this;
     }
+    
     final listeners = _listeners;
     final listenerArray = listeners?[event.type];
+    //print(event.type);
     if (listenerArray != null) {
+      //print(event.type);
       event.target = this;
       for (int i = 0, l = listenerArray.length; i < l; i++) {
-        listenerArray[i].call(this, event);
+        //print('LISTEN: ${listenerArray[i]}');
+        listenerArray[i].call(event);
       }
     }
     return this;
   }
 }
 
-class CollideEvent{
-  CollideEvent({
-    this.type = '',
-    this.body,
-    this.contact
-  });
-  String type;
-  Body? body; 
-  ContactEquation? contact; 
+class Event{
+  Event(this.type);
+  final String type;
+  EventTarget? target;
+
 }
 
-class ContactEvent{
+class CollideEvent extends Event{
+  CollideEvent({
+    type = 'collide',
+    this.body,
+    this.contact
+  }):super(type);
+  Body? body; 
+  ContactEquation? contact;
+}
+
+class ContactEvent extends Event{
   ContactEvent({
-    required this.type,
+    required type,
     this.bodyA,
     this.bodyB
-  });
-  String type;
+  }):super(type);
   Body? bodyA;
   Body? bodyB;
 }
 
-class ShapeContactEvent{
+class ShapeContactEvent extends Event{
   ShapeContactEvent({
-    required this.type,
+    required type,
     this.bodyA,
     this.bodyB,
     this.shapeA,
     this.shapeB
-  });
-  String type;
+  }):super(type);
   Body? bodyA;
   Body? bodyB;
   Shape? shapeA;
   Shape? shapeB;
 }
 
-class BodyEvent{
+class BodyEvent extends Event{
   BodyEvent({
-    this.type = '',
-    this.target
-  });
-  String type;
-  Body? target;
+    type = '',
+    EventTarget? target
+  }):super(type){
+    this.target = target;
+  }
+
+  //Body? target;
 }

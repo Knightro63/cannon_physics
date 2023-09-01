@@ -18,18 +18,18 @@ class SAPBroadphase extends Broadphase {
   /// For best performance, pick the axis where bodies are most distributed.
   late AxisIndex axisIndex = AxisIndex.x;
 
-  late void Function(Body body) _addBodyHandler;
-  late void Function(Body body) _removeBodyHandler;
+  late void Function(dynamic event) _addBodyHandler;
+  late void Function(dynamic event) _removeBodyHandler;
 
   SAPBroadphase(world):super() {
     final axisList = this.axisList;
 
-    _addBodyHandler = (Body body){
-      axisList.add(body);
+    _addBodyHandler = (dynamic event){
+      axisList.add(event);
     };
 
-    _removeBodyHandler = (Body body){
-      final idx = axisList.indexOf(body);
+    _removeBodyHandler = (dynamic event){
+      final idx = axisList.indexOf(event);
       if (idx != -1) {
         axisList.removeAt(idx);
       }

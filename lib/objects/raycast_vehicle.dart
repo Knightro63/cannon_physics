@@ -34,7 +34,7 @@ class RaycastVehicle {
   /// The finalraints. */
   List<Constraint> finalraints = [];
   /// Optional pre-step callback
-  void  Function() preStepCallback = (){};
+  void  Function(dynamic event) preStepCallback = (event){};
   double currentVehicleSpeedKmHour = 0;
   /// Number of wheels on the ground
   int numWheelsOnGround = 0;
@@ -102,7 +102,7 @@ class RaycastVehicle {
   void addToWorld(World world){
     world.addBody(chassisBody);
     final that = this;
-    preStepCallback = (){
+    preStepCallback = (event){
       that.updateVehicle(world.dt);
     };
     world.addEventListener('preStep', preStepCallback);

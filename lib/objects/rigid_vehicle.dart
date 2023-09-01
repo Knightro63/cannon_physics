@@ -128,7 +128,7 @@ class RigidVehicle {
     world.addEventListener('preStep', _update);//_update.bind(this));
   }
 
-  void _update(){
+  void _update(event){
     final wheelForces = this.wheelForces;
     for (int i = 0; i < wheelForces.length; i++) {
       applyWheelForce(wheelForces[i], i);

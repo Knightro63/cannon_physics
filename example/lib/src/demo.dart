@@ -66,7 +66,7 @@ class DemoSettings{
   int iterations;
   double tolerance;
   double k;
-  int d;
+  double d;
   int scene;
   bool paused;
   RenderMode rendermode;
@@ -101,7 +101,7 @@ class Demo{
 
     lastCallTime = world.performance.now().toDouble();
     world.defaultContactMaterial.contactEquationStiffness = this.settings.k;
-    world.defaultContactMaterial.contactEquationRelaxation = 10;
+    world.defaultContactMaterial.contactEquationRelaxation = this.settings.d;
 
     solver.iterations = this.settings.iterations;
     solver.tolerance = this.settings.tolerance;
@@ -190,6 +190,9 @@ class Demo{
   void dispose(){
     disposed = true;
     three3dRender.dispose();
+  }
+  void addEventListener(Function(dynamic) listener){
+    world.addEventListener('postStep', listener);
   }
   void initGeometryCaches(){
     // Material

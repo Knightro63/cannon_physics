@@ -93,15 +93,15 @@ class Body extends EventTarget {
 
   /// Dispatched after a sleeping body has woken up.
   /// @event wakeup;
-  static Map<String,String> wakeupEvent={'type':'wakeup'};
+  static BodyEvent wakeupEvent = BodyEvent(type:'wakeup');
 
   /// Dispatched after a body has gone in to the sleepy state.
   /// @event sleepy;
-  static Map<String,String> sleepyEvent={'type':'sleepy'};
+  static BodyEvent sleepyEvent = BodyEvent(type:'sleepy');
 
   /// Dispatched after a body has fallen asleep.
   /// @event sleep;
-  static Map<String,String> sleepEvent={'type':'sleepy'};
+  static BodyEvent sleepEvent = BodyEvent(type:'sleep');
 
   /// Identifier of the body.
   late int id;

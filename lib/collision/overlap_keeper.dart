@@ -3,8 +3,8 @@ class OverlapKeeper {
   List<int> previous = [];
 
   OverlapKeeper([List<int>? current,List<int>? previous]){
-    this.current = current ?? [];
-    this.previous = previous ?? [];
+    this.current = current ?? List.empty(growable: true);
+    this.previous = previous ?? List.empty(growable: true);
   }
 
   /// getKey
@@ -62,6 +62,7 @@ class OverlapKeeper {
       found = keyA == b[j];
 
       if (!found) {
+        print('here');
         _unpackAndPush(additions, keyA);
       }
     }
@@ -75,6 +76,7 @@ class OverlapKeeper {
       found = a[j] == keyB;
 
       if (!found) {
+        print('here');
         _unpackAndPush(removals, keyB);
       }
     }

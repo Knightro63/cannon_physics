@@ -28,7 +28,7 @@ class Solver {
   }
 
   void addEquation(Equation eq) {
-    if (eq.enabled ) {//&& !eq.bi.isTrigger && !eq.bj.isTrigger
+    if (eq.enabled && !eq.bi.isTrigger && !eq.bj.isTrigger) {//
       equations.add(eq);
     }
   }

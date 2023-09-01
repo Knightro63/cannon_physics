@@ -182,19 +182,17 @@ class World extends EventTarget {
   List<Body> worldStepP2 = [];
 
   // Stuff for emitContactEvents
-  List<int> additions = [];
-  List<int> removals = [];
-  ContactEvent beginContactEvent = ContactEvent(
+  final ContactEvent beginContactEvent = ContactEvent(
     type: 'beginContact',
   );
-  ContactEvent endContactEvent  = ContactEvent(
+  final ContactEvent endContactEvent  = ContactEvent(
     type: 'endContact',
   );
 
-  ShapeContactEvent beginShapeContactEvent  = ShapeContactEvent(
+  final ShapeContactEvent beginShapeContactEvent  = ShapeContactEvent(
     type: 'beginShapeContact',
   );
-  ShapeContactEvent endShapeContactEvent  = ShapeContactEvent(
+  final ShapeContactEvent endShapeContactEvent  = ShapeContactEvent(
     type: 'endShapeContact',
   );
 
@@ -698,6 +696,9 @@ class World extends EventTarget {
   }
 
   void emitContactEvents() {
+    final List<int> additions = [];
+    final List<int> removals = [];
+
     final hasBeginContact = hasAnyEventListener('beginContact');
     final hasEndContact = hasAnyEventListener('endContact');
     if (hasBeginContact || hasEndContact) {
@@ -717,6 +718,7 @@ class World extends EventTarget {
       for (int i = 0, l = removals.length; i < l; i += 2) {
         endContactEvent.bodyA = getBodyById(removals[i]);
         endContactEvent.bodyB = getBodyById(removals[i + 1]);
+        print('here');
         dispatchEvent(endContactEvent);
       }
       endContactEvent.bodyA = endContactEvent.bodyB = null;
