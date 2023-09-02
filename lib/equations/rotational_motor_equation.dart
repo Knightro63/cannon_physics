@@ -12,6 +12,7 @@ class RotationalMotorEquation extends Equation {
   double targetVelocity = 0;
 
   RotationalMotorEquation(Body bodyA, Body bodyB, [double maxForce = 1e6]):super(bodyA, bodyB, -maxForce, maxForce);
+  
   @override
   double computeB(double h){
     final b = this.b;

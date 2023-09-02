@@ -5,15 +5,20 @@ final _tmpQuat = Quaternion();
 
 /// Transformation utilities.
 class Transform {
-  late Vec3 position; 
-  late Quaternion quaternion;
+  late Vec3 position = Vec3(); 
+  late Quaternion quaternion = Quaternion();
 
   Transform({
     Vec3? position,
     Quaternion? quaternion
   }){
-    this.position = position ?? Vec3();
-    this.quaternion = quaternion ?? Quaternion();
+    if (position != null) {
+      this.position.copy(position);
+    }
+
+    if (quaternion != null) {
+      this.quaternion.copy(quaternion);
+    }
   }
 
   /// Get a global point in local transform coordinates.

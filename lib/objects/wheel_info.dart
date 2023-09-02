@@ -104,8 +104,6 @@ class WheelInfo {
     this.axleLocal = axleLocal?.clone() ?? Vec3();
     this.axleWorld = axleWorld?.clone() ?? Vec3();
   }
-
-
   
   final _relpos = Vec3();
 

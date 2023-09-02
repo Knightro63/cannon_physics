@@ -19,7 +19,7 @@ class ArrayCollisionMatrix {
       j = i;
       i = temp;
     }
-    return matrix[(i * (i + 1) >> 1) + j - 1];
+    return matrix[((i * (i + 1)) >> 1) + j - 1];
   }
 
   /// Set an element
@@ -32,7 +32,7 @@ class ArrayCollisionMatrix {
       i = temp;
     }
   
-    matrix[(i * (i + 1) >> 1) + j - 1] = value ? 1 : 0;
+    matrix[((i * (i + 1) >> 1)) + j - 1] = value ? 1 : 0;
   }
  
   /// Sets all elements to zero

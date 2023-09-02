@@ -10,7 +10,7 @@ class GSSolver extends Solver {
 
   /// @todo remove useless constructor
   GSSolver({
-    tolerance = 1e-7,
+    double tolerance = 1e-7,
   }):super(){
     this.tolerance = tolerance;
   }

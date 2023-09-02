@@ -171,7 +171,7 @@ class SPHSystem {
   double w(double r) {
     // 315
     final h = smoothingRadius;
-    return 315.0 / (64.0 * math.pi * math.pow(h, 9)) * math.pow((h * h - r * r), 3).toDouble();
+    return (315.0 / (64.0 * math.pi * math.pow(h, 9))) * math.pow((h * h - r * r), 3).toDouble();
   }
 
   // calculate gradient of the weight function

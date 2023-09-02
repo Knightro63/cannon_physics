@@ -116,6 +116,8 @@ class World extends EventTarget {
   double accumulator = 0;
 
   List subsystems = [];
+  final List<int> additions = [];
+  final List<int> removals = [];
 
   /// Dispatched after a body has been added to the world.
   BodyEvent addBodyEvent = BodyEvent(type: 'addBody');
@@ -128,14 +130,12 @@ class World extends EventTarget {
   World({
     Vec3? gravity,
     Vec3? frictionGravity,
-    this.allowSleep = true,
+    this.allowSleep = false,
     Broadphase? broadphase,
     Solver? solver,
-    bool? quatNormalizeFast,
-    int? quatNormalizeSkip
+    this.quatNormalizeFast = false,
+    this.quatNormalizeSkip = 0
   }):super(){
-    this.quatNormalizeSkip = quatNormalizeSkip ?? 0;
-    this.quatNormalizeFast = quatNormalizeFast ?? false;
     if (gravity != null) {
       this.gravity.copy(gravity);
     }
@@ -646,10 +646,8 @@ class World extends EventTarget {
         final v = bi.velocity;
         v.scale(ld, v);
         final av = bi.angularVelocity;
-        if (av.sum() != 0) {
-          final ad = math.pow(1.0 - bi.angularDamping, dt).toDouble();
-          av.scale(ad, av);
-        }
+        final ad = math.pow(1.0 - bi.angularDamping, dt).toDouble();
+        av.scale(ad, av);
       }
     }
 
@@ -696,9 +694,6 @@ class World extends EventTarget {
   }
 
   void emitContactEvents() {
-    final List<int> additions = [];
-    final List<int> removals = [];
-
     final hasBeginContact = hasAnyEventListener('beginContact');
     final hasEndContact = hasAnyEventListener('endContact');
     if (hasBeginContact || hasEndContact) {

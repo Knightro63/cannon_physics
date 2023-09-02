@@ -149,13 +149,6 @@ class Narrowphase {
   }
 
   Narrowphase(this.world) {
-    contactPointPool = [];
-    frictionEquationPool = [];
-    result = [];
-    frictionResult = [];
-    v3pool = Vec3Pool();
-    world = world;
-    enableFrictionReduction = false;
     currentContactMaterial = world.defaultContactMaterial;
   }
 

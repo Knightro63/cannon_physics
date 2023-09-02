@@ -69,7 +69,10 @@ class ContactEquation extends Equation {
     final ePlusOne = restitution + 1;
     final gw = ePlusOne * vj.dot(n) - ePlusOne * vi.dot(n) + wj.dot(rjxn) - wi.dot(rixn);
     final giMf = computeGiMf();
-    return (-g * a - gw * b - h * giMf);
+
+    final B = -g * a - gw * b - h * giMf;
+
+    return B;
   }
 
   /// Get the current relative velocity in the contact point.

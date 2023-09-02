@@ -22,8 +22,8 @@ class RotationalEquation extends Equation {
       double maxForce = 1e6
     }
   ):super(bodyA, bodyB, -maxForce, maxForce) {
-    this.axisA = axisA ?? Vec3(1, 0, 0);
-    this.axisB = axisB ?? Vec3(0, 1, 0);
+    this.axisA = axisA?.clone() ?? Vec3(1, 0, 0);
+    this.axisB = axisB?.clone() ?? Vec3(0, 1, 0);
   }
 
   final _tmpVec1 = Vec3();

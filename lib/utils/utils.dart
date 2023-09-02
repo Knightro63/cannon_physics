@@ -7,7 +7,7 @@ class Utils {
   ///  @return The modified options object.
   static Map<String,dynamic> getDefaults(Map<String,dynamic> options, Map<String,dynamic> defaults){
     for (String key in defaults.keys) {
-      if (options.containsKey(key)) {
+      if (!options.containsKey(key)) {
         options[key] = defaults[key];
       }
     }

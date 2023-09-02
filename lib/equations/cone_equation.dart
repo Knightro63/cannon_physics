@@ -22,8 +22,8 @@ class ConeEquation extends Equation {
       this.angle = 0
     }
   ):super(bodyA,bodyB,-maxForce,maxForce) {
-    this.axisA = axisA != null? axisA.clone() : Vec3(1, 0, 0);
-    this.axisB = axisB != null? axisB.clone() : Vec3(0, 1, 0);
+    this.axisA = axisA?.clone() ?? Vec3(1, 0, 0);
+    this.axisB = axisB?.clone() ?? Vec3(0, 1, 0);
   }
 
   final _tmpVec1 = Vec3();

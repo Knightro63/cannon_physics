@@ -138,7 +138,7 @@ class Broadphase {
 
   /// Check if the bounding spheres of two bodies overlap.
   bool boundingSphereCheck(Body bodyA, Body bodyB) {
-    final Vec3 dist = bscDist;
+    final Vec3 dist = Vec3();//bscDist;
     bodyA.position.vsub(bodyB.position, dist);
     final sa = bodyA.shapes[0];
     final sb = bodyB.shapes[0];

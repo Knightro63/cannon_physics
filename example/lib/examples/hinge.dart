@@ -59,7 +59,7 @@ class _HingeState extends State<Hinge> {
     final groundBody = cannon.Body(mass: 0, material: groundMaterial );
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    groundBody.position.y = -9;
+    groundBody.position.y = -1.2;
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -89,7 +89,6 @@ class _HingeState extends State<Hinge> {
     world.addContactMaterial(wheelGroundContactMaterial);
 
     // Position finalrain wheels
-    final zero = cannon.Vec3();
     leftFrontWheel.position.set(-5, 0, 5);
     rightFrontWheel.position.set(-5, 0, -5);
     leftRearWheel.position.set(5, 0, 5);
@@ -101,8 +100,8 @@ class _HingeState extends State<Hinge> {
     // Hinge the wheels
     final leftAxis = cannon.Vec3(0, 0, 1);
     final rightAxis = cannon.Vec3(0, 0, -1);
-    // final leftFrontAxis = cannon.Vec3(0, 0, 1)
-    // final rightFrontAxis = cannon.Vec3(0, 0, -1)
+    // final leftFrontAxis = cannon.Vec3(0, 0, 1);
+    // final rightFrontAxis = cannon.Vec3(0, 0, -1);
     final leftFrontAxis = cannon.Vec3(-0.3, 0, 0.7);
     final rightFrontAxis = cannon.Vec3(0.3, 0, -0.7);
     leftFrontAxis.normalize();
@@ -112,7 +111,6 @@ class _HingeState extends State<Hinge> {
       cannon.HingeConstraint(chassis, leftFrontWheel,
         pivotA: cannon.Vec3(-5, 0, 5),
         axisA: leftFrontAxis,
-        pivotB: zero,
         axisB: leftAxis,
       )
     );
@@ -120,7 +118,6 @@ class _HingeState extends State<Hinge> {
       cannon.HingeConstraint(chassis, rightFrontWheel,
         pivotA: cannon.Vec3(-5, 0, -5),
         axisA: rightFrontAxis,
-        pivotB: zero,
         axisB: rightAxis,
       )
     );
@@ -128,7 +125,6 @@ class _HingeState extends State<Hinge> {
       cannon.HingeConstraint(chassis, leftRearWheel,
         pivotA: cannon.Vec3(5, 0, 5),
         axisA: leftAxis,
-        pivotB: zero,
         axisB: leftAxis,
       )
     );
@@ -136,7 +132,6 @@ class _HingeState extends State<Hinge> {
       cannon.HingeConstraint(chassis, rightRearWheel,
         pivotA: cannon.Vec3(5, 0, -5),
         axisA: rightAxis,
-        pivotB: zero,
         axisB: rightAxis,
       )
     );
@@ -156,7 +151,7 @@ class _HingeState extends State<Hinge> {
     final frontRightHinge = constraints[3];
     frontLeftHinge.enableMotor();
     frontRightHinge.enableMotor();
-    const velocity = 14.0;
+    const velocity = -14.0;
     frontLeftHinge.setMotorSpeed(velocity);
     frontRightHinge.setMotorSpeed(-velocity);
   }
@@ -192,6 +187,7 @@ class _HingeState extends State<Hinge> {
 
   void setupWorld(){
     setScene();
+    demo.start();
   }
   @override
   Widget build(BuildContext context) {

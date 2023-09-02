@@ -35,7 +35,7 @@ class HingeConstraint extends PointToPointConstraint {
     this.axisB = axisB?.clone() ?? Vec3(1, 0, 0);
     this.axisB.normalize();
 
-    this.collideConnected = collideConnected ?? false;
+    this.collideConnected = collideConnected ?? true;
     rotationalEquation1 = RotationalEquation(bodyA, bodyB, axisA: this.axisA,axisB: this.axisB, maxForce: maxForce);
     final rotational1 = rotationalEquation1;
     rotationalEquation2 = RotationalEquation(bodyA, bodyB, axisA: this.axisA,axisB: this.axisB, maxForce: maxForce);

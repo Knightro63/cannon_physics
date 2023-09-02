@@ -3,8 +3,8 @@ class OverlapKeeper {
   List<int> previous = [];
 
   OverlapKeeper([List<int>? current,List<int>? previous]){
-    this.current = current ?? List.empty(growable: true);
-    this.previous = previous ?? List.empty(growable: true);
+    this.current = current != null?List.from(current):List.empty(growable: true);
+    this.previous = previous != null?List.from(previous):List.empty(growable: true);
   }
 
   /// getKey

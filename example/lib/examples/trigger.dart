@@ -75,7 +75,7 @@ class _TriggerState extends State<Trigger> {
     // of the trigger.
     triggerBody.addEventListener('collide', (event){
       if (event.body == sphereBody) {
-        //print('The sphere entered the trigger! $event');
+        print('The sphere entered the trigger! $event');
       }
     });
     world.addEventListener('endContact', (event){
