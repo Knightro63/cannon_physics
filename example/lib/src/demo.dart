@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -187,12 +186,17 @@ class Demo{
   late GeometryCache axesMeshCache;
   late GeometryCache p2pConstraintMeshCache;
 
+  List<Function(double dt)> events = [];
+
   void dispose(){
     disposed = true;
     three3dRender.dispose();
   }
   void addEventListener(Function(dynamic) listener){
     world.addEventListener('postStep', listener);
+  }
+  void addAnimationEvent(Function(double dt) event){
+    events.add(event);
   }
   void initGeometryCaches(){
     // Material
@@ -319,6 +323,9 @@ class Demo{
     Future.delayed(const Duration(milliseconds: 1000~/60), () {
       if(!pause){
         updatePhysics();
+        for(int i = 0; i < events.length;i++){
+          events[i].call(world.dt);
+        }
         updateVisuals();
       }
       animate();
@@ -663,7 +670,7 @@ class Demo{
         cannon.ContactEquation constraint = world.contacts[i];
 
         cannon.Body bi = constraint.bi;
-        cannon.Body bj = constraint.bj;
+        //cannon.Body bj = constraint.bj;
         Object3D line = normalMeshCache.request();
 
         cannon.Vec3 constraintNormal = constraint.ni;

@@ -56,10 +56,10 @@ class Body extends EventTarget {
 
     invMass = mass > 0 ? 1.0 / mass : 0;
     this.type = mass <= 0.0 ? BodyTypes.static : BodyTypes.dynamic;
-    if (type == BodyTypes.static) {
-      this.type = type!;
-    }
-
+    // if (type == BodyTypes.static) {
+    //   this.type = type!;
+    // }
+    this.type = type ?? this.type;
     if (quaternion != null) {
       this.quaternion.copy(quaternion);
       previousQuaternion.copy(quaternion);
@@ -343,8 +343,8 @@ class Body extends EventTarget {
   /// Add a shape to the body with a local offset and orientation.
   /// @return The body object, for chainability.
   Body addShape(Shape shape,[Vec3? offset, Quaternion? orientation]){
-    final off = offset?.copy(offset) ?? Vec3();
-    final or = orientation?.copy(orientation) ?? Quaternion();
+    final off = offset?.clone() ?? Vec3();
+    final or = orientation?.clone() ?? Quaternion();
 
     shapes.add(shape);
     shapeOffsets.add(off);

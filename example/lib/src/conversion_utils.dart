@@ -81,13 +81,13 @@ class ConversionUtils{
         final geometry = three.ConvexGeometry(vertices);
         geometry.computeBoundingSphere();
 
-        if (flatShading) {
+        if (!flatShading) {
           geometry.computeFaceNormals();
         } else {
           geometry.computeVertexNormals();
         }
 
-        return three.ConvexGeometry(vertices);
+        return geometry;
       }
 
       case cannon.ShapeType.heightfield: {

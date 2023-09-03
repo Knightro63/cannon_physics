@@ -1661,9 +1661,9 @@ class Narrowphase {
     cqj.vmult(local, local);
 
     if (sj.pointIsInside(local)) {
-      if (true||sj.worldVerticesNeedsUpdate) {
+      //if (true|| sj.worldVerticesNeedsUpdate) {
         sj.computeWorldVertices(xj, qj);
-      }
+      //}
       if (sj.worldFaceNormalsNeedsUpdate) {
         sj.computeWorldFaceNormals(qj);
       }

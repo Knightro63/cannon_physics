@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -196,7 +195,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     solver.tolerance = 0.1;
     //world.solver = cannon.SplitSolver(solver);
 
-    bool split = false;
+    bool split = true;
     if(split){
       world.solver = cannon.SplitSolver(solver);
     }

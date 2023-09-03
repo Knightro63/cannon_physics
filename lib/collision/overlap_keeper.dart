@@ -1,10 +1,10 @@
 class OverlapKeeper {
-  List<int> current = [];
-  List<int> previous = [];
+  Map<int,int> current = {};
+  Map<int,int> previous = {};
 
-  OverlapKeeper([List<int>? current,List<int>? previous]){
-    this.current = current != null?List.from(current):List.empty(growable: true);
-    this.previous = previous != null?List.from(previous):List.empty(growable: true);
+  OverlapKeeper([Map<int,int>? current,Map<int,int>? previous]){
+    this.current = current ?? {};
+    this.previous = previous ?? {};
   }
 
   /// getKey
@@ -23,18 +23,16 @@ class OverlapKeeper {
     final key = getKey(i, j);
     final current = this.current;
     int index = 0;
-    if(current.isNotEmpty){
-      while (key > current[index]) {
-        index++;
-      }
-      if (key == current[index]) {
-        return; // Pair was already added
-      }
-      for (int j = current.length - 1; j >= index; j--) {
-        current[j + 1] = current[j];
-      }
-      current[index] = key;
+    while (current[index] != null && key > current[index]!) {
+      index++;
     }
+    if (key == current[index]) {
+      return; // Pair was already added
+    }
+    for (int j = current.length - 1; j >= index; j--) {
+      current[j + 1] = current[j]!;
+    }
+    current[index] = key;
   }
 
   /// tick
@@ -55,33 +53,39 @@ class OverlapKeeper {
     int j = 0;
     for (int i = 0; i < al; i++) {
       bool found = false;
-      final keyA = a[i];
-      while (keyA > b[j]) {
+      final keyA = a[i]!;
+      while (b[j] != null && keyA > b[j]!) {
         j++;
       }
       found = keyA == b[j];
 
       if (!found) {
-        print('here');
         _unpackAndPush(additions, keyA);
       }
     }
     j = 0;
     for (int i = 0; i < bl; i++) {
       bool found = false;
-      final keyB = b[i];
-      while (keyB > a[j]) {
+      final keyB = b[i]!;
+      while (a[j] != null && keyB > a[j]!) {
         j++;
       }
       found = a[j] == keyB;
 
       if (!found) {
-        print('here');
         _unpackAndPush(removals, keyB);
       }
     }
   }
   void _unpackAndPush(List<int> array, int key) {
     array.addAll([(key & 0xffff0000) >> 16, key & 0x0000ffff]);
+  }
+
+  @override
+  String toString(){
+    return{
+      'current':current,
+      'previous':previous
+    }.toString();
   }
 }

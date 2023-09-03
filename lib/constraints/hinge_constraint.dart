@@ -29,10 +29,10 @@ class HingeConstraint extends PointToPointConstraint {
       double maxForce = 1e6
     }
   ):super(bodyA, bodyB, pivotA, pivotB, maxForce) {
-    this.axisA = axisA?.clone() ?? Vec3(1, 0, 0);
+    this.axisA = axisA ?? Vec3(1, 0, 0);
     this.axisA.normalize();
 
-    this.axisB = axisB?.clone() ?? Vec3(1, 0, 0);
+    this.axisB = axisB ?? Vec3(1, 0, 0);
     this.axisB.normalize();
 
     this.collideConnected = collideConnected ?? true;
@@ -91,7 +91,6 @@ class HingeConstraint extends PointToPointConstraint {
     // Get world axes
     bodyA.quaternion.vmult(axisA, worldAxisA);
     bodyB.quaternion.vmult(axisB, worldAxisB);
-
     worldAxisA.tangents(r1.axisA, r2.axisA);
     r1.axisB.copy(worldAxisB);
     r2.axisB.copy(worldAxisB);

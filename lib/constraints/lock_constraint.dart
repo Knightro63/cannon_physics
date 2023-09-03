@@ -24,8 +24,7 @@ class LockConstraint extends PointToPointConstraint {
     {
       double maxForce = 1e6
     }
-  ):super(bodyA, bodyB, Vec3(),Vec3(), maxForce) {
-
+  ):super(bodyA, bodyB, null,null, maxForce) {
     final halfWay = Vec3();
     bodyA.position.vadd(bodyB.position, halfWay);
     halfWay.scale(0.5, halfWay);
@@ -33,7 +32,6 @@ class LockConstraint extends PointToPointConstraint {
     bodyA.pointToLocalFrame(halfWay, pivotA);
 
     // The point-to-point constraint will keep a point shared between the bodies
-    
 
     // Store initial rotation of the bodies as unit vectors in the local body spaces
     xA = bodyA.vectorToLocalFrame(Vec3.unitX);

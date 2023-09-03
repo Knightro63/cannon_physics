@@ -38,14 +38,14 @@ class RotationalEquation extends Equation {
     final nixnj = _tmpVec1;
     final njxni = _tmpVec2;
     final ga = jacobianElementA;
-    //final gb = jacobianElementB;
+    final gb = jacobianElementB;
 
     // Caluclate cross products
     ni.cross(nj, nixnj);
     nj.cross(ni, njxni);
 
     ga.rotational.copy(njxni);
-    ga.rotational.copy(nixnj);
+    gb.rotational.copy(nixnj);
 
     final g = math.cos(maxAngle) - ni.dot(nj);
     final gW = computeGW();

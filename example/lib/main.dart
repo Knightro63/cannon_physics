@@ -1,9 +1,14 @@
-import 'package:cannon_physics_example/examples/basic_physics2.dart';
+import 'package:cannon_physics_example/examples/basic_physics.dart';
+import 'package:cannon_physics_example/examples/body_types.dart';
 import 'package:cannon_physics_example/examples/bounce.dart';
+import 'package:cannon_physics_example/examples/bunny.dart';
+import 'package:cannon_physics_example/examples/callback.dart';
 import 'package:cannon_physics_example/examples/collisions.dart';
+import 'package:cannon_physics_example/examples/constraints.dart';
 import 'package:cannon_physics_example/examples/fps.dart';
 import 'package:cannon_physics_example/examples/hinge.dart';
 import 'package:cannon_physics_example/examples/jenga.dart';
+import 'package:cannon_physics_example/examples/split_solver.dart';
 import 'package:cannon_physics_example/examples/spring.dart';
 import 'package:cannon_physics_example/examples/tear.dart';
 import 'package:cannon_physics_example/examples/trigger.dart';
@@ -27,7 +32,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Hinge(),
+      home: const Constraints(),
     );
   }
 }

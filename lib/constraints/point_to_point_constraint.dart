@@ -41,10 +41,8 @@ class PointToPointConstraint extends Constraint {
       double maxForce = 1e6
     ]
   ):super(bodyA, bodyB) {
-    pivotA ??= Vec3();
-    pivotB ??= Vec3();
-    this.pivotA = pivotA.clone();
-    this.pivotB = pivotB.clone();
+    this.pivotA = pivotA?.clone() ?? Vec3();
+    this.pivotB = pivotB?.clone() ?? Vec3();
     equationX = ContactEquation(bodyA, bodyB);
     final x = equationX;
     equationY = ContactEquation(bodyA, bodyB);

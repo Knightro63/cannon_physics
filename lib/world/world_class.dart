@@ -713,7 +713,6 @@ class World extends EventTarget {
       for (int i = 0, l = removals.length; i < l; i += 2) {
         endContactEvent.bodyA = getBodyById(removals[i]);
         endContactEvent.bodyB = getBodyById(removals[i + 1]);
-        print('here');
         dispatchEvent(endContactEvent);
       }
       endContactEvent.bodyA = endContactEvent.bodyB = null;

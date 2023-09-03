@@ -1,19 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
-import 'dart:math' as math;
-
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
 
 class Trigger extends StatefulWidget {
   const Trigger({
