@@ -138,7 +138,7 @@ class Heightfield extends Shape {
   /// Get max/min in a rectangle in the matrix data
   /// @param result An array to store the results in.
   /// @return The result array, if it was passed in. Minimum will be at position 0 and max at 1.
-  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double> result = const []]) {
+  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double> result = const [0,0]]) {
     // Get max and min of the data
     final data = this.data; // Set first value
 
@@ -274,7 +274,7 @@ class Heightfield extends Shape {
   }
 
   HeightfieldPillar? getCachedConvexTrianglePillar(int xi, int yi, bool getUpperTriangle){
-    return _cachedPillars[getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle)]!;
+    return _cachedPillars[getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle)];
   }
 
   void setCachedConvexTrianglePillar(
@@ -317,27 +317,27 @@ class Heightfield extends Shape {
     ConvexPolyhedron result = pillarConvex;
     Vec3 offsetResult = pillarOffset;
 
-    if (cacheEnabled) {
-      final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
-      if(data != null){
-        pillarConvex = data.convex;
-        pillarOffset = data.offset;
-        return;
-      }
+    // if (cacheEnabled) {
+    //   final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
+    //   if(data != null){
+    //     pillarConvex = data.convex;
+    //     pillarOffset = data.offset;
+    //     return;
+    //   }
 
-      result = ConvexPolyhedron();
-      offsetResult = Vec3();
+    //   result = ConvexPolyhedron();
+    //   offsetResult = Vec3();
 
-      pillarConvex = result;
-      pillarOffset = offsetResult;
-    }
+    //   pillarConvex = result;
+    //   pillarOffset = offsetResult;
+    // }
 
     final data = this.data;
     final elementSize = this.elementSize;
-    final faces = result.faces;
+    List faces = result.faces;
 
     // Reuse verts if possible
-    result.vertices.length = 6;
+    result.vertices = result.vertices.isEmpty? List.filled(6, Vec3()):result.vertices;
     for (int i = 0; i < 6; i++) {
       if (result.vertices[i] == Vec3()) {
         result.vertices[i] = Vec3();
@@ -345,12 +345,12 @@ class Heightfield extends Shape {
     }
 
     // Reuse faces if possible
-    faces.length = 5;
-    for (int i = 0; i < 5; i++) {
-      if (faces[i].isEmpty) {
-        faces[i] = [];
-      }
-    }
+    faces = faces.isEmpty? List.filled(5, List.filled(5,0)):faces;
+    // for (int i = 0; i < 5; i++) {
+    //   if (faces[i].isEmpty) {
+    //     faces[i] = [];
+    //   }
+    // }
 
     final verts = result.vertices;
 

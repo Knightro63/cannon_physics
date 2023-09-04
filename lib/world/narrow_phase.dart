@@ -437,6 +437,7 @@ class Narrowphase {
         (bi.type == BodyTypes.kinematic && bj.type == BodyTypes.static) ||
         (bi.type == BodyTypes.static && bj.type == BodyTypes.kinematic) ||
         (bi.type == BodyTypes.kinematic && bj.type == BodyTypes.kinematic);
+
       for (int i = 0; i < bi.shapes.length; i++) {
         bi.quaternion.mult(bi.shapeOrientations[i], qi);
         bi.quaternion.vmult(bi.shapeOffsets[i], xi);
@@ -1309,7 +1310,7 @@ class Narrowphase {
       iMinY = data[0].length - 1;
     }
 
-    final List<double> minMax = [];
+    final List<double> minMax = [0,0];
     sj.getRectMinMax(iMinX, iMinY, iMaxX, iMaxY, minMax);
     final min = minMax[0];
     final max = minMax[1];

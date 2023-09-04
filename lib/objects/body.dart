@@ -342,13 +342,20 @@ class Body extends EventTarget {
 
   /// Add a shape to the body with a local offset and orientation.
   /// @return The body object, for chainability.
-  Body addShape(Shape shape,[Vec3? offset, Quaternion? orientation]){
-    final off = offset?.clone() ?? Vec3();
-    final or = orientation?.clone() ?? Quaternion();
+  Body addShape(Shape shape,[Vec3? _offset, Quaternion? _orientation]){
+    final offset = Vec3();
+    final orientation = Quaternion();
+
+    if (_offset != null) {
+      offset.copy(_offset);
+    }
+    if (_orientation != null) {
+      orientation.copy(_orientation);
+    }
 
     shapes.add(shape);
-    shapeOffsets.add(off);
-    shapeOrientations.add(or);
+    shapeOffsets.add(offset);
+    shapeOrientations.add(orientation);
     updateMassProperties();
     updateBoundingRadius();
 

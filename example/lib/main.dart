@@ -3,9 +3,18 @@ import 'package:cannon_physics_example/examples/body_types.dart';
 import 'package:cannon_physics_example/examples/bounce.dart';
 import 'package:cannon_physics_example/examples/bunny.dart';
 import 'package:cannon_physics_example/examples/callback.dart';
+import 'package:cannon_physics_example/examples/collision_filter.dart';
 import 'package:cannon_physics_example/examples/collisions.dart';
-import 'package:cannon_physics_example/examples/constraints.dart';
+import 'package:cannon_physics_example/examples/compound.dart';
+import 'package:cannon_physics_example/examples/constraints.dart'; //fix
+import 'package:cannon_physics_example/examples/container.dart'; //fix
+import 'package:cannon_physics_example/examples/convex.dart';
+import 'package:cannon_physics_example/examples/events.dart';
+import 'package:cannon_physics_example/examples/fixed_rotation.dart';
 import 'package:cannon_physics_example/examples/fps.dart';
+import 'package:cannon_physics_example/examples/friction.dart';
+import 'package:cannon_physics_example/examples/friction_gravity.dart';
+import 'package:cannon_physics_example/examples/heightfield.dart';
 import 'package:cannon_physics_example/examples/hinge.dart';
 import 'package:cannon_physics_example/examples/jenga.dart';
 import 'package:cannon_physics_example/examples/split_solver.dart';
@@ -32,7 +41,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Constraints(),
+      home: const Heightfield(),
     );
   }
 }

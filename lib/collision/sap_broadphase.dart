@@ -10,9 +10,6 @@ class SAPBroadphase extends Broadphase {
   /// List of bodies currently in the broadphase.
   List<Body> axisList = [];
 
-  /// The world to search in.
-  //World? world;
-
   /// Axis to sort the bodies along.
   /// Set to 0 for x axis, and 1 for y axis.
   /// For best performance, pick the axis where bodies are most distributed.
@@ -21,11 +18,12 @@ class SAPBroadphase extends Broadphase {
   late void Function(dynamic event) _addBodyHandler;
   late void Function(dynamic event) _removeBodyHandler;
 
-  SAPBroadphase(world):super() {
+  SAPBroadphase(World? world):super() {
+    this.world = world;
     final axisList = this.axisList;
 
     _addBodyHandler = (dynamic event){
-      axisList.add(event);
+      axisList.addAll(event.target.bodies);
     };
 
     _removeBodyHandler = (dynamic event){
@@ -35,7 +33,7 @@ class SAPBroadphase extends Broadphase {
       }
     };
 
-    if (world) {
+    if (world != null) {
       setWorld(world);
     }
   }

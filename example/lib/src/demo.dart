@@ -123,7 +123,7 @@ class Demo{
 
   late cannon.World world;
   List<cannon.Body> bodies = [];
-  List<three.Mesh> visuals = [];
+  List<three.Object3D> visuals = [];
   late DemoSettings settings;
 
   bool animationReady = false;
@@ -418,8 +418,8 @@ class Demo{
     // });
 
     bodies.add(body);
-    visuals.addAll(mesh);
-    scene.addAll(mesh);
+    visuals.add(mesh);
+    scene.add(mesh);
   }
   void addVisuals(List<cannon.Body> bodies) {
     bodies.forEach((body){

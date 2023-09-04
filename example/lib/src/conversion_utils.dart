@@ -166,15 +166,13 @@ class ConversionUtils{
     }
   }
 
-  static List<Mesh> bodyToMesh(cannon.Body body, material) {
-    final List<Mesh> group = [];
-
-    // group.position.copy(body.position.toVector3());
-    // group.quaternion.copy(body.quaternion.toQuaternion());
+  static Object3D bodyToMesh(cannon.Body body, material) {
+    final group = Group();
+    group.position.copy(body.position.toVector3());
+    group.quaternion.copy(body.quaternion.toQuaternion());
 
     final meshes = body.shapes.map((shape){
       final geometry = shapeToGeometry(shape);
-
       return three.Mesh(geometry, material);
     });
     
@@ -184,7 +182,6 @@ class ConversionUtils{
       final orientation = body.shapeOrientations[i];
       mesh.position.copy(offset);
       mesh.quaternion.copy(orientation.toQuaternion());
-
       group.add(mesh);
       i++;
     });
