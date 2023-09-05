@@ -104,9 +104,42 @@ class WheelInfo {
     this.axleLocal = axleLocal?.clone() ?? Vec3();
     this.axleWorld = axleWorld?.clone() ?? Vec3();
   }
-  
   final _relpos = Vec3();
-
+  
+  WheelInfo copy(){
+    return WheelInfo(
+      chassisConnectionPointLocal:chassisConnectionPointLocal,
+      chassisConnectionPointWorld:chassisConnectionPointWorld,
+      directionLocal:directionLocal,
+      directionWorld:directionWorld,
+      axleLocal:axleLocal,
+      axleWorld:axleWorld,
+      suspensionRestLength:suspensionRestLength,
+      suspensionMaxLength:suspensionMaxLength,
+      radius:radius,
+      suspensionStiffness:suspensionStiffness,
+      dampingCompression:dampingCompression,
+      dampingRelaxation:dampingRelaxation,
+      frictionSlip:frictionSlip,
+      forwardAcceleration:forwardAcceleration,
+      sideAcceleration:sideAcceleration,
+      steering:steering,
+      rotation:rotation,
+      deltaRotation:deltaRotation,
+      rollInfluence:rollInfluence,
+      maxSuspensionForce:maxSuspensionForce,
+      isFrontWheel:isFrontWheel,
+      clippedInvContactDotSuspension:clippedInvContactDotSuspension,
+      suspensionRelativeVelocity:suspensionRelativeVelocity,
+      suspensionForce:suspensionForce,
+      slipInfo:slipInfo,
+      skidInfo:skidInfo,
+      suspensionLength:suspensionLength,
+      maxSuspensionTravel:maxSuspensionTravel,
+      useCustomSlidingRotationalSpeed:useCustomSlidingRotationalSpeed,
+      customSlidingRotationalSpeed:customSlidingRotationalSpeed
+    );
+  }
   void updateWheel(Body chassis) {
     final raycastResult = this.raycastResult;
 

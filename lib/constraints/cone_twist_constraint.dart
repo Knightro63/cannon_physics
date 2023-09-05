@@ -44,24 +44,33 @@ class ConeTwistConstraint extends PointToPointConstraint {
     this.axisA = axisA?.clone() ?? Vec3();
     this.axisB = axisB?.clone() ?? Vec3();
 
-    coneEquation = ConeEquation(bodyA, bodyB, maxForce: maxForce, angle: angle, axisA: this.axisA, axisB: this.axisB);
+    coneEquation = ConeEquation(
+      bodyA, 
+      bodyB, 
+      maxForce: 0, 
+      angle: angle, 
+      axisA: this.axisA, 
+      axisB: this.axisB
+    );
     final c = coneEquation;
-    twistEquation = RotationalEquation(bodyA, bodyB, maxForce: maxForce, axisA: this.axisA, axisB: this.axisB);
+    twistEquation = RotationalEquation(
+      bodyA, 
+      bodyB,
+      maxAngle: twistAngle,
+      maxForce: 0, 
+      axisA: this.axisA, 
+      axisB: this.axisB
+    );
     final t = twistEquation;
 
     // Make the cone equation push the bodies toward the cone axis, not outward
-    c.maxForce = 0;
     c.minForce = -maxForce;
 
     // Make the twist equation add torque toward the initial position
-    t.maxForce = 0;
     t.minForce = -maxForce;
 
     equations.addAll([c,t]);
   }
-
-  // final _coneTwistConstraintUpdateTmpVec1 = Vec3();
-  // final _coneTwistConstraintUpdateTmpVec2 = Vec3();
 
   @override
   void update() {
@@ -83,7 +92,5 @@ class ConeTwistConstraint extends PointToPointConstraint {
     axisB.tangents(twist.axisB, twist.axisB);
     bodyB.vectorToWorldFrame(twist.axisB, twist.axisB);
 
-    cone.angle = angle;
-    twist.maxAngle = twistAngle;
   }
 }

@@ -26,7 +26,7 @@ class _HeightfieldState extends State<Heightfield> {
       onSetupComplete: (){setState(() {});},
       settings: DemoSettings(
         gx: 0,
-        gy: 0,
+        gy: -10,
         gz: 0,
       )
     );
@@ -96,7 +96,7 @@ class _HeightfieldState extends State<Heightfield> {
 
   void setupWorld(){
     setScene();
-    demo.start();
+    //demo.start();
   }
   @override
   Widget build(BuildContext context) {

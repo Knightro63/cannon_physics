@@ -138,7 +138,10 @@ class Heightfield extends Shape {
   /// Get max/min in a rectangle in the matrix data
   /// @param result An array to store the results in.
   /// @return The result array, if it was passed in. Minimum will be at position 0 and max at 1.
-  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double> result = const [0,0]]) {
+  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double>? result]) {
+    if(result == null || result.isEmpty){
+      result = [0,0];
+    }
     // Get max and min of the data
     final data = this.data; // Set first value
 
@@ -160,6 +163,9 @@ class Heightfield extends Shape {
   /// @param result Two-element array
   /// @param clamp If the position should be clamped to the heightfield edge.
   bool getIndexOfPosition(double x, double y, List<int> result, bool clamp) {
+    if(result.isEmpty){
+      result = [0,0];
+    }
     // Get the index of the data points to test against
     final w = elementSize;
     final data = this.data;
@@ -317,42 +323,47 @@ class Heightfield extends Shape {
     ConvexPolyhedron result = pillarConvex;
     Vec3 offsetResult = pillarOffset;
 
-    // if (cacheEnabled) {
-    //   final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
-    //   if(data != null){
-    //     pillarConvex = data.convex;
-    //     pillarOffset = data.offset;
-    //     return;
-    //   }
+    if (cacheEnabled) {
+      final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
+      if(data != null){
+        pillarConvex = data.convex;
+        pillarOffset = data.offset;
+        return;
+      }
 
-    //   result = ConvexPolyhedron();
-    //   offsetResult = Vec3();
+      result = ConvexPolyhedron();
+      offsetResult = Vec3();
 
-    //   pillarConvex = result;
-    //   pillarOffset = offsetResult;
-    // }
+      pillarConvex = result;
+      pillarOffset = offsetResult;
+    }
 
     final data = this.data;
     final elementSize = this.elementSize;
-    List faces = result.faces;
 
     // Reuse verts if possible
     result.vertices = result.vertices.isEmpty? List.filled(6, Vec3()):result.vertices;
-    for (int i = 0; i < 6; i++) {
-      if (result.vertices[i] == Vec3()) {
-        result.vertices[i] = Vec3();
-      }
-    }
+    
+    // for (int i = 0; i < 6; i++) {
+    //   if (result.vertices[i] == Vec3()) {
+    //     result.vertices[i] = Vec3();
+    //   }
+    // }
 
     // Reuse faces if possible
-    faces = faces.isEmpty? List.filled(5, List.filled(5,0)):faces;
+    result.faces = result.faces.isEmpty? List.filled(5, List.filled(4, 0)):result.faces;
     // for (int i = 0; i < 5; i++) {
     //   if (faces[i].isEmpty) {
-    //     faces[i] = [];
+    //     int len = 4;
+    //     if(i < 2){
+    //       len = 3;
+    //     }
+    //     faces[i] = List.filled(len, 0);
     //   }
     // }
 
     final verts = result.vertices;
+    final faces = result.faces;
 
     final h =(
       math.min(

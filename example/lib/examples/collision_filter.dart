@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 

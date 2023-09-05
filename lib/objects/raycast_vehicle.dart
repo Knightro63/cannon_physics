@@ -75,7 +75,7 @@ class RaycastVehicle {
 
   /// Add a wheel. For information about the options, see `WheelInfo`.
   int addWheel([WheelInfo? wheelInfo]){
-    final info = wheelInfo ?? WheelInfo();
+    final info = wheelInfo?.copy() ?? WheelInfo();
     final index = wheelInfos.length;
     wheelInfos.add(info);
 
@@ -387,8 +387,6 @@ class RaycastVehicle {
     List<Vec3> axle = updateFrictionAxle;
 
     numWheelsOnGround = 0;
-    final int forwardWSLength = forwardWS.length;
-    final int axleLength = axle.length;
 
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
@@ -400,11 +398,11 @@ class RaycastVehicle {
 
       wheel.sideImpulse = 0;
       wheel.forwardImpulse = 0;
-      if (forwardWSLength < i){//!forwardWS[i]) {
-        forwardWS[i] = Vec3();
+      if (forwardWS.length-1 < i){//!forwardWS[i]) {
+        forwardWS.add(Vec3());
       }
-      if (axleLength < i){//!axle[i]) {
-        axle[i] = Vec3();
+      if (axle.length-1 < i){//!axle[i]) {
+        axle.add(Vec3());
       }
     }
 

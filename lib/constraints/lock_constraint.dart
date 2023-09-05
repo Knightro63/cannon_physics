@@ -42,19 +42,27 @@ class LockConstraint extends PointToPointConstraint {
     zB = bodyB.vectorToLocalFrame(Vec3.unitZ);
 
     // ...and the following rotational equations will keep all rotational DOF's in place
-    rotationalEquation1 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    rotationalEquation1 = RotationalEquation(
+      bodyA, 
+      bodyB, 
+      maxForce: maxForce, 
+    );
     final r1 = rotationalEquation1;
-    rotationalEquation2 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    rotationalEquation2 = RotationalEquation(
+      bodyA, 
+      bodyB, 
+      maxForce: maxForce, 
+    );
     final r2 = rotationalEquation2;
-    rotationalEquation3 = RotationalEquation(bodyA, bodyB, maxForce: maxForce);
+    rotationalEquation3 = RotationalEquation(
+      bodyA, 
+      bodyB, 
+      maxForce: maxForce, 
+    );
     final r3 = rotationalEquation3;
 
     equations.addAll([r1,r2,r3]);
   }
-
-
-  //final _lockConstraintUpdateTmpVec1 = Vec3();
-  //final _lockConstraintUpdateTmpVec2 = Vec3();
 
   /// update
   @override

@@ -3,8 +3,8 @@ import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
-class ContainerCP extends StatefulWidget {
-  const ContainerCP({
+class Pile extends StatefulWidget {
+  const Pile({
     Key? key,
     this.offset = const Offset(0,0),
     this.settings
@@ -14,10 +14,10 @@ class ContainerCP extends StatefulWidget {
   final DemoSettings? settings;
 
   @override
-  _ContainerState createState() => _ContainerState();
+  _PileState createState() => _PileState();
 }
 
-class _ContainerState extends State<ContainerCP> {
+class _PileState extends State<Pile> {
   late Demo demo;
 
   @override
@@ -26,13 +26,13 @@ class _ContainerState extends State<ContainerCP> {
       onSetupComplete: (){setState(() {});},
       settings: DemoSettings(
         gx: 0,
-        gy: -30,
+        gy: -50,
         gz: 0,
-        k: 1e11,
-        d: 2,
-        quatNormalizeSkip: 8,
+        iterations: 5,
+        k: 5e6,
+        d: 10,
         quatNormalizeFast: true,
-        iterations: 10
+        quatNormalizeSkip: 3
       )
     );
     setupWorld();
@@ -43,33 +43,18 @@ class _ContainerState extends State<ContainerCP> {
     demo.dispose();
     super.dispose();
   }
-
-  void createContainer(nx, ny, nz) {
+  void setScene() {
     final world = demo.world;
 
-    world.broadphase = cannon.SAPBroadphase(world);
-
-    // Materials
-    final stone = cannon.Material(name: 'stone');
-    final stone_stone = cannon.ContactMaterial(
-      stone, 
-      stone,
-      friction: 0.3,
-      restitution: 0.2,
-    );
-    world.addContactMaterial(stone_stone);
-
-    // Ground plane
     final groundShape = cannon.Plane();
-    final groundBody = cannon.Body(mass: 0, material: stone);
+    final groundBody = cannon.Body(mass: 0 );
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
-    // Plane -x
     final planeShapeXmin = cannon.Plane();
-    final planeXmin = cannon.Body(mass: 0, material: stone);
+    final planeXmin = cannon.Body(mass: 0);
     planeXmin.addShape(planeShapeXmin);
     planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
     planeXmin.position.set(-5, 0, 0);
@@ -77,7 +62,7 @@ class _ContainerState extends State<ContainerCP> {
 
     // Plane +x
     final planeShapeXmax = cannon.Plane();
-    final planeXmax = cannon.Body( mass: 0, material: stone);
+    final planeXmax = cannon.Body(mass: 0 );
     planeXmax.addShape(planeShapeXmax);
     planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
     planeXmax.position.set(5, 0, 0);
@@ -85,7 +70,7 @@ class _ContainerState extends State<ContainerCP> {
 
     // Plane -z
     final planeShapeZmin = cannon.Plane();
-    final planeZmin = cannon.Body(mass: 0, material: stone);
+    final planeZmin = cannon.Body(mass: 0);
     planeZmin.addShape(planeShapeZmin);
     planeZmin.quaternion.setFromEuler(0, 0, 0);
     planeZmin.position.set(0, 0, -5);
@@ -93,41 +78,39 @@ class _ContainerState extends State<ContainerCP> {
 
     // Plane +z
     final planeShapeZmax = cannon.Plane();
-    final planeZmax = cannon.Body(mass: 0, material: stone );
+    final planeZmax = cannon.Body(mass: 0);
     planeZmax.addShape(planeShapeZmax);
     planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
     planeZmax.position.set(0, 0, 5);
     world.addBody(planeZmax);
 
-    // Create spheres
-    const randRange = 0.1;
-    const heightOffset = 0;
-    final sphereShape = cannon.Sphere(1); // Sharing shape saves memory
+    const size = 1.0;
+    List<cannon.Body> bodies = [];
+    int i = 0;
 
-    world.allowSleep = true;
-    for (int i = 0; i < nx; i++) {
-      for (int j = 0; j < ny; j++) {
-        for (int k = 0; k < nz; k++) {
-          final sphereBody = cannon.Body(mass: 5, material: stone );
-          sphereBody.addShape(sphereShape);
-          sphereBody.position.set(
-            -(i * 2 - nx * 0.5 + (Math.random() - 0.5) * randRange),
-            1 + k * 2.1 + heightOffset,
-            j * 2 - ny * 0.5 + (Math.random() - 0.5) * randRange
-          );
-          sphereBody.allowSleep = true;
-          sphereBody.sleepSpeedLimit = 1;
-          sphereBody.sleepTimeLimit = 5;
+    demo.addAnimationEvent((dt){
+      i++;
+      final sphereShape = cannon.Sphere(size);
+      final sphereBody = cannon.Body(
+        mass: 5,
+        position: cannon.Vec3(-size * 2 * Math.sin(i), size * 2 * 7, size * 2 * Math.cos(i)),
+      );
+      sphereBody.addShape(sphereShape);
+      world.addBody(sphereBody);
+      demo.addVisual(sphereBody);
+      bodies.add(sphereBody);
 
-          world.addBody(sphereBody);
-          demo.addVisual(sphereBody);
-        }
+      if (bodies.length > 80) {
+        final bodyToKill = bodies.removeAt(0);
+        demo.removeVisual(bodyToKill);
+        world.removeBody(bodyToKill);
       }
-    }
+    });
   }
 
   void setupWorld(){
-    createContainer(4, 4, 30);
+    setScene();
+    demo.start();
   }
   @override
   Widget build(BuildContext context) {

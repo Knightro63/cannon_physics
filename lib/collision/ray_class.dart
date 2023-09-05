@@ -261,7 +261,7 @@ class Ray {
 
     final intersectMethod = this[shape.type];
     if (intersectMethod != null) {
-      intersectMethod.call(this, shape, quat, position, body, shape);
+      intersectMethod.call(shape, quat, position, body, shape);
     }
   }
 

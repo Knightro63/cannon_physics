@@ -342,20 +342,20 @@ class Body extends EventTarget {
 
   /// Add a shape to the body with a local offset and orientation.
   /// @return The body object, for chainability.
-  Body addShape(Shape shape,[Vec3? _offset, Quaternion? _orientation]){
-    final offset = Vec3();
-    final orientation = Quaternion();
+  Body addShape(Shape shape,[Vec3? offset, Quaternion? orientation]){
+    final off = Vec3();
+    final or = Quaternion();
 
-    if (_offset != null) {
-      offset.copy(_offset);
+    if (offset != null) {
+      off.copy(offset);
     }
-    if (_orientation != null) {
-      orientation.copy(_orientation);
+    if (orientation != null) {
+      or.copy(orientation);
     }
 
     shapes.add(shape);
-    shapeOffsets.add(offset);
-    shapeOrientations.add(orientation);
+    shapeOffsets.add(off);
+    shapeOrientations.add(or);
     updateMassProperties();
     updateBoundingRadius();
 
@@ -526,7 +526,8 @@ class Body extends EventTarget {
   /// Impulses will be added to Body.velocity and Body.angularVelocity.;
   /// @param impulse The amount of impulse to add.;
   /// @param relativePoint A point relative to the center of mass to apply the force on.
-  void applyImpulse(Vec3 impulse, Vec3 relativePoint){
+  void applyImpulse(Vec3 impulse, [Vec3? relativePoint]){
+    relativePoint ??= Vec3();
     if (type != BodyTypes.dynamic) {
       return;
     }

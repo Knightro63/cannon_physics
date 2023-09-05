@@ -20,14 +20,13 @@ class SAPBroadphase extends Broadphase {
 
   SAPBroadphase(World? world):super() {
     this.world = world;
-    final axisList = this.axisList;
 
     _addBodyHandler = (dynamic event){
-      axisList.addAll(event.target.bodies);
+      axisList.add(event.target.bodies.last);
     };
 
     _removeBodyHandler = (dynamic event){
-      final idx = axisList.indexOf(event);
+      final idx = axisList.indexOf(event.target.bodies.last);
       if (idx != -1) {
         axisList.removeAt(idx);
       }
@@ -140,8 +139,6 @@ class SAPBroadphase extends Broadphase {
     final bodies = axisList;
     final N = bodies.length;
     final axisIndex = this.axisIndex;
-    int i;
-    int j;
 
     if (dirty) {
       sortList();
@@ -149,10 +146,10 @@ class SAPBroadphase extends Broadphase {
     }
 
     // Look through the list
-    for (i = 0; i != N; i++) {
+    for (int i = 0; i != N; i++) {
       final bi = bodies[i];
 
-      for (j = i + 1; j < N; j++) {
+      for (int j = i + 1; j < N; j++) {
         final bj = bodies[j];
 
         if (!needBroadphaseCollision(bi, bj)) {

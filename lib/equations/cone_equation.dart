@@ -16,10 +16,10 @@ class ConeEquation extends Equation {
     Body bodyA,
     Body bodyB,
     {
-      double maxForce = 1e6,
       Vec3? axisA,
       Vec3? axisB,
-      this.angle = 0
+      this.angle = 0,
+      double maxForce = 1e6,
     }
   ):super(bodyA,bodyB,-maxForce,maxForce) {
     this.axisA = axisA?.clone() ?? Vec3(1, 0, 0);

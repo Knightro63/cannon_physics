@@ -119,7 +119,9 @@ class Demo{
   }
 
   final GlobalKey<DomLikeListenableState> globalKey = GlobalKey<DomLikeListenableState>();
-  FocusNode _node = FocusNode();
+  DomLikeListenableState get domElement => globalKey.currentState!;
+
+  Map<String,Function> domElements = {};
 
   late cannon.World world;
   List<cannon.Body> bodies = [];
@@ -198,6 +200,9 @@ class Demo{
   void addAnimationEvent(Function(double dt) event){
     events.add(event);
   }
+  void addDomListener(String type, Function function){
+    domElements[type] = function;
+  } 
   void initGeometryCaches(){
     // Material
     int materialColor = 0xdddddd;
@@ -371,6 +376,10 @@ class Demo{
     _spotLight.shadow!.mapSize.height = 2048;
 
     scene.add(_spotLight);
+
+    for(String type in domElements.keys){
+      domElement.addEventListener(type, domElements[type]!);
+    }
   }
   void setRenderMode(RenderMode mode){
     switch(mode) {
@@ -753,65 +762,29 @@ class Demo{
         width: screenSize!.width,
         height: screenSize!.height,
         color: Theme.of(context).canvasColor,
-        child: RawKeyboardListener(
-          focusNode: _node,
-          onKey: (event){
-            if(event is RawKeyDownEvent){
-              if(
-                event.data.logicalKey == LogicalKeyboardKey.keyW || 
-                event.data.logicalKey == LogicalKeyboardKey.keyA || 
-                event.data.logicalKey == LogicalKeyboardKey.keyS || 
-                event.data.logicalKey == LogicalKeyboardKey.keyD || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowUp || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowLeft || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowDown || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowRight ||
-                event.data.logicalKey == LogicalKeyboardKey.space
-              ){
-                keyStates[event.data.logicalKey] = true;
-              }
-            }
-            else if(event is RawKeyUpEvent){
-              if(
-                event.data.logicalKey == LogicalKeyboardKey.keyW || 
-                event.data.logicalKey == LogicalKeyboardKey.keyA || 
-                event.data.logicalKey == LogicalKeyboardKey.keyS || 
-                event.data.logicalKey == LogicalKeyboardKey.keyD ||
-                event.data.logicalKey == LogicalKeyboardKey.arrowUp || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowLeft || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowDown || 
-                event.data.logicalKey == LogicalKeyboardKey.arrowRight ||
-                event.data.logicalKey == LogicalKeyboardKey.space
-              ){
-                keyStates[event.data.logicalKey] = false;
-              }
-            }
-          },
-          child: DomLikeListenable(
-            key: globalKey,
-            builder: (BuildContext context) {
-              FocusScope.of(context).requestFocus(_node);
-              return Container(
-                width: width,
-                height: height,
-                color: Theme.of(context).canvasColor,
-                child: Builder(builder: (BuildContext context) {
-                  if (kIsWeb) {
-                    return three3dRender.isInitialized
-                        ? HtmlElementView(
-                            viewType:
-                                three3dRender.textureId!.toString())
-                        : Container();
-                  } else {
-                    return three3dRender.isInitialized
-                        ? Texture(textureId: three3dRender.textureId!)
-                        : Container();
-                  }
-                })
-              );
-            }
-          ),
-        )
+        child: DomLikeListenable(
+          key: globalKey,
+          builder: (BuildContext context) {
+            return Container(
+              width: width,
+              height: height,
+              color: Theme.of(context).canvasColor,
+              child: Builder(builder: (BuildContext context) {
+                if (kIsWeb) {
+                  return three3dRender.isInitialized
+                      ? HtmlElementView(
+                          viewType:
+                              three3dRender.textureId!.toString())
+                      : Container();
+                } else {
+                  return three3dRender.isInitialized
+                      ? Texture(textureId: three3dRender.textureId!)
+                      : Container();
+                }
+              })
+            );
+          }
+        ),
       );
     });
   }

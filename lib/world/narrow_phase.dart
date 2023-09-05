@@ -1476,7 +1476,7 @@ class Narrowphase {
       iMinY = data[0].length - 1;
     }
 
-    final List<double> minMax = [];
+    final List<double> minMax = [0,0];
     sj.getRectMinMax(iMinX, iMinY, iMaxX, iMaxY, minMax);
     final min = minMax[0];
     final max = minMax[1];

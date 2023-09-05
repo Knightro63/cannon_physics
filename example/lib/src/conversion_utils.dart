@@ -89,24 +89,20 @@ class ConversionUtils{
 
         return geometry;
       }
-
       case cannon.ShapeType.heightfield: {
         shape as cannon.Heightfield;
         final geometry = three.BufferGeometry();
 
-        final v0 = cannon.Vec3();
-        final v1 = cannon.Vec3();
-        final v2 = cannon.Vec3();
-
         List<double> vertices = [];  
-        List<num> indices = []; 
+        List<int> indices = []; 
+
         for (int xi = 0; xi < shape.data.length - 1; xi++) {
           for (int yi = 0; yi < shape.data[xi].length - 1; yi++) {
             for (int k = 0; k < 2; k++) {
               shape.getConvexTrianglePillar(xi, yi, k == 0);
-              v0.copy(shape.pillarConvex.vertices[0]);
-              v1.copy(shape.pillarConvex.vertices[1]);
-              v2.copy(shape.pillarConvex.vertices[2]);
+              final v0 = shape.pillarConvex.vertices[0];
+              final v1 = shape.pillarConvex.vertices[1];
+              final v2 = shape.pillarConvex.vertices[2];
               v0.vadd(shape.pillarOffset, v0);
               v1.vadd(shape.pillarOffset, v1);
               v2.vadd(shape.pillarOffset, v2);
@@ -115,8 +111,8 @@ class ConversionUtils{
                 v1.x, v1.y, v1.z,
                 v2.x, v2.y, v2.z
               ]);
-              final i = vertices.length - 3;
-              indices.addAll([i, i + 1, i + 2]);
+              int i = vertices.length - 3;
+              indices.addAll([i,i+1,i+2]);
             }
           }
         }
