@@ -23,8 +23,8 @@ class SPHSystem {
   double viscosity = 0.01;
   double eps = 0.00001;
 
-  List<double> pressures = [];
-  List<double> densities = [];
+  Map<int,double> pressures = {};
+  Map<int,double> densities = {};
   List<List<Body>> neighbors = [];
 
   SPHSystem();
@@ -103,7 +103,7 @@ class SPHSystem {
 
       // Save
       densities[i] = sum;
-      pressures[i] = cs * cs * (densities[i] - density);
+      pressures[i] = cs * cs * (densities[i]! - density);
     }
 
     // Add forces
@@ -141,8 +141,8 @@ class SPHSystem {
         // Pressure contribution
         pij =
           -neighbor.mass *
-          (pressures[i] / (densities[i] * densities[i] + eps) +
-            pressures[j] / (densities[j] * densities[j] + eps));
+          (pressures[i]! / (densities[i]! * densities[i]! + eps) +
+            pressures[j]! / (densities[j]! * densities[j]! + eps));
         gradw(rVec, gradW);
         // Add to pressure acceleration
         gradW.scale(pij, gradW);
@@ -150,7 +150,7 @@ class SPHSystem {
 
         // Viscosity contribution
         neighbor.velocity.vsub(particle.velocity, u);
-        u.scale((1.0 / (0.0001 + densities[i] * densities[j])) * viscosity * neighbor.mass, u);
+        u.scale((1.0 / (0.0001 + densities[i]! * densities[j]!)) * viscosity * neighbor.mass, u);
         nabla = nablaw(r);
         u.scale(nabla, u);
         // Add to viscosity acceleration

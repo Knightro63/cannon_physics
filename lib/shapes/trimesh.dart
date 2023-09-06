@@ -7,12 +7,21 @@ import '../collision/aabb.dart';
 import '../utils/octree.dart';
 import '../math/quaternion.dart';
 
-final _cb = Vec3();
-final _ab = Vec3();
+class TorusGeometry{
+  TorusGeometry([
+    this.radius = 1,
+    this.tube = 0.5,
+    this.radialSegments = 8,
+    this.tubularSegments = 6,
+    this.arc = math.pi * 2
+  ]);
 
-final _va = Vec3();
-final _vb = Vec3();
-final _vc = Vec3();
+  final double arc;
+  final double radius;
+  final double tube;
+  final int radialSegments;
+  final int tubularSegments;
+}
 
 /// Trimesh.
 /// @example
@@ -27,30 +36,38 @@ final _vc = Vec3();
 ///     ]
 ///     final trimeshShape = CANNON.Trimesh(vertices, indices)
 class Trimesh extends Shape {
-  late Float32List vertices;
+  late final List<double> vertices;
 
   /// Array of integers, indicating which vertices each triangle consists of. The length of this array is thus 3 times the number of triangles.
-  late Uint16List indices; 
-  late Float32List normals;
+  late final List<int> indices; 
+  late final List<double> normals;
+  late final List<double>? uvs;
+
   /// The local AABB of the mesh.
-  AABB aabb = AABB();
+  final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
   Uint16List? edges;
 
   /// Local scaling of the mesh. Use .setScale() to set it.
-  Vec3 scale = Vec3(1, 1, 1);
+  final Vec3 scale = Vec3(1, 1, 1);
 
   /// The indexed triangles. Use .updateTree() to update it.
-  Octree tree = Octree();
+  final Octree tree = Octree();
 
-  Trimesh(List<double> vertices, List<int> indices):super(type: ShapeType.trimesh) {
-    this.vertices = Float32List.fromList(vertices);
-    this.indices = Uint16List.fromList(indices);
-    normals = Float32List(indices.length);
+  late final TorusGeometry torus;
 
+  Trimesh(this.vertices, this.indices, [List<double>? normals, this.uvs]):super(type: ShapeType.trimesh) {
     updateEdges();
-    updateNormals();
+
+    //if(normals == null){
+      this.normals = Float32List(indices.length);
+      updateNormals();
+    // }
+    // else{
+    //   this.normals = normals;
+    // }
+    
     updateAABB();
     updateBoundingSphereRadius();
     updateTree();
@@ -69,6 +86,10 @@ class Trimesh extends Shape {
 
   final _calculateWorldAABBFrame = Transform();
   final _calculateWorldAABBAabb = AABB();
+
+  void init(){
+    
+  }
 
   void updateTree() {
     final tree = this.tree;
@@ -90,10 +111,8 @@ class Trimesh extends Shape {
     final c = Vec3();
     final points = [a, b, c];
     for (int i = 0; i < indices.length / 3; i++) {
-      //this.getTriangleVertices(i, a, b, c);
-
       // Get unscaled triangle verts
-      final i3 = i * 3;
+      int i3 = i * 3;
       _getUnscaledVertex(indices[i3], a);
       _getUnscaledVertex(indices[i3 + 1], b);
       _getUnscaledVertex(indices[i3 + 2], c);
@@ -106,7 +125,7 @@ class Trimesh extends Shape {
 
   /// Get triangles in a local AABB from the trimesh.
   /// @param result An array of integers, referencing the queried triangles.
-  List<int> getTrianglesInAABB(AABB aabb, List<int> result){
+  void getTrianglesInAABB(AABB aabb, List<int> result){
     _unscaledAABB.copy(aabb);
 
     // Scale it to local
@@ -123,7 +142,7 @@ class Trimesh extends Shape {
     u.y /= isy;
     u.z /= isz;
 
-    return tree.aabbQuery(_unscaledAABB, result);
+    tree.aabbQuery(_unscaledAABB, result);
   }
 
   void setScale(Vec3 scale) {
@@ -141,22 +160,27 @@ class Trimesh extends Shape {
 
   /// Compute the normals of the faces. Will save in the `.normals` array.
   void updateNormals() {
+    print('updateNormals');
     final n = _computeNormalsN;
+
+    final va = Vec3();
+    final vb = Vec3();
+    final vc = Vec3();
 
     // Generate normals
     final normals = this.normals;
-    for (int i = 0; i < indices.length / 3; i++) {
+    for (int i = 0; i < indices.length ~/ 3; i++) {
       final i3 = i * 3;
 
       final a = indices[i3];
       final b = indices[i3 + 1];
       final c = indices[i3 + 2];
 
-      getVertex(a, _va);
-      getVertex(b, _vb);
-      getVertex(c, _vc);
+      getVertex(a, va);
+      getVertex(b, vb);
+      getVertex(c, vc);
 
-      Trimesh.computeNormal(_vb, _va, _vc, n);
+      Trimesh.computeNormal(vb, va, vc, n);
 
       normals[i3] = n.x;
       normals[i3 + 1] = n.y;
@@ -208,9 +232,12 @@ class Trimesh extends Shape {
 
   /// Get face normal given 3 vertices
   static void computeNormal(Vec3 va, Vec3 vb, Vec3 vc, Vec3 target) {
-    vb.vsub(va, _ab);
-    vc.vsub(vb, _cb);
-    _cb.cross(_ab, target);
+    final cb = Vec3();
+    final ab = Vec3();
+
+    vb.vsub(va, ab);
+    vc.vsub(vb, cb);
+    cb.cross(ab, target);
     if (!target.isZero()) {
       target.normalize();
     }
@@ -268,9 +295,9 @@ class Trimesh extends Shape {
     final y = _cliAabb.upperBound.y - _cliAabb.lowerBound.y;
     final z = _cliAabb.upperBound.z - _cliAabb.lowerBound.z;
     return target.set(
-      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z),
-      (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z),
-      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x)
+      1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * z * 2 * z),
+      1.0 / 12.0 * mass * (2 * x * 2 * x + 2 * z * 2 * z),
+      1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * x * 2 * x)
     );
   }
 
@@ -280,12 +307,11 @@ class Trimesh extends Shape {
     final u = aabb.upperBound;
     final n = vertices.length;
     final v = _computeLocalAABBWorldVert;
-
     getVertex(0, v);
     l.copy(v);
     u.copy(v);
 
-    for (int  i = 0; i != n; i++) {
+    for (int  i = 0; i < n~/3; i++) {//!= n
       getVertex(i, v);
 
       if (v.x < l.x) {
@@ -318,11 +344,11 @@ class Trimesh extends Shape {
   void updateBoundingSphereRadius() {
     // Assume points are distributed with local (0,0,0) as center
     double max2 = 0;
-    final vertices = this.vertices;
     final v = Vec3();
-    for (int i = 0, N = vertices.length ~/ 3; i != N; i++) {
+    print('updateBoundingSphereRadius');
+    for (int i = 0; i < vertices.length ~/ 3; i++) {
       getVertex(i, v);
-      final norm2 = v.lengthSquared();
+      double norm2 = v.lengthSquared();
       if (norm2 > max2) {
         max2 = norm2;
       }
@@ -333,38 +359,6 @@ class Trimesh extends Shape {
   /// calculateWorldAABB
   @override
   void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
-    /*
-        final n = this.vertices.length / 3,
-            verts = this.vertices;
-        final minx,miny,minz,maxx,maxy,maxz;
-
-        final v = tempWorldVertex;
-        for(let i=0; i<n; i++){
-            this.getVertex(i, v);
-            quat.vmult(v, v);
-            pos.vadd(v, v);
-            if (v.x < minx || minx===undefined){
-                minx = v.x;
-            } else if(v.x > maxx || maxx===undefined){
-                maxx = v.x;
-            }
-
-            if (v.y < miny || miny===undefined){
-                miny = v.y;
-            } else if(v.y > maxy || maxy===undefined){
-                maxy = v.y;
-            }
-
-            if (v.z < minz || minz===undefined){
-                minz = v.z;
-            } else if(v.z > maxz || maxz===undefined){
-                maxz = v.z;
-            }
-        }
-        min.set(minx,miny,minz);
-        max.set(maxx,maxy,maxz);
-        */
-
     // Faster approximation using local AABB
     final frame = _calculateWorldAABBFrame;
     final result = _calculateWorldAABBAabb;
@@ -382,42 +376,63 @@ class Trimesh extends Shape {
   }
 
   /// Create a Trimesh instance, shaped as a torus.
-  static Trimesh createTorus([double radius = 1, double tube = 0.5, int radialSegments = 8, int tubularSegments = 6, double arc = math.pi * 2]){
+  Trimesh.createTorus(this.torus):super(type: ShapeType.trimesh){
     List<double> vertices = [];
+    List<double> normals = [];
     List<int> indices = [];
+    List<double> uvs = [];
 
-    for (int j = 0; j <= radialSegments; j++) {
-      for (int i = 0; i <= tubularSegments; i++) {
-        final u = (i / tubularSegments) * arc;
-        final v = (j / radialSegments) * math.pi * 2;
+    for (int j = 0; j <= torus.radialSegments; j++) {
+      for (int i = 0; i <= torus.tubularSegments; i++) {
+        final center = Vec3();
+        final vertex = Vec3();
+        final normal = Vec3();
+        
+        final u = i / torus.tubularSegments * torus.arc;
+        final v = j / torus.radialSegments * math.pi * 2;
 
-        final x = (radius + tube * math.cos(v)) * math.cos(u);
-        final y = (radius + tube * math.cos(v)) * math.sin(u);
-        final z = tube * math.sin(v);
+        vertex.x = (torus.radius + torus.tube * math.cos(v)) * math.cos(u);
+        vertex.y = (torus.radius + torus.tube * math.cos(v)) * math.sin(u);
+        vertex.z = torus.tube * math.sin(v);
 
-        vertices.add(x);
-        vertices.add(y);
-        vertices.add(z);
+        vertices.addAll([vertex.x, vertex.y, vertex.z]);
+
+        center.x = torus.radius * math.cos(u);
+        center.y = torus.radius * math.sin(u);
+        normal.subVectors(vertex, center).normalize();
+
+        normals.addAll([normal.x, normal.y, normal.z]);
+
+        uvs.add(i / torus.tubularSegments);
+        uvs.add(j / torus.radialSegments);
+
+        if(i > 0 && j > 0){
+          final a = (torus.tubularSegments + 1) * j + i - 1;
+          final b = (torus.tubularSegments + 1) * (j - 1) + i - 1;
+          final c = (torus.tubularSegments + 1) * (j - 1) + i;
+          final d = (torus.tubularSegments + 1) * j + i;
+
+          indices.addAll([a,b,d]);
+          indices.addAll([b,c,d]);
+        }
       }
     }
 
-    for (int j = 1; j <= radialSegments; j++) {
-      for (int i = 1; i <= tubularSegments; i++) {
-        final a = (tubularSegments + 1) * j + i - 1;
-        final b = (tubularSegments + 1) * (j - 1) + i - 1;
-        final c = (tubularSegments + 1) * (j - 1) + i;
-        final d = (tubularSegments + 1) * j + i;
+    this.vertices = vertices;
+    this.indices = indices;
+    this.uvs = uvs;
 
-        indices.add(a);
-        indices.add(b);
-        indices.add(d);
+    //if(normals == null){
+      this.normals = Float32List(indices.length);
+      updateNormals();
+    // }
+    // else{
+    //   this.normals = normals;
+    // }
 
-        indices.add(b);
-        indices.add(c);
-        indices.add(d);
-      }
-    }
-
-    return Trimesh(vertices, indices);
+    updateEdges();
+    updateAABB();
+    updateBoundingSphereRadius();
+    updateTree();
   }
 }

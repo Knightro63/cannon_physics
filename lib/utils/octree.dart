@@ -46,11 +46,10 @@ class OctreeNode {
     if (maxDepth != null && level < maxDepth) {
       // Subdivide if there are no children yet
       bool subdivided = false;
-      if (children.isNotEmpty) {
+      if (children.isEmpty) {
         subdivide();
         subdivided = true;
       }
-
       // add to whichever node will accept it
       for (int i = 0; i != 8; i++) {
         if (children[i].insert(aabb, elementData, level + 1)) {
@@ -76,9 +75,9 @@ class OctreeNode {
     final l = aabb.lowerBound;
     final u = aabb.upperBound;
 
-    List<OctreeNode> children = this.children;
+    final children = this.children;
 
-    children += [
+    children.addAll([
       OctreeNode(aabb: AABB(lowerBound: Vec3(0, 0, 0))),
       OctreeNode(aabb: AABB(lowerBound: Vec3(1, 0, 0))),
       OctreeNode(aabb: AABB(lowerBound: Vec3(1, 1, 0))),
@@ -87,7 +86,7 @@ class OctreeNode {
       OctreeNode(aabb: AABB(lowerBound: Vec3(0, 0, 1))),
       OctreeNode(aabb: AABB(lowerBound: Vec3(1, 0, 1))),
       OctreeNode(aabb: AABB(lowerBound: Vec3(0, 1, 0)))
-    ];
+    ]);
 
     u.vsub(l, halfDiagonal);
     halfDiagonal.scale(0.5, halfDiagonal);
@@ -115,49 +114,28 @@ class OctreeNode {
 
   /// Get all data, potentially within an AABB
   /// @return The "result" object
-  List<int> aabbQuery(AABB aabb, List<int> result){
-    // final nodeData = data;
-
-    // abort if the range does not intersect this node
-    // if (!this.aabb.overlaps(aabb)){
-    //     return result;
-    // }
-
-    // Add objects at this level
-    // Array.prototype.push.apply(result, nodeData);
-
-    // Add child data
-    // @todo unwrap recursion into a queue / loop, that's faster in JS
-    // List<OctreeNode> children = this.children;
-
-    // for (let i = 0, N = this.children.length; i !== N; i++) {
-    //     children[i].aabbQuery(aabb, result);
-    // }
-
-    List<OctreeNode> queue = [this];
+  void aabbQuery(AABB aabb, List<int> result){
+    final queue = [this];
+    result.clear();
     while (queue.isNotEmpty) {
-      final node = queue.last;
+      final node = queue.removeLast();
       if (node.aabb.overlaps(aabb)) {
-        //Array.prototype.push.apply(result, node.data);
         result.addAll(node.data);
       }
-      //Array.prototype.push.apply(queue, node.children);
       queue.addAll(node.children);
     }
-
-    return result;
+    
+    queue.clear();
   }
 
   /// Get all data, potentially intersected by a ray.
   /// @return The "result" object
-  List<int> rayQuery(Ray ray, Transform treeTransform, List<int>result){
+  void rayQuery(Ray ray, Transform treeTransform, List<int>result){
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */
     ray.getAABB(tmpAABB);
     tmpAABB.toLocalFrame(treeTransform, tmpAABB);
     aabbQuery(tmpAABB, result);
-
-    return result;
   }
 
   void removeEmptyNodes(){
@@ -171,12 +149,6 @@ class OctreeNode {
 }
 
 class Octree extends OctreeNode {
-  /**
-   * Maximum subdivision depth
-   * @default 8
-   */
-  
-
   /// @param aabb The total AABB of the tree
   Octree({
     AABB? aabb,

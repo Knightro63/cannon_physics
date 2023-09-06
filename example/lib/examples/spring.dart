@@ -66,7 +66,7 @@ class _SpringState extends State<Spring> {
     );
 
     // Compute the force after each step
-    demo.addEventListener((event) => {spring.applyForce()});
+    world.addEventListener('postStep',(event) => {spring.applyForce()});
   }
 
   void setupWorld(){

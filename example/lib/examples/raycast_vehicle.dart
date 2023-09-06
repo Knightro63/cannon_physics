@@ -69,17 +69,10 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
       useCustomSlidingRotationalSpeed: true,
     );
 
-    wheelOptions.chassisConnectionPointLocal.set(-1, 0, 1);
-    vehicle.addWheel(wheelOptions);
-
-    wheelOptions.chassisConnectionPointLocal.set(-1, 0, -1);
-    vehicle.addWheel(wheelOptions);
-
-    wheelOptions.chassisConnectionPointLocal.set(1, 0, 1);
-    vehicle.addWheel(wheelOptions);
-
-    wheelOptions.chassisConnectionPointLocal.set(1, 0, -1);
-    vehicle.addWheel(wheelOptions);
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(-1, 0, 1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(-1, 0, -1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(1, 0, 1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(1, 0, -1));
 
     vehicle.addToWorld(world);
 
@@ -244,6 +237,10 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
           vehicle.setBrake(0, 3);
           break;
       }
+    });
+
+    demo.addAnimationEvent((p0){
+
     });
   }
 

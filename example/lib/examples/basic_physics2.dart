@@ -67,19 +67,19 @@ class _BasicPhysicsState extends State<BasicPhysics> {
       position:cannon.Vec3(-180.0,20.0,0.0), 
     );
     world.addBody(b1);
-    demo.addVisual(b1,mats['ground']);
+    demo.addVisual(b1,material: mats['ground']);
     cannon.Body b2 = cannon.Body(
       shape: cannon.Box(cannon.Vec3(40.0/2, 40.0/2, 390.0/2)),
       position:cannon.Vec3(180.0,20.0,0.0), 
     );
     world.addBody(b2);
-    demo.addVisual(b2,mats['ground']);
+    demo.addVisual(b2,material: mats['ground']);
     cannon.Body b3 = cannon.Body(
       shape: cannon.Box(cannon.Vec3(400.0/2, 80.0/2, 400.0/2)),
       position:cannon.Vec3(0.0,-40.0,0.0), 
     );
     world.addBody(b3);
-    demo.addVisual(b3,mats['ground']);
+    demo.addVisual(b3,material: mats['ground']);
 
     //add object
     double x, y, z, w, h, d;
@@ -108,7 +108,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
           mass: 1
         );
         world.addBody(sbody);
-        demo.addVisual(sbody,mat);
+        demo.addVisual(sbody,material: mat);
       } 
       else if(t==2){
         three.Material mat = mats['box']!;
@@ -119,7 +119,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
           mass: 1
         );
         world.addBody(sbody);
-        demo.addVisual(sbody,mat);
+        demo.addVisual(sbody,material: mat);
       } 
       else if(t==3){
         three.Material mat = mats['cyl']!;
@@ -130,7 +130,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
           mass: 1
         );
         world.addBody(sbody);
-        demo.addVisual(sbody,mat);
+        demo.addVisual(sbody,material: mat);
       }
     }
   }

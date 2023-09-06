@@ -75,7 +75,7 @@ class _TearState extends State<Tear> {
       lastBody = sphereBody;
     }
 
-    demo.addEventListener((event){
+    world.addEventListener('postStep',(event){
       for (int i = constraints.length - 1; i >= 0; i--) {
         // The multiplier is proportional to how much force that is added to the bodies by the constraint.
         // If this exceeds a limit we remove the constraint.
@@ -97,6 +97,7 @@ class _TearState extends State<Tear> {
 
   void setupWorld(){
     setScene();
+    demo.start();
   }
   @override
   Widget build(BuildContext context) {

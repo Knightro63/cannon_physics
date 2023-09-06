@@ -3,8 +3,8 @@ import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
-class Performance extends StatefulWidget {
-  const Performance({
+class SBOP extends StatefulWidget {
+  const SBOP({
     Key? key,
     this.offset = const Offset(0,0),
     this.settings
@@ -14,10 +14,10 @@ class Performance extends StatefulWidget {
   final DemoSettings? settings;
 
   @override
-  _PerformanceState createState() => _PerformanceState();
+  _SBOPState createState() => _SBOPState();
 }
 
-class _PerformanceState extends State<Performance> {
+class _SBOPState extends State<SBOP> {
   late Demo demo;
 
   @override
@@ -26,8 +26,10 @@ class _PerformanceState extends State<Performance> {
       onSetupComplete: (){setState(() {});},
       settings: DemoSettings(
         gx: 0,
-        gy: -50,
+        gy: -10,
         gz: 0,
+        k: 1e7,
+        d:4
       )
     );
     setupWorld();
@@ -38,41 +40,45 @@ class _PerformanceState extends State<Performance> {
     demo.dispose();
     super.dispose();
   }
-  void setupFallingBoxes(int N) {
+  void plane(){
     final world = demo.world;
 
     final groundShape = cannon.Plane();
-    final groundBody = cannon.Body(mass: 0 );
+    final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
+  }
+  void box(){
+    final world = demo.world;
 
-    const size = 0.25;
-    const mass = 1.0;
+    const size = 2.0;
 
     final boxShape = cannon.Box(cannon.Vec3(size, size, size));
 
-    for (int i = 0; i < N; i++) {
-      // start with random positions
-      final position = cannon.Vec3(
-        (Math.random() * 2 - 1) * 2.5,
-        Math.random() * 10,
-        (Math.random() * 2 - 1) * 2.5
-      );
-
-      final boxBody = cannon.Body(
-        position: position,
-        mass: mass,
-      );
-      boxBody.addShape(boxShape);
-      world.addBody(boxBody);
-      demo.addVisual(boxBody);
-    }
+    final body = cannon.Body(mass: 30);
+    body.addShape(boxShape);
+    body.position.set(0, size * 2, size);
+    world.addBody(body);
+    demo.addVisual(body);
   }
+  void sphere(){
+    final world = demo.world;
 
+    const size = 2.0;
+
+    final sphereShape = cannon.Sphere(size);
+
+    final body = cannon.Body(mass: 30);
+    body.addShape(sphereShape);
+    body.position.set(0, size * 2, size);
+    world.addBody(body);
+    demo.addVisual(body);
+  }
   void setupWorld(){
-    setupFallingBoxes(500);
+    plane();
+    sphere();
     demo.start();
   }
   @override

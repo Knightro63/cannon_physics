@@ -194,9 +194,9 @@ class Demo{
     disposed = true;
     three3dRender.dispose();
   }
-  void addEventListener(Function(dynamic) listener){
-    world.addEventListener('postStep', listener);
-  }
+  // void addEventListener(String type,Function(dynamic) listener){
+  //   world.addEventListener('postStep', listener);
+  // }
   void addAnimationEvent(Function(double dt) event){
     events.add(event);
   }
@@ -410,7 +410,7 @@ class Demo{
     settings.rendermode = mode;
   }
 
-  void addVisual(cannon.Body body, [three.Material? material]){
+  void addVisual(cannon.Body body, {three.Mesh? mesh, three.Material? material}){
     MeshLambertMaterial particleMaterial = MeshLambertMaterial({ 'color': 0xff0000 });
     MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': false });
     // if it's a particle paint it red, if it's a trigger paint it as green, otherwise just gray
@@ -418,7 +418,7 @@ class Demo{
     final mat = material ?? (isParticle ? particleMaterial : body.isTrigger ? triggerMaterial : _currentMaterial);
 
     // get the correspondant three.js mesh
-    var mesh = ConversionUtils.bodyToMesh(body, mat);
+    final me = mesh?.clone() ?? ConversionUtils.bodyToMesh(body, mat);
     
     // enable shadows on every object
     // mesh.traverse((child){
@@ -427,8 +427,8 @@ class Demo{
     // });
 
     bodies.add(body);
-    visuals.add(mesh);
-    scene.add(mesh);
+    visuals.add(me);
+    scene.add(me);
   }
   void addVisuals(List<cannon.Body> bodies) {
     bodies.forEach((body){

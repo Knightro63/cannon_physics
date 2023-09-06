@@ -212,7 +212,7 @@ class ConvexPolyhedron extends Shape {
     }
 
     List<Vec3> worldVertsB1 = [];
-    int len = hullB.faces[closestFaceB].length;
+    int len = hullB.faces.isEmpty?0:hullB.faces[closestFaceB].length;
     for (int i = 0; i < len; i++) {
       final b = hullB.vertices[hullB.faces[closestFaceB][i]];
       final worldb = Vec3();
@@ -271,7 +271,7 @@ class ConvexPolyhedron extends Shape {
           target.copy(faceANormalWS3);
         }
       }
-    } else {
+    } else if(hullA.uniqueAxes != null){
       // Test unique axes
       for (int i = 0; i != hullA.uniqueAxes!.length; i++) {
         // Get world axis

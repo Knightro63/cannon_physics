@@ -211,7 +211,7 @@ class Ray {
     final xi = _intersectBodyXi;
     final qi = _intersectBodyQi;
 
-    for (int i = 0, N = body.shapes.length; i < N; i++) {
+    for (int i = 0; i < body.shapes.length; i++) {
       final shape = body.shapes[i];
 
       if (checkCollisionResponse && !shape.collisionResponse) {
@@ -234,14 +234,14 @@ class Ray {
   /// @param bodies An array of Body objects.
   /// @deprecated @param result set the result property of the Ray instead.
   void intersectBodies(List<Body> bodies, [RaycastResult? result]) {
-    if (result != null) {
-      this.result = result;
-      _updateDirection();
-    }
+    // if (result != null) {
+    //   this.result = result;
+    //   _updateDirection();
+    // }
 
-    for (int i = 0, l = bodies.length; !this.result.shouldStop && i < l; i++) {
-      intersectBody(bodies[i]);
-    }
+    // for (int i = 0, l = bodies.length; !this.result.shouldStop && i < l; i++) {
+    //   intersectBody(bodies[i]);
+    // }
   }
 
   /// Updates the direction vector.
@@ -254,7 +254,7 @@ class Ray {
     final from = this.from;
 
     // Checking boundingSphere
-    final distance = distanceFromIntersection(from, direction, position);
+    final distance = Ray.distanceFromIntersection(from, direction, position);
     if (distance > shape.boundingSphereRadius) {
       return;
     }
@@ -494,9 +494,9 @@ class Ray {
       final dot = direction.dot(normal);
 
       // Bail out if ray and plane are parallel
-      if (dot.abs() < precision) {
-        continue;
-      }
+      // if (dot.abs() < precision) {
+      //   continue;
+      // }
 
       // calc distance to plane
       final scalar = normal.dot(vector) / dot;
@@ -505,8 +505,6 @@ class Ray {
       if (scalar < 0) {
         continue;
       }
-
-      // if (dot < 0) {
 
       // Intersection point is from + direction * scalar
       direction.scale(scalar, _intersectPoint);
@@ -534,7 +532,6 @@ class Ray {
 
         _reportIntersection(normal, _intersectPoint, reportedShape, body, fi);
       }
-      // }
     }
   }
 
@@ -589,7 +586,7 @@ class Ray {
     final fromToDistanceSquared = localFrom.distanceSquared(localTo);
 
     mesh.tree.rayQuery(this, treeTransform, triangles);
-
+    
     for (int i = 0, N = triangles.length; !result.shouldStop && i != N; i++) {
       final trianglesIndex = triangles[i];
 
@@ -608,8 +605,8 @@ class Ray {
       final dot = localDirection.dot(normal);
 
       // Bail out if ray and plane are parallel
-      // if (math.abs( dot ) < this.precision){
-      //     continue;
+      // if (dot.abs() < precision){
+      //   continue;
       // }
 
       // calc distance to plane
@@ -630,7 +627,7 @@ class Ray {
 
       final squaredDistance = _intersectPoint.distanceSquared(localFrom);
 
-      if (!(pointInTriangle(_intersectPoint, b, a, c) || pointInTriangle(_intersectPoint, a, b, c)) || squaredDistance > fromToDistanceSquared) {
+      if (!(Ray.pointInTriangle(_intersectPoint, b, a, c) || Ray.pointInTriangle(_intersectPoint, a, b, c)) || squaredDistance > fromToDistanceSquared) {
         continue;
       }
 
@@ -703,7 +700,7 @@ class Ray {
     );
   }
 
-  double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
+  static double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
     // v0 is vector from from to position
     position.vsub(from, _v0);
     final dot = _v0.dot(direction);

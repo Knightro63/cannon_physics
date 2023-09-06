@@ -107,7 +107,13 @@ class Vec3 {
       return Vec3(x - vector.x, y - vector.y, z - vector.z);
     }
   }
+  Vec3 subVectors(Vec3 a, Vec3 b) {
+    x = a.x - b.x;
+    y = a.y - b.y;
+    z = a.z - b.z;
 
+    return this;
+  }
   /// Get the cross product matrix a_cross from a vector, such that a x b = a_cross * b = c
   ///
   /// See {@link https://www8.cs.umu.se/kurser/TDBD24/VT06/lectures/Lecture6.pdf Umeå University Lecture}

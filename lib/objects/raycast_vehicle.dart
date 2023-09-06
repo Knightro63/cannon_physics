@@ -75,7 +75,7 @@ class RaycastVehicle {
 
   /// Add a wheel. For information about the options, see `WheelInfo`.
   int addWheel([WheelInfo? wheelInfo]){
-    final info = wheelInfo?.copy() ?? WheelInfo();
+    final info = wheelInfo ?? WheelInfo();
     final index = wheelInfos.length;
     wheelInfos.add(info);
 

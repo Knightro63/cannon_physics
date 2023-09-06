@@ -23,10 +23,16 @@ import 'package:cannon_physics_example/examples/pile.dart';
 import 'package:cannon_physics_example/examples/ragdoll.dart'; //Fix
 import 'package:cannon_physics_example/examples/raycast_vehicle.dart'; //Fix
 import 'package:cannon_physics_example/examples/rigid_vehicle.dart'; //Fix
+import 'package:cannon_physics_example/examples/shapes.dart';
+import 'package:cannon_physics_example/examples/simple_friction.dart';
+import 'package:cannon_physics_example/examples/single_body_on_plane.dart';
+import 'package:cannon_physics_example/examples/sph.dart';
 import 'package:cannon_physics_example/examples/split_solver.dart';
 import 'package:cannon_physics_example/examples/spring.dart';
 import 'package:cannon_physics_example/examples/tear.dart';
 import 'package:cannon_physics_example/examples/trigger.dart';
+import 'package:cannon_physics_example/examples/trimesh.dart';
+import 'package:cannon_physics_example/examples/worker.dart';
 import 'package:flutter/material.dart' hide Tween;
 import 'package:cannon_physics_example/examples/cloth.dart';
 import 'package:cannon_physics_example/examples/tween.dart';
@@ -47,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const RigidVehicle(),
+      home: const Worker(),
     );
   }
 }

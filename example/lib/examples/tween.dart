@@ -84,7 +84,7 @@ class _TweenState extends State<Tween> {
       }
     }
 
-    demo.addEventListener((event){postStepListener();});
+    world.addEventListener('postStep',(event){postStepListener();});
   }
 
   void setupWorld(){
