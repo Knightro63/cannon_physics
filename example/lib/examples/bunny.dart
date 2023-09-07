@@ -74,13 +74,13 @@ class _BunnyState extends State<Bunny> {
       final rawOffset = bunny[i]['offset']!;
 
       // Get vertices
-      List<cannon.Vec3> vertices = [];
+      final List<cannon.Vec3> vertices = [];
       for (int j = 0; j < rawVertices.length; j += 3) {
         vertices.add(cannon.Vec3(rawVertices[j], rawVertices[j + 1], rawVertices[j + 2]));
       }
 
       // Get faces
-      List<List<int>> faces = [];
+      final List<List<int>> faces = [];
       for (int j = 0; j < rawFaces.length; j += 3) {
         faces.add([rawFaces[j], rawFaces[j + 1], rawFaces[j + 2]]);
       }

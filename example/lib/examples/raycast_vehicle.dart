@@ -129,30 +129,22 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
     }
 
     final groundMaterial = cannon.Material(name: 'ground');
-    // final heightfieldShape = cannon.Heightfield(
-    //   matrix, 
-    //   elementSize: 100 ~/ sizeX,
-    // );
-    // final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
-    // heightfieldBody.addShape(heightfieldShape);
-    // heightfieldBody.position.set(
-    //   // -((sizeX - 1) * heightfieldShape.elementSize) / 2,
-    //   -(sizeX * heightfieldShape.elementSize) / 2,
-    //   -1,
-    //   // ((sizeZ - 1) * heightfieldShape.elementSize) / 2
-    //   (sizeZ * heightfieldShape.elementSize) / 2
-    // );
-    // heightfieldBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    // world.addBody(heightfieldBody);
-    // demo.addVisual(heightfieldBody);
-
-    final groundShape = cannon.Plane();
-    final groundBody = cannon.Body(mass: 0);
-    groundBody.addShape(groundShape);
-    groundBody.position.set(0, -1, 0);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    world.addBody(groundBody);
-    demo.addVisual(groundBody);
+    final heightfieldShape = cannon.Heightfield(
+      matrix, 
+      elementSize: 100 ~/ sizeX,
+    );
+    final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
+    heightfieldBody.addShape(heightfieldShape);
+    heightfieldBody.position.set(
+      // -((sizeX - 1) * heightfieldShape.elementSize) / 2,
+      -(sizeX * heightfieldShape.elementSize) / 2,
+      -1,
+      // ((sizeZ - 1) * heightfieldShape.elementSize) / 2
+      (sizeZ * heightfieldShape.elementSize) / 2
+    );
+    heightfieldBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(heightfieldBody);
+    demo.addVisual(heightfieldBody);
 
     // Define interactions between wheels and ground
     final wheel_ground = cannon.ContactMaterial(wheelMaterial, groundMaterial, 

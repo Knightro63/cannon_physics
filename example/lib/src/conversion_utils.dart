@@ -45,7 +45,7 @@ class GeometryCache {
 }
 
 class ConversionUtils{
-  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true }) {
+  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true}) {
     switch (shape.type) {
       case cannon.ShapeType.sphere: {
         shape as cannon.Sphere;
@@ -81,7 +81,7 @@ class ConversionUtils{
         final geometry = three.ConvexGeometry(vertices);
         geometry.computeBoundingSphere();
 
-        if (!flatShading) {
+        if(flatShading) {
           geometry.computeFaceNormals();
         } else {
           geometry.computeVertexNormals();
@@ -91,57 +91,34 @@ class ConversionUtils{
       }
       case cannon.ShapeType.heightfield: {
         shape as cannon.Heightfield;
-        final geometry = three.BufferGeometry();
+        final geometry = three.PlaneGeometry(
+          shape.size.width,
+          shape.size.height,
+          shape.segments.width-1,
+          shape.segments.height-1
+        );
+        
+        final Float32Array verts = geometry.attributes['position'].array;
+        int x = 0;
+        int y = -1;
 
-        List<double> vertices = [];  
-        List<int> indices = []; 
-
-        for (int xi = 0; xi < shape.data.length - 1; xi++) {
-          for (int yi = 0; yi < shape.data[xi].length - 1; yi++) {
-            for (int k = 0; k < 2; k++) {
-              final v0 = cannon.Vec3();
-              final v1 = cannon.Vec3();
-              final v2 = cannon.Vec3();
-              shape.getConvexTrianglePillar(xi, yi, k == 0);
-              v0.copy(shape.pillarConvex.vertices[0]);
-              v1.copy(shape.pillarConvex.vertices[1]);
-              v2.copy(shape.pillarConvex.vertices[2]);
-              v0.vadd(shape.pillarOffset, v0);
-              v1.vadd(shape.pillarOffset, v1);
-              v2.vadd(shape.pillarOffset, v2);
-              vertices.addAll([
-                v0.x, v0.y, v0.z,
-                v1.x, v1.y, v1.z,
-                v2.x, v2.y, v2.z
-              ]);
-
-              // var a = yi + shape.data.length * xi;
-              // var b = yi + shape.data.length * (xi + 1);
-              // var c = (yi + 1) + shape.data.length * (xi + 1);
-              // var d = (yi + 1) + shape.data.length * xi;
-
-              // int i = vertices.length - 3;
-              //indices.addAll([a,b,d,b,c,d]);
-              for(int l = 0; l < shape.pillarConvex.faces.length;l++){
-                for(int m = 0; m < shape.pillarConvex.faces[l].length;m++){
-                  int val = (yi+shape.pillarConvex.faces[l][m])*xi;
-
-                  indices.add(val);
-                }
-              }
-            }
+        for(int i = 0; i < verts.length~/3;i++){
+          if((i)%(shape.segments.width) == 0){
+            y++;
+            x = 0;
           }
+
+          bool isClamped = y==0 || y==shape.segments.height-1 || x==0 ||x ==shape.segments.width-1;
+
+          verts[(i*3)+2] = shape.getHeightAt(x.toDouble(), y.toDouble(), isClamped);
+          x++;
         }
 
-        geometry.setIndex(indices);
-        geometry.setAttribute(
-          'position',
-            Float32BufferAttribute(Float32Array.from(vertices), 3, false)
-        );
+        geometry.translate(shape.size.width/2, shape.size.height/2,0);
 
         geometry.computeBoundingSphere();
 
-        if (flatShading) {
+        if (!flatShading) {
           geometry.computeFaceNormals();
         } else {
           geometry.computeVertexNormals();
@@ -153,24 +130,18 @@ class ConversionUtils{
       case cannon.ShapeType.trimesh: {
         shape as cannon.Trimesh;
         final geometry = three.BufferGeometry();
-        final temp = three.TorusGeometry(
-          shape.torus.radius,
-          shape.torus.tube,
-          shape.torus.radialSegments,
-          shape.torus.tubularSegments,
-          shape.torus.arc
-        );
-        
+
         geometry.setIndex(shape.indices);
         geometry.setAttribute(
             'position', Float32BufferAttribute(Float32Array.from(shape.vertices), 3));
-        geometry.setAttribute(
-            'normals', Float32BufferAttribute(Float32Array.from(shape.normals), 3));
-        if(shape.uvs != null){
-          geometry.setAttribute('uv', Float32BufferAttribute(Float32Array.from(shape.uvs!), 2));
+        if(shape.normals != null){
+          geometry.setAttribute(
+            'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
         }
-
-        print(temp.attributes['position'] == geometry.attributes['position']);
+        if(shape.uvs != null){
+          geometry.setAttribute(
+            'uv', Float32BufferAttribute(Float32Array.from(shape.uvs!), 2));
+        }
 
         geometry.computeBoundingSphere();
 
@@ -180,7 +151,7 @@ class ConversionUtils{
           geometry.computeVertexNormals();
         }
 
-        return temp;
+        return geometry;
       }
 
       default: {
@@ -233,8 +204,8 @@ class ConversionUtils{
         return cannon.Sphere(geometry.parameters!['radius']);
       }
 
-      case 'CylinderGeometry':
-      case 'CylinderBufferGeometry': {
+      case 'CylinderGeometr':
+      case 'CylinderBufferGeometr': {
         return cannon.Cylinder(
           radiusTop: geometry.parameters!['radiusTop'], 
           radiusBottom: geometry.parameters!['radiusBottom'], 
@@ -250,32 +221,59 @@ class ConversionUtils{
         // make it have no more than MAX_VERTEX_COUNT vertices
         Float32Array points = geometry.attributes['position'].array;
         Float32Array norms = geometry.attributes['normal'].array;
-        NativeArray<num> indexes = geometry.index!.array;
+        final indexes = geometry.index!;
+        final array = indexes.array;
         List<cannon.Vec3> verticies = [];
         List<List<int>>? faces = [];
         List<cannon.Vec3>? normals = [];
-        int j = 0;
+
         for(int i = 0; i < points.length; i+=3){
+          int j = i~/3;
           verticies.add(cannon.Vec3(points[i],points[i+1],points[i+2]));
-          if(norms.length > i){
-            normals.add(cannon.Vec3(norms[i],norms[i+1],norms[i+2]));
-          }
-          if(faces.length > i){
+          normals.add(cannon.Vec3(norms[i],norms[i+1],norms[i+2]));
+          
+          if(indexes.getX(i) != null){
             faces.add([
-              i,//indexes[i].toInt(),
-              i+1,//indexes[i+1].toInt(),
-              i+2,//indexes[i+2].toInt()
+              indexes.getX(i)!.toInt(),
+              indexes.getX(i+1)!.toInt(),
+              indexes.getX(i+2)!.toInt(),
             ]);
           }
-          j++;
+          // else{
+          //   faces.add([
+          //     0,//array[i].toInt(),
+          //     1,//array[i+1].toInt(),
+          //     2//array[i+2].toInt(),
+          //   ]);
+          // }
         }
 
         // Construct polyhedron
-        final polyhedron = cannon.ConvexPolyhedron(
+        cannon.ConvexPolyhedron polyhedron = cannon.ConvexPolyhedron(
           vertices: verticies, 
-          //faces: faces, 
-          //normals: normals
+          faces: faces, 
+          //normals: normals,
+          //axes: [cannon.Vec3(0, 1, 0)]
         );
+
+        // List<double> verticies = [];
+        // List<int> faces = [];
+        // List<double>? normals = [];
+
+        // for(int i = 0; i < indexes.length; i++){
+        //   int j = indexes[i].toInt();
+        //   verticies.addAll([points[j*3],points[(j*3)+1],points[(j*3)+2]]);
+        //   normals.addAll([norms[j*3],norms[(j*3)+1],norms[(j*3)+2]]);
+          
+        //   faces.add(indexes[i].toInt(),);
+        // }
+
+        // // Construct polyhedron
+        // cannon.Trimesh polyhedron = cannon.Trimesh(
+        //   verticies, 
+        //   faces, 
+        //   normals
+        // );
 
         return polyhedron;
       }

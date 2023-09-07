@@ -40,14 +40,15 @@ class Trimesh extends Shape {
 
   /// Array of integers, indicating which vertices each triangle consists of. The length of this array is thus 3 times the number of triangles.
   late final List<int> indices; 
-  late final List<double> normals;
+  late final List<double>? normals;
+  late final List<double> faceNormals;
   late final List<double>? uvs;
 
   /// The local AABB of the mesh.
   final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
-  Int16List? edges;
+  late List<int> edges;
 
   /// Local scaling of the mesh. Use .setScale() to set it.
   final Vec3 scale = Vec3(1, 1, 1);
@@ -59,14 +60,9 @@ class Trimesh extends Shape {
 
   Trimesh(this.vertices, this.indices, [List<double>? normals, this.uvs]):super(type: ShapeType.trimesh) {
     updateEdges();
-
-    //if(normals == null){
-      this.normals = Float32List(indices.length);
-      updateNormals();
-    // }
-    // else{
-    //   this.normals = normals;
-    // }
+    faceNormals = Float32List(indices.length);
+    updateNormals();
+    normals = normals;
     
     updateAABB();
     updateBoundingSphereRadius();
@@ -160,16 +156,15 @@ class Trimesh extends Shape {
 
   /// Compute the normals of the faces. Will save in the `.normals` array.
   void updateNormals() {
-    print('updateNormals');
-    final n = _computeNormalsN;
-
-    final va = Vec3();
-    final vb = Vec3();
-    final vc = Vec3();
-
     // Generate normals
-    final normals = this.normals;
-    for (int i = 0; i < indices.length ~/ 3; i++) {
+    final normals = faceNormals;
+    for (int i = 0; i < indices.length / 3; i++) {
+      final n = _computeNormalsN;
+
+      final va = Vec3();
+      final vb = Vec3();
+      final vc = Vec3();
+
       final i3 = i * 3;
 
       final a = indices[i3];
@@ -205,11 +200,11 @@ class Trimesh extends Shape {
       add(c, a);
     }
     final keys = edges.keys.toList();
-    this.edges = Int16List(keys.length * 2);
+    this.edges = List.filled(keys.length * 2,0);
     for (int i = 0; i < keys.length; i++) {
       final indices = keys[i].split('_');
-      this.edges![2 * i] = int.parse(indices[0], radix:  10);
-      this.edges![2 * i + 1] = int.parse(indices[1], radix: 10);
+      this.edges[2 * i] = int.parse(indices[0]);
+      this.edges[2 * i + 1] = int.parse(indices[1]);
     }
   }
 
@@ -217,7 +212,7 @@ class Trimesh extends Shape {
   /// @param firstOrSecond 0 or 1, depending on which one of the vertices you need.
   /// @param vertexStore Where to store the result
   void getEdgeVertex(int edgeIndex, int firstOrSecond, Vec3 vertexStore) {
-    final vertexIndex = edges![edgeIndex * 2 + (firstOrSecond >= 1? 1 : 0)];
+    final vertexIndex = edges[edgeIndex * 2 + firstOrSecond];
     getVertex(vertexIndex, vertexStore);
   }
 
@@ -258,7 +253,6 @@ class Trimesh extends Shape {
   /// @return The "out" vector object
   Vec3 _getUnscaledVertex(int i, Vec3 out) {
     final i3 = i * 3;
-    final vertices = this.vertices;
     return out.set(vertices[i3], vertices[i3 + 1], vertices[i3 + 2]);
   }
 
@@ -277,14 +271,25 @@ class Trimesh extends Shape {
     getVertex(indices[i3 + 1], b);
     getVertex(indices[i3 + 2], c);
   }
-
+  /// Get the three vertices for triangle i.
+  void getTriangleNormals(int i, Vec3 a, Vec3 b, Vec3 c) {
+    final i3 = i * 3;
+    getNormal(indices[i3], a);
+    getNormal(indices[i3 + 1], b);
+    getNormal(indices[i3 + 2], c);
+  }
   /// Compute the normal of triangle i.
   /// @return The "target" vector object
   Vec3 getNormal(int i, Vec3 target) {
     final i3 = i * 3;
-    return target.set(normals[i3], normals[i3 + 1], normals[i3 + 2]);
+    return target.set(normals![i3], normals![i3 + 1], normals![i3 + 2]);
   }
-
+  /// Compute the normal of triangle i.
+  /// @return The "target" vector object
+  Vec3 getFaceNormal(int i, Vec3 target) {
+    final i3 = i * 3;
+    return target.set(faceNormals[i3], faceNormals[i3 + 1], faceNormals[i3 + 2]);
+  }
   /// @return The "target" vector object
   @override
   Vec3 calculateLocalInertia(double mass, Vec3 target) {
@@ -305,13 +310,12 @@ class Trimesh extends Shape {
   void computeLocalAABB(AABB aabb) {
     final l = aabb.lowerBound;
     final u = aabb.upperBound;
-    final n = vertices.length;
     final v = _computeLocalAABBWorldVert;
     getVertex(0, v);
     l.copy(v);
     u.copy(v);
 
-    for (int  i = 0; i < n~/3; i++) {//!= n
+    for (int  i = 0; i < vertices.length/3; i++) {//!= n
       getVertex(i, v);
 
       if (v.x < l.x) {
@@ -346,7 +350,7 @@ class Trimesh extends Shape {
     double max2 = 0;
     final v = Vec3();
     print('updateBoundingSphereRadius');
-    for (int i = 0; i < vertices.length ~/ 3; i++) {
+    for (int i = 0; i < vertices.length/ 3; i++) {
       getVertex(i, v);
       double norm2 = v.lengthSquared();
       if (norm2 > max2) {
@@ -377,7 +381,7 @@ class Trimesh extends Shape {
 
   /// Create a Trimesh instance, shaped as a torus.
   Trimesh.createTorus(this.torus):super(type: ShapeType.trimesh){
-    List<double> vertices = [];
+    final List<double> vertices = [];
     List<double> normals = [];
     List<int> indices = [];
     List<double> uvs = [];
@@ -421,16 +425,11 @@ class Trimesh extends Shape {
     this.vertices = vertices;
     this.indices = indices;
     this.uvs = uvs;
-
-    //if(normals == null){
-      this.normals = Float32List(indices.length);
-      updateNormals();
-    // }
-    // else{
-    //   this.normals = normals;
-    // }
-
     updateEdges();
+    faceNormals = Float32List(indices.length);
+    updateNormals();
+    this.normals = normals;
+
     updateAABB();
     updateBoundingSphereRadius();
     updateTree();

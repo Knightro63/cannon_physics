@@ -62,7 +62,7 @@ class _TriMeshState extends State<TriMesh> {
     }
 
     // Torus
-    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(4, 3.5, 16,16));
+    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(5, 3.5, 16,16));
     final torusBody = cannon.Body(mass: 1,angularDamping: 0 );
     torusBody.addShape(torusShape);
     torusBody.position.set(0.01, 0.01, 0.01);
@@ -111,7 +111,7 @@ class _TriMeshState extends State<TriMesh> {
     demo.addVisual(sphereBody);
 
     // Torus
-    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(4, 3.5, 16, 16));
+    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(5, 3.5, 16, 16));
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
     torusBody.position.set(0, 4, 0);
@@ -122,7 +122,7 @@ class _TriMeshState extends State<TriMesh> {
   }
 
   void setupWorld(){
-    rayCasting();
+    triMesh();
     demo.start();
   }
   @override

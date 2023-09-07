@@ -8,8 +8,8 @@ import '../math/quaternion.dart';
 
 class HeightfieldPillar{
   HeightfieldPillar(this.convex,this.offset);
-  dynamic convex;
-  dynamic offset;
+  final ConvexPolyhedron convex;
+  final Vec3 offset;
 }
 
 /// Heightfield shape class. Height data is given as an array. These data points are spread out evenly with a given distance.
@@ -33,7 +33,7 @@ class HeightfieldPillar{
 ///     world.addBody(heightfieldBody)
 class Heightfield extends Shape {
   /// An array of numbers, or height values, that are spread out along the x axis.
-  List<List<double>>data;
+  late List<List<double>>data;
 
   /// Max value of the data points in the data array.
   double? maxValue;
@@ -46,10 +46,13 @@ class Heightfield extends Shape {
   int elementSize;
 
   bool cacheEnabled = true;
-  ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
-  Vec3 pillarOffset = Vec3();
+  final ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
+  final Vec3 pillarOffset = Vec3();
 
   Map<String,HeightfieldPillar> _cachedPillars = {};
+
+  late Size size;
+  late Size segments;
 
   /// @param data An array of numbers, or height values, that are spread out along the x axis.
   Heightfield(
@@ -59,6 +62,8 @@ class Heightfield extends Shape {
       this.minValue,
       this.elementSize = 1
     }):super(type: ShapeType.heightfield){
+    segments = Size(data.length.toDouble(),data[0].length.toDouble());
+    size = Size((segments.width+0.25)*elementSize,(segments.height+0.25)*elementSize);
     if(minValue == null) {
       updateMinValue();
     }
@@ -324,22 +329,22 @@ class Heightfield extends Shape {
 
   /// Get a triangle in the terrain in the form of a triangular convex shape.
   void getConvexTrianglePillar(int xi, int yi, bool getUpperTriangle) {
-    ConvexPolyhedron result = pillarConvex;
+    final result = pillarConvex;
     Vec3 offsetResult = pillarOffset;
 
     if (cacheEnabled) {
       final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
       if(data != null){
-        pillarConvex = data.convex;
-        pillarOffset = data.offset;
+        pillarConvex.copy(data.convex);
+        pillarOffset.copy(data.offset);
         return;
       }
 
-      result = ConvexPolyhedron();
+      result.clear();
       offsetResult = Vec3();
 
-      pillarConvex = result;
-      pillarOffset = offsetResult;
+      pillarConvex.copy(result);
+      pillarOffset.copy(offsetResult);
     }
 
     final data = this.data;

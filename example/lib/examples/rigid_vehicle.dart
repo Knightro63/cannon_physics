@@ -125,7 +125,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
 
     final groundMaterial = cannon.Material(name:'ground');
     final heightfieldShape = cannon.Heightfield(matrix, 
-      elementSize: 300 ~/ sizeX,
+      elementSize: 100 ~/ sizeX,
     );
     final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
     heightfieldBody.addShape(heightfieldShape);
@@ -145,22 +145,6 @@ class _RigidVehicleState extends State<RigidVehicle> {
       contactEquationStiffness: 1000,
     );
     world.addContactMaterial(wheel_ground);
-
-    // final groundShape = cannon.Plane();
-    // final groundBody = cannon.Body(mass: 0);
-    // groundBody.addShape(groundShape);
-    // groundBody.position.set(0, -1, 0);
-    // groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    // world.addBody(groundBody);
-    // demo.addVisual(groundBody);
-
-    // // Define interactions between wheels and ground
-    // final wheel_ground = cannon.ContactMaterial(wheelMaterial, groundMaterial, 
-    //   friction: 0.3,
-    //   restitution: 0,
-    //   contactEquationStiffness: 1000,
-    // );
-    // world.addContactMaterial(wheel_ground);
 
     // Keybindings
     // Add force on keydown

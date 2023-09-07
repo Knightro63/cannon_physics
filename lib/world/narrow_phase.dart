@@ -1265,10 +1265,10 @@ class Narrowphase {
     final data = sj.data;
     final radius = si.radius;
     final w = sj.elementSize;
-    final worldPillarOffset = _sphereHeightfieldTmp2;
+    final worldPillarOffset = Vec3();//_sphereHeightfieldTmp2;
 
     // Get sphere position to heightfield local!
-    final localSpherePos = _sphereHeightfieldTmp1;
+    final localSpherePos = Vec3();//_sphereHeightfieldTmp1;
     Transform.pointToLocalFrame(xj, qj, xi, localSpherePos);
 
     // Get the index of the data points to test against
@@ -1868,7 +1868,7 @@ class Narrowphase {
         localSpherePos.vsub(edgeVertexA, tmp);
         double positionAlongEdgeA = tmp.dot(edgeVector);
         
-        if (positionAlongEdgeA > 0 && positionAlongEdgeB > 0) {
+        if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
           // Now check the orthogonal distance from edge to sphere center
           localSpherePos.vsub(edgeVertexA, tmp);
 
@@ -1911,10 +1911,11 @@ class Narrowphase {
     final va = _sphereTrimeshVa;
     final vb = _sphereTrimeshVb;
     final vc = _sphereTrimeshVc;
-    final normal = _sphereTrimeshNormal;
-    for (int i = 0, N = triangles.length; i != N; i++) {
+    final normal = Vec3();
+
+    for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
       trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
-      trimeshShape.getNormal(triangles[i], normal);
+      trimeshShape.getFaceNormal(triangles[i], normal);
       localSpherePos.vsub(va, tmp);
       double dist = tmp.dot(normal);
       normal.scale(dist, tmp);

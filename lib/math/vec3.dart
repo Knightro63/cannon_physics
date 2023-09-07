@@ -51,7 +51,16 @@ class Vec3 {
       throw('Value can not be bigger than 2 nd less than 0');
     }
   }
+  Vec3 crossVectors(Vec3 a, Vec3 b) {
+    final ax = a.x, ay = a.y, az = a.z;
+    final bx = b.x, by = b.y, bz = b.z;
 
+    x = ay * bz - az * by;
+    y = az * bx - ax * bz;
+    z = ax * by - ay * bx;
+
+    return this;
+  }
   /// Vector cross product
   /// @param target Optional target to save in.
   Vec3 cross(Vec3 vector, [Vec3? target]){

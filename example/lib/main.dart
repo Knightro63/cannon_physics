@@ -32,7 +32,7 @@ import 'package:cannon_physics_example/examples/spring.dart';
 import 'package:cannon_physics_example/examples/tear.dart';
 import 'package:cannon_physics_example/examples/trigger.dart';
 import 'package:cannon_physics_example/examples/trimesh.dart';
-import 'package:cannon_physics_example/examples/worker.dart';
+import 'package:cannon_physics_example/examples/worker.dart'; //Fix
 import 'package:flutter/material.dart' hide Tween;
 import 'package:cannon_physics_example/examples/cloth.dart';
 import 'package:cannon_physics_example/examples/tween.dart';
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Heightfield(),
+      home: const Worker(),
     );
   }
 }
