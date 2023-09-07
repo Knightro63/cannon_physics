@@ -26,7 +26,7 @@ class _TriMeshState extends State<TriMesh> {
       onSetupComplete: (){setState(() {});},
       settings: DemoSettings(
         gx: 0,
-        gy: 0,
+        gy: -10,
         gz: 0,
         k: 1e7,
         d:4

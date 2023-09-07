@@ -54,8 +54,12 @@ class PointToPointConstraint extends Constraint {
     equations.addAll([x,y,z]);
 
     // Make the equations bidirectional
-    x.minForce = y.minForce = z.minForce = -maxForce;
-    x.maxForce = y.maxForce = z.maxForce = maxForce;
+    x.minForce = -maxForce;
+    y.minForce = -maxForce;
+    z.minForce = -maxForce;
+    x.maxForce = maxForce;
+    y.maxForce = maxForce;
+    z.maxForce = maxForce;
 
     x.ni.set(1, 0, 0);
     y.ni.set(0, 1, 0);

@@ -99,10 +99,13 @@ class ConversionUtils{
         for (int xi = 0; xi < shape.data.length - 1; xi++) {
           for (int yi = 0; yi < shape.data[xi].length - 1; yi++) {
             for (int k = 0; k < 2; k++) {
+              final v0 = cannon.Vec3();
+              final v1 = cannon.Vec3();
+              final v2 = cannon.Vec3();
               shape.getConvexTrianglePillar(xi, yi, k == 0);
-              final v0 = shape.pillarConvex.vertices[0];
-              final v1 = shape.pillarConvex.vertices[1];
-              final v2 = shape.pillarConvex.vertices[2];
+              v0.copy(shape.pillarConvex.vertices[0]);
+              v1.copy(shape.pillarConvex.vertices[1]);
+              v2.copy(shape.pillarConvex.vertices[2]);
               v0.vadd(shape.pillarOffset, v0);
               v1.vadd(shape.pillarOffset, v1);
               v2.vadd(shape.pillarOffset, v2);
@@ -111,8 +114,21 @@ class ConversionUtils{
                 v1.x, v1.y, v1.z,
                 v2.x, v2.y, v2.z
               ]);
-              int i = vertices.length - 3;
-              indices.addAll([i,i+1,i+2]);
+
+              // var a = yi + shape.data.length * xi;
+              // var b = yi + shape.data.length * (xi + 1);
+              // var c = (yi + 1) + shape.data.length * (xi + 1);
+              // var d = (yi + 1) + shape.data.length * xi;
+
+              // int i = vertices.length - 3;
+              //indices.addAll([a,b,d,b,c,d]);
+              for(int l = 0; l < shape.pillarConvex.faces.length;l++){
+                for(int m = 0; m < shape.pillarConvex.faces[l].length;m++){
+                  int val = (yi+shape.pillarConvex.faces[l][m])*xi;
+
+                  indices.add(val);
+                }
+              }
             }
           }
         }
@@ -245,7 +261,11 @@ class ConversionUtils{
             normals.add(cannon.Vec3(norms[i],norms[i+1],norms[i+2]));
           }
           if(faces.length > i){
-            faces.add([indexes[i].toInt(),indexes[i+1].toInt(),indexes[i+2].toInt()]);
+            faces.add([
+              i,//indexes[i].toInt(),
+              i+1,//indexes[i+1].toInt(),
+              i+2,//indexes[i+2].toInt()
+            ]);
           }
           j++;
         }
@@ -253,7 +273,7 @@ class ConversionUtils{
         // Construct polyhedron
         final polyhedron = cannon.ConvexPolyhedron(
           vertices: verticies, 
-          faces: faces, 
+          //faces: faces, 
           //normals: normals
         );
 

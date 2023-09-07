@@ -47,7 +47,7 @@ class Trimesh extends Shape {
   final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
-  Uint16List? edges;
+  Int16List? edges;
 
   /// Local scaling of the mesh. Use .setScale() to set it.
   final Vec3 scale = Vec3(1, 1, 1);
@@ -205,7 +205,7 @@ class Trimesh extends Shape {
       add(c, a);
     }
     final keys = edges.keys.toList();
-    this.edges = Uint16List(keys.length * 2);
+    this.edges = Int16List(keys.length * 2);
     for (int i = 0; i < keys.length; i++) {
       final indices = keys[i].split('_');
       this.edges![2 * i] = int.parse(indices[0], radix:  10);
@@ -295,9 +295,9 @@ class Trimesh extends Shape {
     final y = _cliAabb.upperBound.y - _cliAabb.lowerBound.y;
     final z = _cliAabb.upperBound.z - _cliAabb.lowerBound.z;
     return target.set(
-      1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * z * 2 * z),
-      1.0 / 12.0 * mass * (2 * x * 2 * x + 2 * z * 2 * z),
-      1.0 / 12.0 * mass * (2 * y * 2 * y + 2 * x * 2 * x)
+      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z),
+      (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z),
+      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x)
     );
   }
 

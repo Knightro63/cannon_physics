@@ -72,7 +72,11 @@ class _WorkerState extends State<Worker> {
       );
       if(i%5 == 0){
         body.addShape(torus);
-        demo.addVisual(body,mesh:torusMesh,material: torusMaterial);
+        demo.addVisual(
+          body,
+          mesh:torusMesh,
+          material: torusMaterial
+        );
       }
       else{
         body.addShape(boxShape);

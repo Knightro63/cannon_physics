@@ -6,7 +6,7 @@ import 'package:cannon_physics_example/examples/callback.dart';
 import 'package:cannon_physics_example/examples/collision_filter.dart';
 import 'package:cannon_physics_example/examples/collisions.dart';
 import 'package:cannon_physics_example/examples/compound.dart';
-import 'package:cannon_physics_example/examples/constraints.dart'; //Fix
+import 'package:cannon_physics_example/examples/constraints.dart';
 import 'package:cannon_physics_example/examples/container.dart';
 import 'package:cannon_physics_example/examples/convex.dart';
 import 'package:cannon_physics_example/examples/events.dart';
@@ -20,7 +20,7 @@ import 'package:cannon_physics_example/examples/impulses.dart';
 import 'package:cannon_physics_example/examples/jenga.dart';
 import 'package:cannon_physics_example/examples/performance.dart';
 import 'package:cannon_physics_example/examples/pile.dart';
-import 'package:cannon_physics_example/examples/ragdoll.dart'; //Fix
+import 'package:cannon_physics_example/examples/ragdoll.dart';
 import 'package:cannon_physics_example/examples/raycast_vehicle.dart'; //Fix
 import 'package:cannon_physics_example/examples/rigid_vehicle.dart'; //Fix
 import 'package:cannon_physics_example/examples/shapes.dart';
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Worker(),
+      home: const Heightfield(),
     );
   }
 }

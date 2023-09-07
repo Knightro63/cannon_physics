@@ -16,9 +16,9 @@ class Vec3 {
   double z;
 
   static Vec3 zero = Vec3(0, 0, 0);
-  static Vec3 unitX = Vec3(0, 0, 0);
-  static Vec3 unitY = Vec3(0, 0, 0);
-  static Vec3 unitZ = Vec3(0, 0, 0);
+  static Vec3 unitX = Vec3(1, 0, 0);
+  static Vec3 unitY = Vec3(0, 1, 0);
+  static Vec3 unitZ = Vec3(0, 0, 1);
 
   Vec3([this.x = 0.0, this.y = 0.0, this.z = 0.0]);
 

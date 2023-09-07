@@ -40,8 +40,6 @@ class Equation {
   final _iMfj = Vec3();
   final _invIiVmultTaui = Vec3();
   final _invIjVmultTauj = Vec3();
-
-  final _tmp = Vec3();
   final _addToWlambdaTemp = Vec3();
 
   /// Recalculates a, b, and eps.
@@ -137,12 +135,12 @@ class Equation {
     final invIi = bi.invInertiaWorldSolve;
     final invIj = bj.invInertiaWorldSolve;
     double result = invMassi + invMassj;
+    final tmp = Vec3();
+    invIi.vmult(ga.rotational, tmp);
+    result += tmp.dot(ga.rotational);
 
-    invIi.vmult(ga.rotational, _tmp);
-    result += _tmp.dot(ga.rotational);
-
-    invIj.vmult(gb.rotational, _tmp);
-    result += _tmp.dot(gb.rotational);
+    invIj.vmult(gb.rotational, tmp);
+    result += tmp.dot(gb.rotational);
 
     return result;
   }

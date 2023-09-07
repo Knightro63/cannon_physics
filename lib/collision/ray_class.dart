@@ -234,14 +234,14 @@ class Ray {
   /// @param bodies An array of Body objects.
   /// @deprecated @param result set the result property of the Ray instead.
   void intersectBodies(List<Body> bodies, [RaycastResult? result]) {
-    // if (result != null) {
-    //   this.result = result;
-    //   _updateDirection();
-    // }
+    if (result != null) {
+      this.result = result;
+      _updateDirection();
+    }
 
-    // for (int i = 0, l = bodies.length; !this.result.shouldStop && i < l; i++) {
-    //   intersectBody(bodies[i]);
-    // }
+    for (int i = 0, l = bodies.length; !this.result.shouldStop && i < l; i++) {
+      intersectBody(bodies[i]);
+    }
   }
 
   /// Updates the direction vector.

@@ -739,10 +739,10 @@ class ConvexPolyhedron extends Shape {
       }
 
       // Rotate edges
-      for(int i=0; i< uniqueEdges.length; i++){
-        final v = uniqueEdges[i];
-        quat.vmult(v,v);
-      }
+      // for(int i=0; i< uniqueEdges.length; i++){
+      //   final v = uniqueEdges[i];
+      //   quat.vmult(v,v);
+      // }
     }
 
     // // Apply offset
@@ -763,7 +763,7 @@ class ConvexPolyhedron extends Shape {
     final faces = this.faces;
     final normals = faceNormals;
     //bool? positiveResult;
-    final pointInside = _convexPolyhedronPointIsInside;
+    final pointInside = Vec3();//_convexPolyhedronPointIsInside;
     getAveragePointLocal(pointInside);
 
     for (int i = 0; i < this.faces.length; i++) {
@@ -771,11 +771,11 @@ class ConvexPolyhedron extends Shape {
       final v = verts[faces[i][0]]; // We only need one point in the face
 
       // This dot product determines which side of the edge the point is
-      final vToP = _convexPolyhedronVToP;
+      final vToP = Vec3();//_convexPolyhedronVToP;
       p.vsub(v, vToP);
       final r1 = n.dot(vToP);
 
-      final vToPointInside = _convexPolyhedronVToPointInside;//
+      final vToPointInside = Vec3();//_convexPolyhedronVToPointInside;//
       pointInside.vsub(v, vToPointInside);
       final r2 = n.dot(vToPointInside);
 

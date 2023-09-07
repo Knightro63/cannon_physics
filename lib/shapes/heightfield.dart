@@ -164,7 +164,7 @@ class Heightfield extends Shape {
   /// @param clamp If the position should be clamped to the heightfield edge.
   bool getIndexOfPosition(double x, double y, List<int> result, bool clamp) {
     if(result.isEmpty){
-      result = [0,0];
+      result.addAll([0,0]);
     }
     // Get the index of the data points to test against
     final w = elementSize;
@@ -296,7 +296,11 @@ class Heightfield extends Shape {
     );
   }
 
-  void clearCachedConvexTrianglePillar(int xi, int yi, bool getUpperTriangle) {
+  void clearCachedConvexTrianglePillar(
+    int xi, 
+    int yi, 
+    bool getUpperTriangle
+  ) {
     _cachedPillars.remove(getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle));//delete this._cachedPillars[getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle)];
   }
 

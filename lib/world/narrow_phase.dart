@@ -936,7 +936,6 @@ class Narrowphase {
         // Make relative to bodies
         ri.vadd(xi, ri);
         ri.vsub(bi.position, ri);
-        
         rj.vadd(xj, rj);
         rj.vsub(bj.position, rj);
 
@@ -1789,8 +1788,8 @@ class Narrowphase {
     final edgeVector = _sphereTrimeshEdgeVector;
     final edgeVectorUnit = _sphereTrimeshEdgeVectorUnit;
     final localSpherePos = _sphereTrimeshLocalSpherePos;
-    final tmp = _sphereTrimeshTmp;
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
+    final tmp = _sphereTrimeshTmp;
     final v2 = _sphereTrimeshV2;
     final relpos = _sphereTrimeshRelpos;
     final triangles = _sphereTrimeshTriangles;
@@ -1864,12 +1863,12 @@ class Narrowphase {
 
         // Project sphere position to the edge
         localSpherePos.vsub(edgeVertexB, tmp);
-        final positionAlongEdgeB = tmp.dot(edgeVector);
+        double positionAlongEdgeB = tmp.dot(edgeVector);
 
         localSpherePos.vsub(edgeVertexA, tmp);
         double positionAlongEdgeA = tmp.dot(edgeVector);
-
-        if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
+        
+        if (positionAlongEdgeA > 0 && positionAlongEdgeB > 0) {
           // Now check the orthogonal distance from edge to sphere center
           localSpherePos.vsub(edgeVertexA, tmp);
 
