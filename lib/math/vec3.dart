@@ -68,9 +68,6 @@ class Vec3 {
     final vx = vector.x;
     final vy = vector.y;
     final vz = vector.z;
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
 
     target.x = y * vz - z * vy;
     target.y = z * vx - x * vz;
@@ -133,20 +130,17 @@ class Vec3 {
   /// Normalize the vector. Note that this changes the values in the vector.
   /// @return Returns the norm of the vector
   double normalize() {
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     final n = math.sqrt(x * x + y * y + z * z);
     if (n > 0.0) {
       final invN = 1 / n;
-      this.x *= invN;
-      this.y *= invN;
-      this.z *= invN;
+      x *= invN;
+      y *= invN;
+      z *= invN;
     } else {
       // Make something up
-      this.x = 0;
-      this.y = 0;
-      this.z = 0;
+      x = 0;
+      y = 0;
+      z = 0;
     }
     return n;
   }
@@ -156,9 +150,6 @@ class Vec3 {
   /// @return Returns the unit vector
   Vec3 unit([Vec3? target]) {
     target ??= Vec3();
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     double ninv = math.sqrt(x * x + y * y + z * z);
     if (ninv > 0.0) {
       ninv = 1.0 / ninv;
@@ -175,9 +166,6 @@ class Vec3 {
 
   /// Get the length of the vector
   double length() {
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     return math.sqrt(x * x + y * y + z * z);
   }
 
@@ -188,9 +176,6 @@ class Vec3 {
 
   /// Get distance from this point to another point
   double distanceTo(Vec3 p) {
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     final px = p.x;
     final py = p.y;
     final pz = p.z;
@@ -199,9 +184,6 @@ class Vec3 {
 
   /// Get squared distance from this point to another point
   double distanceSquared(Vec3 p) {
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     final px = p.x;
     final py = p.y;
     final pz = p.z;
@@ -212,19 +194,12 @@ class Vec3 {
   /// @param target The vector to save the result in.
   Vec3 scale(double scalar, [Vec3? target]){
     target ??= Vec3();
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
     target.x = scalar * x;
     target.y = scalar * y;
     target.z = scalar * z;
     return target;
   }
   int sum(){
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
-
     return (x+y+z).toInt();
   }
   /// Multiply the vector with an other vector, component-wise.
@@ -313,9 +288,7 @@ class Vec3 {
   /// Do a linear interpolation between two vectors
   /// @param t A number between 0 and 1. 0 will make this function return u, and 1 will make it return v. Numbers in between will generate a vector in between them.
   void lerp(Vec3 vector,double t, Vec3 target) {
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
+
     target.x = x + (vector.x - x) * t;
     target.y = y + (vector.y - y) * t;
     target.z = z + (vector.z - z) * t;

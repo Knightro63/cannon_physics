@@ -123,11 +123,6 @@ class Quaternion {
   /// Get the inverse quaternion rotation.
   Quaternion inverse([Quaternion? target]){
     target ??= Quaternion();
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
-    final w = this.w;
-
     conjugate(target);
     final inorm2 = 1 / (x * x + y * y + z * z + w * w);
     target.x *= inorm2;
@@ -226,11 +221,6 @@ class Quaternion {
     double? heading;
     late double attitude;
     late double bank;
-
-    final x = this.x;
-    final y = this.y;
-    final z = this.z;
-    final w = this.w;
 
     switch (order) {
       case Order.xyz:

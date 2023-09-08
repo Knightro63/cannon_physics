@@ -89,9 +89,9 @@ class ConvexPolyhedron extends Shape {
     uniqueEdges = c.uniqueEdges;
   }
 
-  final Vec3 _convexPolyhedronPointIsInside = Vec3();
-  final Vec3 _convexPolyhedronVToP = Vec3();
-  final Vec3 _convexPolyhedronVToPointInside = Vec3();
+  // final Vec3 _convexPolyhedronPointIsInside = Vec3();
+  // final Vec3 _convexPolyhedronVToP = Vec3();
+  // final Vec3 _convexPolyhedronVToPointInside = Vec3();
   void init(
     List<Vec3>?  vertices,
     List<List<int>>? faces,
@@ -644,7 +644,7 @@ class ConvexPolyhedron extends Shape {
     }
   }
 
-  /// Updates `worldVertices` and sets `worldVerticesNeedsUpdate` to false.
+  /// Updates `worldVertices` and sets `worldFaceNormalsNeedsUpdate` to false.
   void computeWorldFaceNormals(Quaternion quat) {
     final N = faceNormals.length;
     while (worldFaceNormals.length < N) {

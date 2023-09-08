@@ -366,8 +366,8 @@ class Trimesh extends Shape {
     // Faster approximation using local AABB
     final frame = _calculateWorldAABBFrame;
     final result = _calculateWorldAABBAabb;
-    frame.position = pos;
-    frame.quaternion = quat;
+    frame.position.copy(pos);
+    frame.quaternion.copy(quat);
     aabb.toWorldFrame(frame, result);
     min.copy(result.lowerBound);
     max.copy(result.upperBound);

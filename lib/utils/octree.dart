@@ -131,6 +131,7 @@ class OctreeNode {
   /// Get all data, potentially intersected by a ray.
   /// @return The "result" object
   void rayQuery(Ray ray, Transform treeTransform, List<int>result){
+    if(ray.direction.length() == 0) return;
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */
     ray.getAABB(tmpAABB);

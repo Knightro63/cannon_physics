@@ -1,12 +1,10 @@
 import 'vec3.dart';
 import 'quaternion.dart';
 
-final _tmpQuat = Quaternion();
-
 /// Transformation utilities.
 class Transform {
-  late Vec3 position = Vec3(); 
-  late Quaternion quaternion = Quaternion();
+  late final Vec3 position = Vec3(); 
+  late final Quaternion quaternion = Quaternion();
 
   Transform({
     Vec3? position,
@@ -44,8 +42,9 @@ class Transform {
   static Vec3 pointToLocalFrame(Vec3 position,Quaternion quaternion,Vec3 worldPoint, [Vec3? result]) {
     result ??= Vec3();
     worldPoint.vsub(position, result);
-    quaternion.conjugate(_tmpQuat);
-    _tmpQuat.vmult(result, result);
+    final tmpQuat = quaternion.conjugate();
+    //quaternion.conjugate(tmpQuat);
+    tmpQuat.vmult(result, result);
     return result;
   }
 

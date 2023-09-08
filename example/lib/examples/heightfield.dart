@@ -83,7 +83,7 @@ class _HeightfieldState extends State<Heightfield> {
           continue;
         }
 
-        final sphereShape = cannon.Sphere(0.1);
+        final sphereShape = cannon.Box(cannon.Vec3(0.1,0.1,0.1));
         final sphereBody = cannon.Body(mass:mass );
         sphereBody.addShape(sphereShape);
         sphereBody.position.set(i + 0.25, 3, -j + 0.25);

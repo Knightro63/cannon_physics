@@ -1265,10 +1265,10 @@ class Narrowphase {
     final data = sj.data;
     final radius = si.radius;
     final w = sj.elementSize;
-    final worldPillarOffset = Vec3();//_sphereHeightfieldTmp2;
+    final worldPillarOffset = _sphereHeightfieldTmp2;
 
     // Get sphere position to heightfield local!
-    final localSpherePos = Vec3();//_sphereHeightfieldTmp1;
+    final localSpherePos = _sphereHeightfieldTmp1;
     Transform.pointToLocalFrame(xj, qj, xi, localSpherePos);
 
     // Get the index of the data points to test against
@@ -1277,7 +1277,7 @@ class Narrowphase {
     int iMaxX = ((localSpherePos.x + radius) / w).ceil() + 1;
     int iMinY = ((localSpherePos.y - radius) / w).floor() - 1;
     int iMaxY = ((localSpherePos.y + radius) / w).ceil() + 1;
-
+    
     // Bail out if we are out of the terrain
     if (iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length) {
       return false;
@@ -1793,6 +1793,7 @@ class Narrowphase {
     final v2 = _sphereTrimeshV2;
     final relpos = _sphereTrimeshRelpos;
     final triangles = _sphereTrimeshTriangles;
+    final v = _sphereTrimeshV;
 
     // Convert sphere position to local in the trimesh
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
@@ -1811,18 +1812,14 @@ class Narrowphase {
     );
 
     trimeshShape.getTrianglesInAABB(localSphereAABB, triangles);
-    //for (let i = 0; i < trimeshShape.indices.length / 3; i++) triangles.push(i); // All
 
-    // Vertices
-    final v = _sphereTrimeshV;
     final radiusSquared = sphereShape.radius * sphereShape.radius;
     for (int i = 0; i < triangles.length; i++) {
       for (int j = 0; j < 3; j++) {
         trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], v);
-
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
-
+        //print(relpos.lengthSquared());
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);
