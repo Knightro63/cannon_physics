@@ -53,8 +53,8 @@ class _WorkerState extends State<Worker> {
     int N = 50;
     const mass = 1.0;
     const size = 0.25;
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
-    final torusGeometry = TorusGeometry(size*2,size*2*0.4);
+    final boxShape = cannon.Sphere(size);
+    final torusGeometry = SphereGeometry(size*2,);
     final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torus = ConversionUtils.geometryToShape(torusGeometry);

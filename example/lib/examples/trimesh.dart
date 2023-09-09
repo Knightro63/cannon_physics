@@ -67,7 +67,7 @@ class _TriMeshState extends State<TriMesh> {
     torusBody.addShape(torusShape);
     torusBody.position.set(0.01, 0.01, 0.01);
     torusBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    torusBody.angularVelocity.set(0, 0, 5);
+    torusBody.angularVelocity.set(0, 0, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody);
 
@@ -122,7 +122,7 @@ class _TriMeshState extends State<TriMesh> {
   }
 
   void setupWorld(){
-    triMesh();
+    rayCasting();
     demo.start();
   }
   @override

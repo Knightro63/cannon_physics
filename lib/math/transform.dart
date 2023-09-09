@@ -3,8 +3,8 @@ import 'quaternion.dart';
 
 /// Transformation utilities.
 class Transform {
-  late final Vec3 position = Vec3(); 
-  late final Quaternion quaternion = Quaternion();
+  late Vec3 position = Vec3(); 
+  late Quaternion quaternion = Quaternion();
 
   Transform({
     Vec3? position,

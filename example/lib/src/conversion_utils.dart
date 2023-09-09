@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
@@ -130,14 +132,14 @@ class ConversionUtils{
       case cannon.ShapeType.trimesh: {
         shape as cannon.Trimesh;
         final geometry = three.BufferGeometry();
-
+        
         geometry.setIndex(shape.indices);
         geometry.setAttribute(
             'position', Float32BufferAttribute(Float32Array.from(shape.vertices), 3));
-        if(shape.normals != null){
-          geometry.setAttribute(
-            'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
-        }
+        // if(shape.normals != null){
+        //   geometry.setAttribute(
+        //     'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
+        // }
         if(shape.uvs != null){
           geometry.setAttribute(
             'uv', Float32BufferAttribute(Float32Array.from(shape.uvs!), 2));
@@ -199,8 +201,8 @@ class ConversionUtils{
         return cannon.Plane();
       }
 
-      case 'SphereGeometry':
-      case 'SphereBufferGeometry': {
+      case 'SphereGeometr':
+      case 'SphereBufferGeometr': {
         return cannon.Sphere(geometry.parameters!['radius']);
       }
 
@@ -227,6 +229,8 @@ class ConversionUtils{
         List<List<int>>? faces = [];
         List<cannon.Vec3>? normals = [];
 
+        List<int> indicies = [];
+
         for(int i = 0; i < points.length; i+=3){
           int j = i~/3;
           verticies.add(cannon.Vec3(points[i],points[i+1],points[i+2]));
@@ -248,10 +252,14 @@ class ConversionUtils{
           // }
         }
 
+        for(int i = 0; i < array.length;i++){
+          indicies.add(array[i].toInt());
+        }
+
         // Construct polyhedron
-        cannon.ConvexPolyhedron polyhedron = cannon.ConvexPolyhedron(
-          vertices: verticies, 
-          faces: faces, 
+        cannon.Trimesh polyhedron = cannon.Trimesh(
+          points.toDartList(), 
+          Int16List.fromList(indicies), 
           //normals: normals,
           //axes: [cannon.Vec3(0, 1, 0)]
         );

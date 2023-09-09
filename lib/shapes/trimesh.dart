@@ -36,19 +36,19 @@ class TorusGeometry{
 ///     ]
 ///     final trimeshShape = CANNON.Trimesh(vertices, indices)
 class Trimesh extends Shape {
-  late final List<double> vertices;
+  late final Float32List vertices;
 
   /// Array of integers, indicating which vertices each triangle consists of. The length of this array is thus 3 times the number of triangles.
-  late final List<int> indices; 
-  late final List<double>? normals;
-  late final List<double> faceNormals;
-  late final List<double>? uvs;
+  late final Int16List indices; 
+  late final Float32List? normals;
+  late final Float32List faceNormals;
+  late final Float32List? uvs;
 
   /// The local AABB of the mesh.
   final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
-  late List<int> edges;
+  late Int16List edges;
 
   /// Local scaling of the mesh. Use .setScale() to set it.
   final Vec3 scale = Vec3(1, 1, 1);
@@ -154,28 +154,26 @@ class Trimesh extends Shape {
     updateBoundingSphereRadius();
   }
 
+  final _va = Vec3();
+  final _vb = Vec3();
+  final _vc = Vec3();
   /// Compute the normals of the faces. Will save in the `.normals` array.
   void updateNormals() {
     // Generate normals
     final normals = faceNormals;
+    final n = _computeNormalsN;
     for (int i = 0; i < indices.length / 3; i++) {
-      final n = _computeNormalsN;
-
-      final va = Vec3();
-      final vb = Vec3();
-      final vc = Vec3();
-
       final i3 = i * 3;
 
       final a = indices[i3];
       final b = indices[i3 + 1];
       final c = indices[i3 + 2];
 
-      getVertex(a, va);
-      getVertex(b, vb);
-      getVertex(c, vc);
+      getVertex(a, _va);
+      getVertex(b, _vb);
+      getVertex(c, _vc);
 
-      Trimesh.computeNormal(vb, va, vc, n);
+      Trimesh.computeNormal(_vb, _va, _vc, n);
 
       normals[i3] = n.x;
       normals[i3 + 1] = n.y;
@@ -200,11 +198,11 @@ class Trimesh extends Shape {
       add(c, a);
     }
     final keys = edges.keys.toList();
-    this.edges = List.filled(keys.length * 2,0);
+    this.edges = Int16List(keys.length * 2);
     for (int i = 0; i < keys.length; i++) {
       final indices = keys[i].split('_');
-      this.edges[2 * i] = int.parse(indices[0]);
-      this.edges[2 * i + 1] = int.parse(indices[1]);
+      this.edges[2 * i] = int.parse(indices[0],radix:10);
+      this.edges[2 * i + 1] = int.parse(indices[1],radix:10);
     }
   }
 
@@ -234,10 +232,9 @@ class Trimesh extends Shape {
     vc.vsub(vb, cb);
     cb.cross(ab, target);
     if (!target.isZero()) {
-      target.normalize();
+      target.inverse().normalize();
     }
   }
-
   /// Get vertex i.
   /// @return The "out" vector object
   Vec3 getVertex(int i, Vec3 out) {
@@ -253,6 +250,7 @@ class Trimesh extends Shape {
   /// @return The "out" vector object
   Vec3 _getUnscaledVertex(int i, Vec3 out) {
     final i3 = i * 3;
+    final vertices = this.vertices;
     return out.set(vertices[i3], vertices[i3 + 1], vertices[i3 + 2]);
   }
 
@@ -300,9 +298,9 @@ class Trimesh extends Shape {
     final y = _cliAabb.upperBound.y - _cliAabb.lowerBound.y;
     final z = _cliAabb.upperBound.z - _cliAabb.lowerBound.z;
     return target.set(
-      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * z * 2 * z),
-      (1.0 / 12.0) * mass * (2 * x * 2 * x + 2 * z * 2 * z),
-      (1.0 / 12.0) * mass * (2 * y * 2 * y + 2 * x * 2 * x)
+      1.0 / 12.0 * mass * (2*y*2*y + 2*z*2*z),
+      1.0 / 12.0 * mass * (2*x*2*x + 2*z*2*z),
+      1.0 / 12.0 * mass * (2*y*2*y + 2*x*2*x)
     );
   }
 
@@ -348,6 +346,7 @@ class Trimesh extends Shape {
   void updateBoundingSphereRadius() {
     // Assume points are distributed with local (0,0,0) as center
     double max2 = 0;
+    final vertices = this.vertices;
     final v = Vec3();
     print('updateBoundingSphereRadius');
     for (int i = 0; i < vertices.length/ 3; i++) {
@@ -366,8 +365,8 @@ class Trimesh extends Shape {
     // Faster approximation using local AABB
     final frame = _calculateWorldAABBFrame;
     final result = _calculateWorldAABBAabb;
-    frame.position.copy(pos);
-    frame.quaternion.copy(quat);
+    frame.position =pos;
+    frame.quaternion = quat;
     aabb.toWorldFrame(frame, result);
     min.copy(result.lowerBound);
     max.copy(result.upperBound);
@@ -376,7 +375,7 @@ class Trimesh extends Shape {
   /// Get approximate volume
   @override
   double volume() {
-    return (4.0 * math.pi * boundingSphereRadius) / 3.0;
+    return 4.0 * math.pi * boundingSphereRadius / 3.0;
   }
 
   /// Create a Trimesh instance, shaped as a torus.
@@ -410,7 +409,7 @@ class Trimesh extends Shape {
         uvs.add(i / torus.tubularSegments);
         uvs.add(j / torus.radialSegments);
 
-        if(i > 0 && j > 0){
+        if(i != 0 && j != 0){
           final a = (torus.tubularSegments + 1) * j + i - 1;
           final b = (torus.tubularSegments + 1) * (j - 1) + i - 1;
           final c = (torus.tubularSegments + 1) * (j - 1) + i;
@@ -422,14 +421,14 @@ class Trimesh extends Shape {
       }
     }
 
-    this.vertices = vertices;
-    this.indices = indices;
-    this.uvs = uvs;
-    updateEdges();
+    this.vertices = Float32List.fromList(vertices);
+    this.indices = Int16List.fromList(indices);
+    this.uvs = Float32List.fromList(uvs);
     faceNormals = Float32List(indices.length);
-    updateNormals();
-    this.normals = normals;
+    this.normals = Float32List.fromList(normals);
 
+    updateEdges();
+    updateNormals();
     updateAABB();
     updateBoundingSphereRadius();
     updateTree();

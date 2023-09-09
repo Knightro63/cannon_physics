@@ -75,7 +75,14 @@ class Vec3 {
 
     return target;
   }
-
+  /// Vector cross product
+  /// @param target Optional target to save in.
+  Vec3 inverse(){
+    x *=-1;
+    y *= -1;
+    z *= -1;
+    return this;
+  }
   /// Set the vectors' 3 elements
   Vec3 set(double x,double y,double z){
     this.x = x;
@@ -130,17 +137,20 @@ class Vec3 {
   /// Normalize the vector. Note that this changes the values in the vector.
   /// @return Returns the norm of the vector
   double normalize() {
+    final x = this.x;
+    final y = this.y;
+    final z = this.z;
     final n = math.sqrt(x * x + y * y + z * z);
     if (n > 0.0) {
       final invN = 1 / n;
-      x *= invN;
-      y *= invN;
-      z *= invN;
+      this.x *= invN;
+      this.y *= invN;
+      this.z *= invN;
     } else {
       // Make something up
-      x = 0;
-      y = 0;
-      z = 0;
+      this.x = 0;
+      this.y = 0;
+      this.z = 0;
     }
     return n;
   }

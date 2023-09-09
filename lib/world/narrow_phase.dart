@@ -1324,7 +1324,7 @@ class Narrowphase {
       for (int j = iMinY; j < iMaxY; j++) {
         final numContactsBefore = result.length;
 
-        bool? intersecting = false;
+        bool intersecting = false;
 
         // Lower triangle
         sj.getConvexTrianglePillar(i, j, false);

@@ -163,7 +163,7 @@ class Ray {
   bool intersectWorld(World world, RayOptions options) {
     mode = options.mode ?? RayMode.any;
     result = options.result ?? RaycastResult();
-    skipBackfaces = options.skipBackfaces ?? false;
+    skipBackfaces = options.skipBackfaces ?? true;
     collisionFilterMask = options.collisionFilterMask ?? -1;
     collisionFilterGroup = options.collisionFilterGroup ?? -1;
     checkCollisionResponse = options.checkCollisionResponse ?? true;
@@ -182,6 +182,7 @@ class Ray {
     _updateDirection();
 
     getAABB(_tmpAABB);
+    _tmpArray.clear();
     world.broadphase.aabbQuery(world, _tmpAABB, _tmpArray);
     intersectBodies(_tmpArray);
 
@@ -590,7 +591,7 @@ class Ray {
     for (int i = 0, N = triangles.length; !result.shouldStop && i != N; i++) {
       final trianglesIndex = triangles[i];
 
-      mesh.getNormal(trianglesIndex, normal);
+      mesh.getFaceNormal(trianglesIndex, normal);
 
       // determine if ray intersects the plane of the face
       // note: this works regardless of the direction of the face normal

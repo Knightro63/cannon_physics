@@ -245,10 +245,16 @@ class Heightfield extends Shape {
     final data = this.data;
     final elementSize = this.elementSize.toDouble();
 
-    //lowerBound.set(xi * elementSize, yi * elementSize, data[xi][yi]);
-    //upperBound.set((xi + 1) * elementSize, (yi + 1) * elementSize, data[xi + 1][yi + 1]);
-    aabb.lowerBound.set(xi * elementSize, yi * elementSize, data[xi][yi]);
-    aabb.upperBound.set((xi + 1) * elementSize, (yi + 1) * elementSize, data[xi + 1][yi + 1]);
+    aabb.lowerBound.set(
+      xi * elementSize, 
+      yi * elementSize, 
+      data[xi][yi]
+    );
+    aabb.upperBound.set(
+      (xi + 1) * elementSize, 
+      (yi + 1) * elementSize, 
+      data[xi + 1][yi + 1]
+    );
   }
 
   /// Get the height in the heightfield at a given position
@@ -377,7 +383,8 @@ class Heightfield extends Shape {
     final h =(
       math.min(
         math.min(
-          data[xi][yi], data[xi + 1][yi],
+          data[xi][yi], 
+          data[xi + 1][yi]
         ),
         math.min(
           data[xi][yi + 1], 
@@ -399,9 +406,9 @@ class Heightfield extends Shape {
       verts[2].set(-0.25 * elementSize, 0.75 * elementSize, data[xi][yi + 1] - h);
 
       // bottom triangle verts
-      verts[3].set(-0.25 * elementSize, -0.25 * elementSize, -h.abs() - 1);
-      verts[4].set(0.75 * elementSize, -0.25 * elementSize, -h.abs() - 1);
-      verts[5].set(-0.25 * elementSize, 0.75 * elementSize, -h.abs() - 1);
+      verts[3].set(-0.25 * elementSize, -0.25 * elementSize, -h - 1);
+      verts[4].set(0.75 * elementSize, -0.25 * elementSize, -h - 1);
+      verts[5].set(-0.25 * elementSize, 0.75 * elementSize, -h - 1);
 
       // top triangle
       faces[0][0] = 0;
@@ -444,9 +451,9 @@ class Heightfield extends Shape {
       verts[2].set(0.25 * elementSize, -0.75 * elementSize, data[xi + 1][yi] - h);
 
       // bottom triangle verts
-      verts[3].set(0.25 * elementSize, 0.25 * elementSize, -h.abs() - 1);
-      verts[4].set(-0.75 * elementSize, 0.25 * elementSize, -h.abs() - 1);
-      verts[5].set(0.25 * elementSize, -0.75 * elementSize, -h.abs() - 1);
+      verts[3].set(0.25 * elementSize, 0.25 * elementSize, -h - 1);
+      verts[4].set(-0.75 * elementSize, 0.25 * elementSize, -h - 1);
+      verts[5].set(0.25 * elementSize, -0.75 * elementSize, -h - 1);
 
       // Top triangle
       faces[0][0] = 0;
