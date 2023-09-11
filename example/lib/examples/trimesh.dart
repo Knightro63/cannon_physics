@@ -122,7 +122,7 @@ class _TriMeshState extends State<TriMesh> {
   }
 
   void setupWorld(){
-    rayCasting();
+    triMesh();
     demo.start();
   }
   @override

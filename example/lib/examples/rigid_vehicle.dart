@@ -125,7 +125,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
 
     final groundMaterial = cannon.Material(name:'ground');
     final heightfieldShape = cannon.Heightfield(matrix, 
-      elementSize: 100 ~/ sizeX,
+      elementSize: 300 ~/ sizeX,
     );
     final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
     heightfieldBody.addShape(heightfieldShape);

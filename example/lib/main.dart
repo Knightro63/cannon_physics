@@ -21,8 +21,8 @@ import 'package:cannon_physics_example/examples/jenga.dart';
 import 'package:cannon_physics_example/examples/performance.dart';
 import 'package:cannon_physics_example/examples/pile.dart';
 import 'package:cannon_physics_example/examples/ragdoll.dart';
-import 'package:cannon_physics_example/examples/raycast_vehicle.dart'; //Fix
-import 'package:cannon_physics_example/examples/rigid_vehicle.dart'; //Fix
+import 'package:cannon_physics_example/examples/raycast_vehicle.dart';
+import 'package:cannon_physics_example/examples/rigid_vehicle.dart';
 import 'package:cannon_physics_example/examples/shapes.dart';
 import 'package:cannon_physics_example/examples/simple_friction.dart';
 import 'package:cannon_physics_example/examples/single_body_on_plane.dart';
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Worker(),
+      home: const TriMesh(),
     );
   }
 }

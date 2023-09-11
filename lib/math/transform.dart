@@ -42,9 +42,9 @@ class Transform {
   static Vec3 pointToLocalFrame(Vec3 position,Quaternion quaternion,Vec3 worldPoint, [Vec3? result]) {
     result ??= Vec3();
     worldPoint.vsub(position, result);
-    final tmpQuat = quaternion.conjugate();
-    //quaternion.conjugate(tmpQuat);
-    tmpQuat.vmult(result, result);
+    final tmpQuat = Quaternion();
+    quaternion.conjugate(tmpQuat);
+    tmpQuat.vmult(result.clone(), result);
     return result;
   }
 

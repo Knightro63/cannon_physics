@@ -186,6 +186,7 @@ class Quaternion {
     final x = v.x;
     final y = v.y;
     final z = v.z;
+    
     final qx = this.x;
     final qy = this.y;
     final qz = this.z;

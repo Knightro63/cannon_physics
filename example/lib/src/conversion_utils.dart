@@ -4,6 +4,7 @@ import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
+import 'package:three_dart_jsm/three_dart_jsm/renderers/nodes/index.dart';
 
 extension on cannon.Quaternion{
   Quaternion toQuaternion(){
@@ -47,7 +48,7 @@ class GeometryCache {
 }
 
 class ConversionUtils{
-  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true}) {
+  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true, cannon.Vec3? position}) {
     switch (shape.type) {
       case cannon.ShapeType.sphere: {
         shape as cannon.Sphere;
@@ -105,18 +106,17 @@ class ConversionUtils{
         int y = -1;
 
         for(int i = 0; i < verts.length~/3;i++){
-          if((i)%(shape.segments.width) == 0){
+          if(i%shape.segments.width == 0){
             y++;
             x = 0;
           }
-
-          bool isClamped = y==0 || y==shape.segments.height-1 || x==0 ||x ==shape.segments.width-1;
-
-          verts[(i*3)+2] = shape.getHeightAt(x.toDouble(), y.toDouble(), isClamped);
+          verts[(i*3)+2] = shape.data[y][x];
           x++;
         }
 
         geometry.translate(shape.size.width/2, shape.size.height/2,0);
+        geometry.rotateZ(Math.PI/2);
+        geometry.translate(shape.size.width, 0,0);
 
         geometry.computeBoundingSphere();
 
@@ -136,10 +136,10 @@ class ConversionUtils{
         geometry.setIndex(shape.indices);
         geometry.setAttribute(
             'position', Float32BufferAttribute(Float32Array.from(shape.vertices), 3));
-        // if(shape.normals != null){
-        //   geometry.setAttribute(
-        //     'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
-        // }
+        if(shape.normals != null){
+          geometry.setAttribute(
+            'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
+        }
         if(shape.uvs != null){
           geometry.setAttribute(
             'uv', Float32BufferAttribute(Float32Array.from(shape.uvs!), 2));
@@ -201,13 +201,13 @@ class ConversionUtils{
         return cannon.Plane();
       }
 
-      case 'SphereGeometr':
-      case 'SphereBufferGeometr': {
+      case 'SphereGeometry':
+      case 'SphereBufferGeometry': {
         return cannon.Sphere(geometry.parameters!['radius']);
       }
 
-      case 'CylinderGeometr':
-      case 'CylinderBufferGeometr': {
+      case 'CylinderGeometry':
+      case 'CylinderBufferGeometry': {
         return cannon.Cylinder(
           radiusTop: geometry.parameters!['radiusTop'], 
           radiusBottom: geometry.parameters!['radiusBottom'], 

@@ -8,8 +8,8 @@ import '../math/quaternion.dart';
 
 class HeightfieldPillar{
   HeightfieldPillar(this.convex,this.offset);
-  final ConvexPolyhedron convex;
-  final Vec3 offset;
+  ConvexPolyhedron convex;
+  Vec3 offset;
 }
 
 /// Heightfield shape class. Height data is given as an array. These data points are spread out evenly with a given distance.
@@ -46,8 +46,8 @@ class Heightfield extends Shape {
   int elementSize;
 
   bool cacheEnabled = true;
-  final ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
-  final Vec3 pillarOffset = Vec3();
+  ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
+  Vec3 pillarOffset = Vec3();
 
   Map<String,HeightfieldPillar> _cachedPillars = {};
 
@@ -63,7 +63,7 @@ class Heightfield extends Shape {
       this.elementSize = 1
     }):super(type: ShapeType.heightfield){
     segments = Size(data.length.toDouble(),data[0].length.toDouble());
-    size = Size((segments.width+0.25)*elementSize,(segments.height+0.25)*elementSize);
+    size = Size((segments.width-1)*elementSize,(segments.height-1)*elementSize);
     if(minValue == null) {
       updateMinValue();
     }
@@ -87,7 +87,7 @@ class Heightfield extends Shape {
 
   /// Call whenever you change the data array.
   void update() {
-    _cachedPillars = {};
+    _cachedPillars.clear();
   }
 
   /// Update the `minValue` property
@@ -143,10 +143,8 @@ class Heightfield extends Shape {
   /// Get max/min in a rectangle in the matrix data
   /// @param result An array to store the results in.
   /// @return The result array, if it was passed in. Minimum will be at position 0 and max at 1.
-  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,[ List<double>? result]) {
-    if(result == null || result.isEmpty){
-      result = [0,0];
-    }
+  void getRectMinMax(int iMinX, int iMinY, int iMaxX, int iMaxY,List<double> result) {
+    result.clear();
     // Get max and min of the data
     final data = this.data; // Set first value
 
@@ -160,25 +158,19 @@ class Heightfield extends Shape {
       }
     }
 
-    result[0] = minValue!;
-    result[1] = max;
+    result.addAll([minValue!,max]);
   }
 
   /// Get the index of a local position on the heightfield. The indexes indicate the rectangles, so if your terrain is made of N x N height data points, you will have rectangle indexes ranging from 0 to N-1.
   /// @param result Two-element array
   /// @param clamp If the position should be clamped to the heightfield edge.
   bool getIndexOfPosition(double x, double y, List<int> result, bool clamp) {
-    if(result.isEmpty){
-      result.addAll([0,0]);
-    }
     // Get the index of the data points to test against
     final w = elementSize;
     final data = this.data;
     int xi = (x / w).floor();
     int yi = (y / w).floor();
-
-    result[0] = xi;
-    result[1] = yi;
+    result.addAll([xi,yi]);
 
     if (clamp) {
       // Clamp index to edges
@@ -206,6 +198,7 @@ class Heightfield extends Shape {
 
   bool getTriangleAt(double x, double y, bool edgeClamp,Vec3 a,Vec3 b, Vec3 c) {
     final idx = getHeightAtIdx;
+    idx.clear();
     getIndexOfPosition(x, y, idx, edgeClamp);
     int xi = idx[0];
     int yi = idx[1];
@@ -335,47 +328,49 @@ class Heightfield extends Shape {
 
   /// Get a triangle in the terrain in the form of a triangular convex shape.
   void getConvexTrianglePillar(int xi, int yi, bool getUpperTriangle) {
-    final result = pillarConvex;
+    ConvexPolyhedron result = pillarConvex;
     Vec3 offsetResult = pillarOffset;
 
     if (cacheEnabled) {
       final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
+      
       if(data != null){
-        pillarConvex.copy(data.convex);
-        pillarOffset.copy(data.offset);
+        pillarConvex = data.convex;
+        pillarOffset = data.offset;
         return;
       }
 
-      result.clear();
+      result = ConvexPolyhedron();
       offsetResult = Vec3();
 
-      pillarConvex.copy(result);
-      pillarOffset.copy(offsetResult);
+      pillarConvex = result;
+      pillarOffset = offsetResult;
     }
 
     final data = this.data;
     final elementSize = this.elementSize;
 
     // Reuse verts if possible
-    result.vertices = result.vertices.isEmpty? List.filled(6, Vec3()):result.vertices;
-    
-    // for (int i = 0; i < 6; i++) {
-    //   if (result.vertices[i] == Vec3()) {
-    //     result.vertices[i] = Vec3();
-    //   }
-    // }
+    if(result.vertices.isEmpty){
+      for (int i = 0; i < 6; i++) {
+        result.vertices.add(Vec3());
+      }
+    }
 
     // Reuse faces if possible
-    result.faces = result.faces.isEmpty? List.filled(5, List.filled(4, 0)):result.faces;
-    // for (int i = 0; i < 5; i++) {
-    //   if (faces[i].isEmpty) {
-    //     int len = 4;
-    //     if(i < 2){
-    //       len = 3;
-    //     }
-    //     faces[i] = List.filled(len, 0);
-    //   }
-    // }
+    bool wasEmpty = result.faces.isEmpty;
+    result.faces = wasEmpty? List.filled(5, []):result.faces;
+    if(wasEmpty){
+      for (int i = 0; i < 5; i++) {
+        if (result.faces[i].isEmpty) {
+          int len = 4;
+          if(i < 2){
+            len = 3;
+          }
+          result.faces[i] = List.filled(len, 0);
+        }
+      }
+    }
 
     final verts = result.vertices;
     final faces = result.faces;
@@ -483,11 +478,9 @@ class Heightfield extends Shape {
       faces[4][2] = 5;
       faces[4][3] = 2;
     }
-
     result.computeNormals();
     result.computeEdges();
     result.updateBoundingSphereRadius();
-
     setCachedConvexTrianglePillar(xi, yi, getUpperTriangle, result, offsetResult);
   }
   @override

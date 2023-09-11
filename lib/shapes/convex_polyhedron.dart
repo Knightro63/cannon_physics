@@ -75,20 +75,6 @@ class ConvexPolyhedron extends Shape {
     init(vertices,faces,normals,axes,boundingSphereRadius);
   }
 
-  void clear(){
-    init(null,null,null,null,null);
-  }
-
-  void copy(ConvexPolyhedron c){
-    vertices = c.vertices;
-    faces = c.faces;
-    faceNormals = c.faceNormals;
-    uniqueAxes = c.uniqueAxes;
-    worldFaceNormals = c.worldFaceNormals;
-    worldFaceNormalsNeedsUpdate = c.worldFaceNormalsNeedsUpdate;
-    uniqueEdges = c.uniqueEdges;
-  }
-
   // final Vec3 _convexPolyhedronPointIsInside = Vec3();
   // final Vec3 _convexPolyhedronVToP = Vec3();
   // final Vec3 _convexPolyhedronVToPointInside = Vec3();

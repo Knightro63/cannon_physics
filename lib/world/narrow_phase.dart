@@ -973,11 +973,6 @@ class Narrowphase {
     final faces = sj.faces;
     final verts = sj.vertices;
     final R = si.radius;
-    //final penetratingSides = [];
-
-    // if(convex_to_sphere.lengthSquared() > si.boundingSphereRadius + sj.boundingSphereRadius){
-    //     return;
-    // }
     bool found = false;
 
     // Check corners
@@ -1273,11 +1268,9 @@ class Narrowphase {
 
     // Get the index of the data points to test against
     int iMinX = ((localSpherePos.x - radius) / w).floor() - 1;
-
     int iMaxX = ((localSpherePos.x + radius) / w).ceil() + 1;
     int iMinY = ((localSpherePos.y - radius) / w).floor() - 1;
     int iMaxY = ((localSpherePos.y + radius) / w).ceil() + 1;
-    
     // Bail out if we are out of the terrain
     if (iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length) {
       return false;
@@ -1309,7 +1302,7 @@ class Narrowphase {
       iMinY = data[0].length - 1;
     }
 
-    final List<double> minMax = [0,0];
+    List<double> minMax = [];
     sj.getRectMinMax(iMinX, iMinY, iMaxX, iMaxY, minMax);
     final min = minMax[0];
     final max = minMax[1];
@@ -1342,8 +1335,8 @@ class Narrowphase {
             qj,
             bi,
             bj,
-            rsi,
-            rsj,
+            si,
+            sj,
             justTest
           );
         }
@@ -1368,8 +1361,8 @@ class Narrowphase {
             qj,
             bi,
             bj,
-            rsi,
-            rsj,
+            si,
+            sj,
             justTest
           );
         }
@@ -1819,7 +1812,7 @@ class Narrowphase {
         trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], v);
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
-        //print(relpos.lengthSquared());
+        //print(radiusSquared);
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);

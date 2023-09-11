@@ -348,7 +348,6 @@ class Trimesh extends Shape {
     double max2 = 0;
     final vertices = this.vertices;
     final v = Vec3();
-    print('updateBoundingSphereRadius');
     for (int i = 0; i < vertices.length/ 3; i++) {
       getVertex(i, v);
       double norm2 = v.lengthSquared();
@@ -394,16 +393,16 @@ class Trimesh extends Shape {
         final u = i / torus.tubularSegments * torus.arc;
         final v = j / torus.radialSegments * math.pi * 2;
 
-        vertex.x = (torus.radius + torus.tube * math.cos(v)) * math.cos(u);
-        vertex.y = (torus.radius + torus.tube * math.cos(v)) * math.sin(u);
-        vertex.z = torus.tube * math.sin(v);
+        vertex.set(
+          (torus.radius + torus.tube * math.cos(v)) * math.cos(u),
+          (torus.radius + torus.tube * math.cos(v)) * math.sin(u),
+          torus.tube * math.sin(v)
+        );
 
         vertices.addAll([vertex.x, vertex.y, vertex.z]);
 
-        center.x = torus.radius * math.cos(u);
-        center.y = torus.radius * math.sin(u);
-        normal.subVectors(vertex, center).normalize();
-
+        center.set(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
+        normal.subVectors(vertex.clone(), center.clone()).normalize();
         normals.addAll([normal.x, normal.y, normal.z]);
 
         uvs.add(i / torus.tubularSegments);
