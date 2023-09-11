@@ -385,7 +385,8 @@ class Heightfield extends Shape {
           data[xi][yi + 1], 
           data[xi + 1][yi + 1]
         )
-      ) - minValue!) / 2 +minValue!;
+      ) - minValue!
+    ) / 2 +minValue!;
 
     if (!getUpperTriangle) {
       // Center of the triangle pillar - all polygons are given relative to this one

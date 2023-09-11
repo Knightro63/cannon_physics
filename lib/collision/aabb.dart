@@ -7,9 +7,9 @@ import '../math/quaternion.dart';
 /// Axis aligned bounding box class.
 class AABB {
   /// The lower bound of the bounding box
-  final Vec3 lowerBound = Vec3();
+  Vec3 lowerBound = Vec3();
   /// The upper bound of the bounding box
-  final Vec3 upperBound = Vec3();
+  Vec3 upperBound = Vec3();
 
   AABB({
     Vec3? upperBound,
@@ -54,11 +54,10 @@ class AABB {
     u.copy(l);
 
     for (int i = 1; i < points.length; i++) {
-      Vec3 p = points[i];
-
+      Vec3 p = Vec3();
+      p.copy(points[i]);
       if (q != null) {
-        q.vmult(p, _tmp);
-        p = _tmp;
+        q.vmult(p, p);
       }
 
       if (p.x > u.x) {
@@ -184,7 +183,7 @@ class AABB {
 
   /// Get the representation of an AABB in another frame.
   /// [return] The "target" AABB object.
-  AABB toLocalFrame(Transform frame,AABB target){
+  AABB toLocalFrame(Transform frame, AABB target){
     final corners = _transformIntoFrameCorners;
     final a = corners[0];
     final b = corners[1];

@@ -83,15 +83,11 @@ class Trimesh extends Shape {
   final _calculateWorldAABBFrame = Transform();
   final _calculateWorldAABBAabb = AABB();
 
-  void init(){
-    
-  }
-
   void updateTree() {
     final tree = this.tree;
-
     tree.reset();
     tree.aabb.copy(aabb);
+    
     final scale = this.scale; // The local mesh AABB is scaled, but the octree AABB should be unscaled
     tree.aabb.lowerBound.x *= 1 / scale.x;
     tree.aabb.lowerBound.y *= 1 / scale.y;
@@ -402,7 +398,7 @@ class Trimesh extends Shape {
         vertices.addAll([vertex.x, vertex.y, vertex.z]);
 
         center.set(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
-        normal.subVectors(vertex.clone(), center.clone()).normalize();
+        normal.subVectors(vertex, center).normalize();
         normals.addAll([normal.x, normal.y, normal.z]);
 
         uvs.add(i / torus.tubularSegments);

@@ -257,31 +257,10 @@ class ConversionUtils{
         }
 
         // Construct polyhedron
-        cannon.Trimesh polyhedron = cannon.Trimesh(
-          points.toDartList(), 
-          Int16List.fromList(indicies), 
-          //normals: normals,
-          //axes: [cannon.Vec3(0, 1, 0)]
+        cannon.ConvexPolyhedron polyhedron = cannon.ConvexPolyhedron(
+          vertices: verticies,
+          faces: faces
         );
-
-        // List<double> verticies = [];
-        // List<int> faces = [];
-        // List<double>? normals = [];
-
-        // for(int i = 0; i < indexes.length; i++){
-        //   int j = indexes[i].toInt();
-        //   verticies.addAll([points[j*3],points[(j*3)+1],points[(j*3)+2]]);
-        //   normals.addAll([norms[j*3],norms[(j*3)+1],norms[(j*3)+2]]);
-          
-        //   faces.add(indexes[i].toInt(),);
-        // }
-
-        // // Construct polyhedron
-        // cannon.Trimesh polyhedron = cannon.Trimesh(
-        //   verticies, 
-        //   faces, 
-        //   normals
-        // );
 
         return polyhedron;
       }

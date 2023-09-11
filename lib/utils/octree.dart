@@ -20,9 +20,9 @@ class OctreeNode {
   /// Children to this node
   List<OctreeNode> children = [];
 
-  final halfDiagonal = Vec3();
+  Vec3 halfDiagonal = Vec3();
 
-  final tmpAABB = AABB();
+  AABB tmpAABB = AABB();
 
   /// reset
   void reset(){
@@ -122,7 +122,6 @@ class OctreeNode {
       if (node.aabb.overlaps(aabb)) {
         result.addAll(node.data);
       }
-      queue.addAll(node.children);
     }
     
     queue.clear();

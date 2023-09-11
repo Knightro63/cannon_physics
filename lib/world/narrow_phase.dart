@@ -1789,8 +1789,9 @@ class Narrowphase {
     final v = _sphereTrimeshV;
 
     // Convert sphere position to local in the trimesh
+    //print(spherePos);
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
-
+    
     // Get the aabb of the sphere locally in the trimesh
     final sphereRadius = sphereShape.radius;
     localSphereAABB.lowerBound.set(
@@ -1805,14 +1806,17 @@ class Narrowphase {
     );
 
     trimeshShape.getTrianglesInAABB(localSphereAABB, triangles);
-
     final radiusSquared = sphereShape.radius * sphereShape.radius;
     for (int i = 0; i < triangles.length; i++) {
       for (int j = 0; j < 3; j++) {
         trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], v);
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
-        //print(radiusSquared);
+        //print(relpos);
+        if(i == 0 && j==0){
+          print('${relpos.lengthSquared()}');
+          //print('$localSpherePos');
+        }
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);
