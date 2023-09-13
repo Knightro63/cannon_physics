@@ -44,7 +44,7 @@ class Transform {
     worldPoint.vsub(position, result);
     final tmpQuat = Quaternion();
     quaternion.conjugate(tmpQuat);
-    tmpQuat.vmult(result.clone(), result);
+    tmpQuat.vmult(result, result);
     return result;
   }
 

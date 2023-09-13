@@ -1809,14 +1809,9 @@ class Narrowphase {
     final radiusSquared = sphereShape.radius * sphereShape.radius;
     for (int i = 0; i < triangles.length; i++) {
       for (int j = 0; j < 3; j++) {
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], v);
+        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + j], v);
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
-        //print(relpos);
-        if(i == 0 && j==0){
-          print('${relpos.lengthSquared()}');
-          //print('$localSpherePos');
-        }
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);
@@ -1851,10 +1846,10 @@ class Narrowphase {
     // Check all edges
     for (int i = 0; i < triangles.length; i++) {
       for (int j = 0; j < 3; j++) {
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + j], edgeVertexA);
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] * 3 + ((j + 1) % 3)], edgeVertexB);
+        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + j], edgeVertexA);
+        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + ((j + 1) % 3)], edgeVertexB);
         edgeVertexB.vsub(edgeVertexA, edgeVector);
-
+        
         // Project sphere position to the edge
         localSpherePos.vsub(edgeVertexB, tmp);
         double positionAlongEdgeB = tmp.dot(edgeVector);
@@ -1908,8 +1903,8 @@ class Narrowphase {
     final normal = Vec3();
 
     for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
-      trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
-      trimeshShape.getFaceNormal(triangles[i], normal);
+      trimeshShape.getTriangleVertices(i, va, vb, vc);
+      trimeshShape.getFaceNormal(i, normal);
       localSpherePos.vsub(va, tmp);
       double dist = tmp.dot(normal);
       normal.scale(dist, tmp);

@@ -109,7 +109,10 @@ class AABB {
 
   /// Clone an AABB
   AABB clone() {
-    return AABB().copy(this);
+    return AABB(
+      lowerBound: lowerBound.clone(),
+      upperBound: upperBound.clone()
+    );
   }
 
   /// Extend this AABB so that it covers the given AABB too.

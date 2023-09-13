@@ -36,19 +36,19 @@ class TorusGeometry{
 ///     ]
 ///     final trimeshShape = CANNON.Trimesh(vertices, indices)
 class Trimesh extends Shape {
-  late final Float32List vertices;
+  late final List<double> vertices;
 
   /// Array of integers, indicating which vertices each triangle consists of. The length of this array is thus 3 times the number of triangles.
-  late final Int16List indices; 
-  late final Float32List? normals;
-  late final Float32List faceNormals;
-  late final Float32List? uvs;
+  late final List<int> indices; 
+  late final List<double>? normals;
+  late final List<double> faceNormals;
+  late final List<double>? uvs;
 
   /// The local AABB of the mesh.
   final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
-  late Int16List edges;
+  late List<int> edges;
 
   /// Local scaling of the mesh. Use .setScale() to set it.
   final Vec3 scale = Vec3(1, 1, 1);
@@ -156,7 +156,8 @@ class Trimesh extends Shape {
   /// Compute the normals of the faces. Will save in the `.normals` array.
   void updateNormals() {
     // Generate normals
-    final normals = faceNormals;
+    //final normals = faceNormals;
+    faceNormals = [];
     final n = _computeNormalsN;
     for (int i = 0; i < indices.length / 3; i++) {
       final i3 = i * 3;
@@ -170,10 +171,7 @@ class Trimesh extends Shape {
       getVertex(c, _vc);
 
       Trimesh.computeNormal(_vb, _va, _vc, n);
-
-      normals[i3] = n.x;
-      normals[i3 + 1] = n.y;
-      normals[i3 + 2] = n.z;
+      faceNormals.addAll([n.x,n.y,n.z]);
     }
   }
 
@@ -228,7 +226,7 @@ class Trimesh extends Shape {
     vc.vsub(vb, cb);
     cb.cross(ab, target);
     if (!target.isZero()) {
-      target.inverse().normalize();
+      target.normalize();
     }
   }
   /// Get vertex i.
@@ -260,14 +258,14 @@ class Trimesh extends Shape {
 
   /// Get the three vertices for triangle i.
   void getTriangleVertices(int i, Vec3 a, Vec3 b, Vec3 c) {
-    final i3 = i * 3;
+    final i3 = i;// * 3;
     getVertex(indices[i3], a);
     getVertex(indices[i3 + 1], b);
     getVertex(indices[i3 + 2], c);
   }
   /// Get the three vertices for triangle i.
   void getTriangleNormals(int i, Vec3 a, Vec3 b, Vec3 c) {
-    final i3 = i * 3;
+    final i3 = i;// * 3;
     getNormal(indices[i3], a);
     getNormal(indices[i3 + 1], b);
     getNormal(indices[i3 + 2], c);
@@ -416,14 +414,13 @@ class Trimesh extends Shape {
       }
     }
 
-    this.vertices = Float32List.fromList(vertices);
-    this.indices = Int16List.fromList(indices);
-    this.uvs = Float32List.fromList(uvs);
-    faceNormals = Float32List(indices.length);
-    this.normals = Float32List.fromList(normals);
-
-    updateEdges();
+    this.vertices = vertices;
+    this.indices = indices;
+    this.uvs = uvs;
+    this.normals = normals;
+    
     updateNormals();
+    updateEdges();
     updateAABB();
     updateBoundingSphereRadius();
     updateTree();
