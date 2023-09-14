@@ -53,7 +53,7 @@ class Equation {
     final double k = stiffness;
     final double h = timeStep;
     a = 4.0 / (h * (1 + 4 * d));
-    b = (4.0 * d) / (1 + 4 * d);
+    b = 4.0 * d / (1 + 4 * d);
     eps = 4.0 / (h * h * k * (1 + 4 * d));
   }
 

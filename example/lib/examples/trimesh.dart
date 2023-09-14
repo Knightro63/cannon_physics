@@ -111,11 +111,11 @@ class _TriMeshState extends State<TriMesh> {
     demo.addVisual(sphereBody);
 
     // Torus
-    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(5, 3.5, 16, 16));
+    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(4, 3.5, 16, 16));
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
     torusBody.position.set(0, 4, 0);
-    torusBody.quaternion.setFromEuler(Math.PI / 2, 0, 0);
+    torusBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     torusBody.velocity.set(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody);

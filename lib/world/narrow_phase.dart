@@ -1789,9 +1789,8 @@ class Narrowphase {
     final v = _sphereTrimeshV;
 
     // Convert sphere position to local in the trimesh
-    //print(spherePos);
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
-    
+
     // Get the aabb of the sphere locally in the trimesh
     final sphereRadius = sphereShape.radius;
     localSphereAABB.lowerBound.set(
@@ -1812,6 +1811,7 @@ class Narrowphase {
         trimeshShape.getVertex(trimeshShape.indices[triangles[i] + j], v);
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
+        
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);
@@ -1842,7 +1842,7 @@ class Narrowphase {
         }
       }
     }
-
+    
     // Check all edges
     for (int i = 0; i < triangles.length; i++) {
       for (int j = 0; j < 3; j++) {
@@ -1856,7 +1856,7 @@ class Narrowphase {
 
         localSpherePos.vsub(edgeVertexA, tmp);
         double positionAlongEdgeA = tmp.dot(edgeVector);
-        
+
         if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
           // Now check the orthogonal distance from edge to sphere center
           localSpherePos.vsub(edgeVertexA, tmp);
@@ -1900,11 +1900,11 @@ class Narrowphase {
     final va = _sphereTrimeshVa;
     final vb = _sphereTrimeshVb;
     final vc = _sphereTrimeshVc;
-    final normal = Vec3();
-
+    final normal = _sphereTrimeshNormal;
     for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
-      trimeshShape.getTriangleVertices(i, va, vb, vc);
-      trimeshShape.getFaceNormal(i, normal);
+      trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
+      trimeshShape.getFaceNormal(triangles[i], normal);
+      
       localSpherePos.vsub(va, tmp);
       double dist = tmp.dot(normal);
       normal.scale(dist, tmp);

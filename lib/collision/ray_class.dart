@@ -683,8 +683,7 @@ class Ray {
 
   /// As per "Barycentric Technique" as named
   /// {@link https://www.blackpawn.com/texts/pointinpoly/default.html here} but without the division
-  static Vec3 getBarycoord(Vec3 p, Vec3 a, Vec3 b, Vec3 c,[Vec3? target]) {
-    target ??= Vec3();
+  static bool pointInTriangle(Vec3 p, Vec3 a, Vec3 b, Vec3 c,[Vec3? target]) {
     c.vsub(a, _v0);
     b.vsub(a, _v1);
     p.vsub(a, _v2);
@@ -693,26 +692,9 @@ class Ray {
     final dot02 = _v0.dot(_v2);
     final dot11 = _v1.dot(_v1);
     final dot12 = _v1.dot(_v2);
-
-    double denom = (dot00 * dot11 - dot01 * dot01);
-    // collinear or singular triangle
-    if (denom == 0) {
-      // arbitrary location outside of triangle?
-      // not sure if this is the best idea, maybe should be returning null
-      return target.set(-2, -1, -1);
-    }
-    double invDenom = 1 / denom;
-    double u = (dot11 * dot02 - dot01 * dot12)* invDenom;
-    double v = (dot00 * dot12 - dot01 * dot02)* invDenom;
-    target.set(1 - u - v, v, u);
-    return target;
-  }
-  /// As per "Barycentric Technique" as named
-  /// {@link https://www.blackpawn.com/texts/pointinpoly/default.html here} but without the division
-  static bool pointInTriangle(Vec3 p, Vec3 a, Vec3 b, Vec3 c,[Vec3? target]) {
-    target ??= Vec3();
-    getBarycoord(p, a, b, c,target);
-    return (target.x >= 0) && (target.y >= 0) && ((target.x + target.y) <= 1);
+    double u;
+    double v;
+    return (u = dot11 * dot02 - dot01 * dot12) >= 0 && (v = dot00 * dot12 - dot01 * dot02) >= 0 && u + v < dot00 * dot11 - dot01 * dot01;
   }
   static double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
     // v0 is vector from from to position

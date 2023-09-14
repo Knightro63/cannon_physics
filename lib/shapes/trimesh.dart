@@ -60,7 +60,6 @@ class Trimesh extends Shape {
 
   Trimesh(this.vertices, this.indices, [List<double>? normals, this.uvs]):super(type: ShapeType.trimesh) {
     updateEdges();
-    faceNormals = Float32List(indices.length);
     updateNormals();
     normals = normals;
     
@@ -258,14 +257,14 @@ class Trimesh extends Shape {
 
   /// Get the three vertices for triangle i.
   void getTriangleVertices(int i, Vec3 a, Vec3 b, Vec3 c) {
-    final i3 = i;// * 3;
+    final i3 = i * 3;
     getVertex(indices[i3], a);
     getVertex(indices[i3 + 1], b);
     getVertex(indices[i3 + 2], c);
   }
   /// Get the three vertices for triangle i.
   void getTriangleNormals(int i, Vec3 a, Vec3 b, Vec3 c) {
-    final i3 = i;// * 3;
+    final i3 = i * 3;
     getNormal(indices[i3], a);
     getNormal(indices[i3 + 1], b);
     getNormal(indices[i3 + 2], c);
