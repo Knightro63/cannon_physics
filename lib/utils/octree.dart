@@ -8,7 +8,7 @@ class OctreeNode {
     this.root,
     AABB? aabb
   }) {
-    this.aabb = aabb ?? AABB();
+    this.aabb = aabb?.clone() ?? AABB();
   }
   int? maxDepth;
   /// The root node 
@@ -43,7 +43,7 @@ class OctreeNode {
     final children = this.children;
     final maxDepth = this.maxDepth ?? root!.maxDepth;//(this as any).maxDepth ?? (root! as any).maxDepth;
 
-    if (maxDepth != null && level < maxDepth) {
+    if (level < maxDepth!) {
       // Subdivide if there are no children yet
       bool subdivided = false;
       if (children.isEmpty) {
@@ -53,6 +53,7 @@ class OctreeNode {
       // add to whichever node will accept it
       for (int i = 0; i != 8; i++) {
         if (children[i].insert(aabb, elementData, level + 1)) {
+          print(elementData);
           return true;
         }
       }
@@ -65,7 +66,6 @@ class OctreeNode {
 
     // Too deep, or children didnt want it. add it in current node
     nodeData.add(elementData);
-
     return true;
   }
 
@@ -114,36 +114,48 @@ class OctreeNode {
 
   /// Get all data, potentially within an AABB
   /// @return The "result" object
-  void aabbQuery(AABB aabb, List<int> result){
-    final queue = [this];
-    result.clear();
+  List<int> aabbQuery(AABB aabb, List<int> result){
+    var queue = [this];
     while (queue.isNotEmpty) {
-      final node = queue.removeLast();
+      var node = queue.removeLast();
       if (node.aabb.overlaps(aabb)) {
         result.addAll(node.data);
       }
+      queue.addAll(node.children);
     }
-    
-    queue.clear();
+
+    return result;
   }
 
   /// Get all data, potentially intersected by a ray.
   /// @return The "result" object
-  void rayQuery(Ray ray, Transform treeTransform, List<int>result){
-    if(ray.direction.length() == 0) return;
+  List<int> rayQuery(Ray ray, Transform treeTransform, List<int>result){
+    //if(ray.direction.length() == 0) return;
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */
     ray.getAABB(tmpAABB);
     tmpAABB.toLocalFrame(treeTransform, tmpAABB);
     aabbQuery(tmpAABB, result);
+
+    return result;
   }
 
   void removeEmptyNodes(){
-    for (int i = children.length - 1; i >= 0; i--) {
-      children[i].removeEmptyNodes();
-      if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
-        children.removeAt(i);
-      }
+    // for (int i = children.length - 1; i >= 0; i--) {
+    //   children[i].removeEmptyNodes();
+    //   if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
+    //     children.removeAt(i);
+    //   }
+    // }
+    final queue = [this];
+    while (queue.isNotEmpty) {
+        final node = queue.removeLast();
+        for (int i = node.children.length - 1; i >= 0; i--) {
+            if(node.children[i].data.isNotEmpty){
+                node.children.removeAt(i);
+            }
+        }
+        queue.addAll(node.children);
     }
   }
 }

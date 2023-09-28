@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:cannon_physics_example/src/conversion_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
@@ -111,14 +113,19 @@ class _TriMeshState extends State<TriMesh> {
     demo.addVisual(sphereBody);
 
     // Torus
-    final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(4, 3.5, 16, 16));
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
     torusBody.position.set(0, 4, 0);
-    torusBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    torusBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     torusBody.velocity.set(0, 1, 1);
     world.addBody(torusBody);
-    demo.addVisual(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
 
   void setupWorld(){

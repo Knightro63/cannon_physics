@@ -54,10 +54,22 @@ class _WorkerState extends State<Worker> {
     const mass = 1.0;
     const size = 0.25;
     final boxShape = cannon.Sphere(size);
-    final torusGeometry = SphereGeometry(size*2,);
+    final torusGeometry = TorusKnotGeometry(size,size*0.4,8);
     final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torus = ConversionUtils.geometryToShape(torusGeometry);
+
+    final cylinderShape = cannon.Cylinder(
+      radiusTop: size, 
+      radiusBottom: size, 
+      height: size * 2, 
+      numSegments: 10
+    );
+    final cylinderBody = cannon.Body(mass:mass);
+    cylinderBody.addShape(cylinderShape);
+    cylinderBody.position.set(size * 2, size + 1, size * 2);
+    world.addBody(cylinderBody);
+    demo.addVisual(cylinderBody);
 
     for (int i = 0; i < N; i++) {
       final position = cannon.Vec3(
@@ -70,7 +82,9 @@ class _WorkerState extends State<Worker> {
         position: position,
         mass: mass,
       );
-      if(i%5 == 0){
+      body.linearDamping = 0.3;
+      body.angularDamping = 0.3;
+      if(i%2 == 0){
         body.addShape(torus);
         demo.addVisual(
           body,

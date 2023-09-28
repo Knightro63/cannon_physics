@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:math' as math;
 import '../shapes/shape.dart';
 import '../math/vec3.dart';
@@ -48,7 +47,7 @@ class Trimesh extends Shape {
   final AABB aabb = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
-  late List<int> edges;
+  List<int> edges = [];
 
   /// Local scaling of the mesh. Use .setScale() to set it.
   final Vec3 scale = Vec3(1, 1, 1);
@@ -58,7 +57,14 @@ class Trimesh extends Shape {
 
   late final TorusGeometry torus;
 
-  Trimesh(this.vertices, this.indices, [List<double>? normals, this.uvs]):super(type: ShapeType.trimesh) {
+  Trimesh(
+    this.vertices, 
+    this.indices, 
+    [
+      List<double>? normals, 
+      this.uvs
+    ]
+  ):super(type: ShapeType.trimesh) {
     updateEdges();
     updateNormals();
     normals = normals;
@@ -116,7 +122,7 @@ class Trimesh extends Shape {
 
   /// Get triangles in a local AABB from the trimesh.
   /// @param result An array of integers, referencing the queried triangles.
-  void getTrianglesInAABB(AABB aabb, List<int> result){
+  List<int> getTrianglesInAABB(AABB aabb, List<int> result){
     _unscaledAABB.copy(aabb);
 
     // Scale it to local
@@ -133,7 +139,7 @@ class Trimesh extends Shape {
     u.y /= isy;
     u.z /= isz;
 
-    tree.aabbQuery(_unscaledAABB, result);
+    return tree.aabbQuery(_unscaledAABB, result);
   }
 
   void setScale(Vec3 scale) {
@@ -175,14 +181,13 @@ class Trimesh extends Shape {
   }
 
   void updateEdges() {
-    Map<String,bool> edges = {};// { [key: string]: boolean } = {};
+    Map<String,bool> edges = {};
     void add(int a, int b){
       final key = a < b ? '${a}_$b' : '${b}_$a';
       edges[key] = true;
     }
-
     for (int i = 0; i < indices.length / 3; i++) {
-      final i3 = i * 3;
+      int i3 = i * 3;
       final a = indices[i3];
       final b = indices[i3 + 1];
       final c = indices[i3 + 2];
@@ -190,12 +195,14 @@ class Trimesh extends Shape {
       add(b, c);
       add(c, a);
     }
-    final keys = edges.keys.toList();
-    this.edges = Int16List(keys.length * 2);
-    for (int i = 0; i < keys.length; i++) {
-      final indices = keys[i].split('_');
-      this.edges[2 * i] = int.parse(indices[0],radix:10);
-      this.edges[2 * i + 1] = int.parse(indices[1],radix:10);
+
+    this.edges = List.filled(edges.length * 2,0);
+    int i = 0;
+    for (String ind in edges.keys) {
+      List<String> indices = ind.split('_');
+      this.edges[2 * i] = int.parse(indices[0]);
+      this.edges[2 * i + 1] = int.parse(indices[1]);
+      i++;
     }
   }
 
@@ -230,7 +237,8 @@ class Trimesh extends Shape {
   }
   /// Get vertex i.
   /// @return The "out" vector object
-  Vec3 getVertex(int i, Vec3 out) {
+  Vec3 getVertex(int i, [Vec3? out]) {
+    out ??= Vec3();
     final scale = this.scale;
     _getUnscaledVertex(i, out);
     out.x *= scale.x;
@@ -305,7 +313,6 @@ class Trimesh extends Shape {
     getVertex(0, v);
     l.copy(v);
     u.copy(v);
-
     for (int  i = 0; i < vertices.length/3; i++) {//!= n
       getVertex(i, v);
 
@@ -357,7 +364,7 @@ class Trimesh extends Shape {
     // Faster approximation using local AABB
     final frame = _calculateWorldAABBFrame;
     final result = _calculateWorldAABBAabb;
-    frame.position =pos;
+    frame.position = pos;
     frame.quaternion = quat;
     aabb.toWorldFrame(frame, result);
     min.copy(result.lowerBound);
@@ -379,27 +386,27 @@ class Trimesh extends Shape {
 
     for (int j = 0; j <= torus.radialSegments; j++) {
       for (int i = 0; i <= torus.tubularSegments; i++) {
-        final center = Vec3();
-        final vertex = Vec3();
-        final normal = Vec3();
-        
-        final u = i / torus.tubularSegments * torus.arc;
-        final v = j / torus.radialSegments * math.pi * 2;
+          final center = Vec3();
+          final vertex = Vec3();
+          final normal = Vec3();
+          
+          final u = i / torus.tubularSegments * torus.arc;
+          final v = j / torus.radialSegments * math.pi * 2;
 
-        vertex.set(
-          (torus.radius + torus.tube * math.cos(v)) * math.cos(u),
-          (torus.radius + torus.tube * math.cos(v)) * math.sin(u),
-          torus.tube * math.sin(v)
-        );
+          vertex.set(
+            (torus.radius + torus.tube * math.cos(v)) * math.cos(u),
+            (torus.radius + torus.tube * math.cos(v)) * math.sin(u),
+            torus.tube * math.sin(v)
+          );
 
-        vertices.addAll([vertex.x, vertex.y, vertex.z]);
+          vertices.addAll([vertex.x, vertex.y, vertex.z]);
 
-        center.set(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
-        normal.subVectors(vertex, center).normalize();
-        normals.addAll([normal.x, normal.y, normal.z]);
+          center.set(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
+          normal.subVectors(vertex, center).normalize();
+          normals.addAll([normal.x, normal.y, normal.z]);
 
-        uvs.add(i / torus.tubularSegments);
-        uvs.add(j / torus.radialSegments);
+          uvs.add(i / torus.tubularSegments);
+          uvs.add(j / torus.radialSegments);
 
         if(i != 0 && j != 0){
           final a = (torus.tubularSegments + 1) * j + i - 1;
@@ -407,12 +414,10 @@ class Trimesh extends Shape {
           final c = (torus.tubularSegments + 1) * (j - 1) + i;
           final d = (torus.tubularSegments + 1) * j + i;
 
-          indices.addAll([a,b,d]);
-          indices.addAll([b,c,d]);
+          indices.addAll([a,b,d,b,c,d]);
         }
       }
     }
-
     this.vertices = vertices;
     this.indices = indices;
     this.uvs = uvs;

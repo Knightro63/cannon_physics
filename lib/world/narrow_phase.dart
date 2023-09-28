@@ -1786,7 +1786,6 @@ class Narrowphase {
     final v2 = _sphereTrimeshV2;
     final relpos = _sphereTrimeshRelpos;
     final triangles = _sphereTrimeshTriangles;
-    final v = _sphereTrimeshV;
 
     // Convert sphere position to local in the trimesh
     Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
@@ -1805,14 +1804,19 @@ class Narrowphase {
     );
 
     trimeshShape.getTrianglesInAABB(localSphereAABB, triangles);
+    
+    final v = _sphereTrimeshV;
     final radiusSquared = sphereShape.radius * sphereShape.radius;
-    for (int i = 0; i < triangles.length; i++) {
+    for (int i = 0; i < trimeshShape.indices.length/3; i++){
       for (int j = 0; j < 3; j++) {
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + j], v);
+        
+        trimeshShape.getVertex(trimeshShape.indices[i*3 + j], v);
         // Check vertex overlap in sphere
         v.vsub(localSpherePos, relpos);
         
         if (relpos.lengthSquared() <= radiusSquared) {
+          print(i);
+          print(triangles);
           // Safe up
           v2.copy(v);
           Transform.pointToWorldFrame(trimeshPos, trimeshQuat, v2, v);
@@ -1844,15 +1848,15 @@ class Narrowphase {
     }
     
     // Check all edges
-    for (int i = 0; i < triangles.length; i++) {
+    for (int i = 0; i < trimeshShape.indices.length/3; i++) {
       for (int j = 0; j < 3; j++) {
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + j], edgeVertexA);
-        trimeshShape.getVertex(trimeshShape.indices[triangles[i] + ((j + 1) % 3)], edgeVertexB);
+        trimeshShape.getVertex(trimeshShape.indices[i*3 + j], edgeVertexA);
+        trimeshShape.getVertex(trimeshShape.indices[i*3 + ((j + 1) % 3)], edgeVertexB);
         edgeVertexB.vsub(edgeVertexA, edgeVector);
         
         // Project sphere position to the edge
         localSpherePos.vsub(edgeVertexB, tmp);
-        double positionAlongEdgeB = tmp.dot(edgeVector);
+        final positionAlongEdgeB = tmp.dot(edgeVector);
 
         localSpherePos.vsub(edgeVertexA, tmp);
         double positionAlongEdgeA = tmp.dot(edgeVector);
@@ -1860,21 +1864,17 @@ class Narrowphase {
         if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
           // Now check the orthogonal distance from edge to sphere center
           localSpherePos.vsub(edgeVertexA, tmp);
-
           edgeVectorUnit.copy(edgeVector);
           edgeVectorUnit.normalize();
           positionAlongEdgeA = tmp.dot(edgeVectorUnit);
-
           edgeVectorUnit.scale(positionAlongEdgeA, tmp);
-          tmp.vadd(edgeVertexA, tmp);
-
-          // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
+          tmp.vadd(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
+          
           final dist = tmp.distanceTo(localSpherePos);
           if (dist < sphereShape.radius) {
             if (justTest) {
               return true;
             }
-
             final r = createContactEquation(sphereBody, trimeshBody, sphereShape, trimeshShape, rsi, rsj);
 
             tmp.vsub(localSpherePos, r.ni);
@@ -1958,7 +1958,7 @@ class Narrowphase {
 
     final normal = _planeTrimeshNormal;
     normal.set(0, 0, 1);
-    planeQuat.vmult(normal, normal) ;// Turn normal according to plane
+    planeQuat.vmult(normal, normal);// Turn normal according to plane
 
     for (int i = 0; i < trimeshShape.vertices.length / 3; i++) {
       // Get world vertex from trimesh

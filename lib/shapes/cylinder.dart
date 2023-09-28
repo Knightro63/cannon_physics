@@ -67,9 +67,19 @@ class Cylinder extends ConvexPolyhedron {
         topface.add(2 * i + 3);
 
         // Face
-        faces.add([2 * i, 2 * i + 1, 2 * i + 3, 2 * i + 2]);
+        faces.add([
+          2 * i, 
+          2 * i + 1, 
+          2 * i + 3, 
+          2 * i + 2
+        ]);
       } else {
-        faces.add([2 * i, 2 * i + 1, 1, 0]); // Connect
+        faces.add([
+          2 * i, 
+          2 * i + 1, 
+          1, 
+          0
+        ]); // Connect
       }
 
       // Axis: we can cut off half of them if we have even number of segments

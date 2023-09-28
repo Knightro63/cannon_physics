@@ -54,10 +54,10 @@ class AABB {
     u.copy(l);
 
     for (int i = 1; i < points.length; i++) {
-      Vec3 p = Vec3();
-      p.copy(points[i]);
+      Vec3 p = points[i];
       if (q != null) {
-        q.vmult(p, p);
+        q.vmult(p, _tmp);
+        p = _tmp;
       }
 
       if (p.x > u.x) {

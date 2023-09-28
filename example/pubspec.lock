@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: "49b1fad315e57ab0bbc15bcbb874e83116a1d78f77ebd500a4af6c9407d6b28e"
+      sha256: e0902a06f0e00414e4e3438a084580161279f137aeb862274710f29ec10cf01e
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.8"
+    version: "3.3.9"
   async:
     dependency: transitive
     description:
@@ -343,20 +343,16 @@ packages:
   three_dart:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: e00a5b27543ab62aedb178d3cfd1b6407fa4bd58
-      url: "https://github.com/Knightro63/three_dart.git"
-    source: git
+      path: "../../three_dart"
+      relative: true
+    source: path
     version: "0.0.14"
   three_dart_jsm:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: d764d62c6c60fab0959ce9f7325d954f291034e6
-      url: "https://github.com/Knightro63/three_dart_jsm.git"
-    source: git
+      path: "../../three_dart_jsm"
+      relative: true
+    source: path
     version: "0.0.9"
   typed_data:
     dependency: transitive

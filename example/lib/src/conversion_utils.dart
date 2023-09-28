@@ -4,6 +4,7 @@ import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
+import 'package:three_dart_jsm/three_dart_jsm.dart';
 import 'package:three_dart_jsm/three_dart_jsm/renderers/nodes/index.dart';
 
 extension on cannon.Quaternion{
@@ -195,17 +196,14 @@ class ConversionUtils{
         final halfExtents = cannon.Vec3(width / 2, height / 2, depth / 2);
         return cannon.Box(halfExtents);
       }
-
       case 'PlaneGeometry':
       case 'PlaneBufferGeometry': {
         return cannon.Plane();
       }
-
       case 'SphereGeometry':
       case 'SphereBufferGeometry': {
         return cannon.Sphere(geometry.parameters!['radius']);
       }
-
       case 'CylinderGeometry':
       case 'CylinderBufferGeometry': {
         return cannon.Cylinder(
@@ -215,52 +213,112 @@ class ConversionUtils{
           numSegments: geometry.parameters!['radialSegments']
         );
       }
+      case 'TorusGeometry':
+      case 'TorusBufferGeometry': {
+        return cannon.Trimesh.createTorus(
+          cannon.TorusGeometry(
+            geometry.parameters!['radius'].toDouble(), 
+            geometry.parameters!['tube'], 
+            geometry.parameters!['radialSegments'], 
+            geometry.parameters!['tubularSegments'],
+            geometry.parameters!['arch'] ?? Math.PI*2,
+          )
+        );
+      }
+      case 'IcosahedronGeometry':
+      case 'IcosahedronBufferGeometry': {
+        Float32Array points = geometry.attributes['position'].array;
+        List<cannon.Vec3> verticies = [];
+        List<List<int>>? faces = [];
+        List<int> indicies = [];
 
+        for(int i = 0; i < points.length; i+=3){
+          verticies.add(
+            cannon.Vec3(
+              points[i],
+              points[i+1],
+              points[i+2]
+            )
+          );
+          if(i < points.length/3){
+            faces.add([i, i + 1, i + 2]);
+            indicies.addAll([i, i + 1, i + 2]);
+          }
+        }
+
+        return cannon.ConvexPolyhedron(
+          vertices: verticies,
+          faces: faces,
+        );
+      }
       // Create a ConvexPolyhedron with the convex hull if
       // it's none of these
       default: {
         // Simplify the geometry if it has too many points,
         // make it have no more than MAX_VERTEX_COUNT vertices
+        Float32Array pts = geometry.attributes['position'].array;
+
+        // final simplifiedGeometry = SimplifyModifier().modify(
+        //   geometry, 
+        //   Math.max(vertexCount.length - 150, 0)
+        // );
+
+        // List<Vector3> vecs = [];
+        // for(int i = 0; i < pts.length; i+=3){
+        //   vecs.add(Vector3(pts[i],pts[i+1],pts[i+2]));
+        // }
+
+        // final hullGeometry = three.ConvexGeometry(vecs);
+
         Float32Array points = geometry.attributes['position'].array;
         Float32Array norms = geometry.attributes['normal'].array;
-        final indexes = geometry.index!;
-        final array = indexes.array;
+        final indexes = geometry.index;
+
         List<cannon.Vec3> verticies = [];
         List<List<int>>? faces = [];
         List<cannon.Vec3>? normals = [];
-
         List<int> indicies = [];
 
         for(int i = 0; i < points.length; i+=3){
-          int j = i~/3;
-          verticies.add(cannon.Vec3(points[i],points[i+1],points[i+2]));
+          int i3 = i*3;
+          verticies.add(
+            cannon.Vec3(
+              points[i],
+              points[i+1],
+              points[i+2]
+            )
+          );
+
           normals.add(cannon.Vec3(norms[i],norms[i+1],norms[i+2]));
-          
-          if(indexes.getX(i) != null){
+          if(indexes != null && i < indexes.length){
             faces.add([
               indexes.getX(i)!.toInt(),
               indexes.getX(i+1)!.toInt(),
               indexes.getX(i+2)!.toInt(),
             ]);
+            indicies.addAll([
+              indexes.getX(i)!.toInt(),
+              indexes.getX(i+1)!.toInt(),
+              indexes.getX(i+2)!.toInt(),
+            ]);
           }
-          // else{
-          //   faces.add([
-          //     0,//array[i].toInt(),
-          //     1,//array[i+1].toInt(),
-          //     2//array[i+2].toInt(),
-          //   ]);
-          // }
-        }
-
-        for(int i = 0; i < array.length;i++){
-          indicies.add(array[i].toInt());
+          else if(i < points.length/3){
+            faces.add([i, i + 1, i + 2]);
+            indicies.addAll([i, i + 1, i + 2]);
+          }
         }
 
         // Construct polyhedron
-        cannon.ConvexPolyhedron polyhedron = cannon.ConvexPolyhedron(
-          vertices: verticies,
-          faces: faces
+        cannon.Trimesh polyhedron = cannon.Trimesh(
+          points.sublist(0),
+          indicies
         );
+
+        // cannon.ConvexPolyhedron polyhedron = cannon.ConvexPolyhedron(
+        //   vertices: verticies,
+        //   faces: faces,
+        //   //normals: normals
+        // );
 
         return polyhedron;
       }
