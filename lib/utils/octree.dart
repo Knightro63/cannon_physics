@@ -53,8 +53,7 @@ class OctreeNode {
       // add to whichever node will accept it
       for (int i = 0; i != 8; i++) {
         if (children[i].insert(aabb, elementData, level + 1)) {
-          print(elementData);
-          return true;
+          return false;
         }
       }
 
@@ -141,21 +140,11 @@ class OctreeNode {
   }
 
   void removeEmptyNodes(){
-    // for (int i = children.length - 1; i >= 0; i--) {
-    //   children[i].removeEmptyNodes();
-    //   if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
-    //     children.removeAt(i);
-    //   }
-    // }
-    final queue = [this];
-    while (queue.isNotEmpty) {
-        final node = queue.removeLast();
-        for (int i = node.children.length - 1; i >= 0; i--) {
-            if(node.children[i].data.isNotEmpty){
-                node.children.removeAt(i);
-            }
-        }
-        queue.addAll(node.children);
+    for (int i = children.length - 1; i >= 0; i--) {
+      children[i].removeEmptyNodes();
+      if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
+        children.removeAt(i);
+      }
     }
   }
 }

@@ -76,8 +76,6 @@ class Trimesh extends Shape {
 
   final _computeNormalsN = Vec3();
 
-  final _unscaledAABB = AABB();
-
   final _getEdgeVectorVa = Vec3();
   final _getEdgeVectorVb = Vec3();
 
@@ -123,15 +121,15 @@ class Trimesh extends Shape {
   /// Get triangles in a local AABB from the trimesh.
   /// @param result An array of integers, referencing the queried triangles.
   List<int> getTrianglesInAABB(AABB aabb, List<int> result){
-    _unscaledAABB.copy(aabb);
+    AABB unscaledAABB = aabb.clone();
 
     // Scale it to local
     final scale = this.scale;
     final isx = scale.x;
     final isy = scale.y;
     final isz = scale.z;
-    final l = _unscaledAABB.lowerBound;
-    final u = _unscaledAABB.upperBound;
+    final l = unscaledAABB.lowerBound;
+    final u = unscaledAABB.upperBound;
     l.x /= isx;
     l.y /= isy;
     l.z /= isz;
@@ -139,7 +137,7 @@ class Trimesh extends Shape {
     u.y /= isy;
     u.z /= isz;
 
-    return tree.aabbQuery(_unscaledAABB, result);
+    return tree.aabbQuery(unscaledAABB, result);
   }
 
   void setScale(Vec3 scale) {

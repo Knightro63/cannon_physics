@@ -103,7 +103,8 @@ class _TriMeshState extends State<TriMesh> {
     demo.addVisual(groundBody);
 
     // Sphere
-    final sphereShape = cannon.Sphere(1);
+    //final sphereShape = cannon.Box(cannon.Vec3(0.5,0.5,0.5));
+    final sphereShape = cannon.Particle();
     final sphereBody = cannon.Body(
       mass: 1,
       shape: sphereShape,
@@ -122,7 +123,7 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
     torusBody.position.set(0, 4, 0);
-    torusBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
     torusBody.velocity.set(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
