@@ -153,9 +153,9 @@ class Narrowphase {
     else if(type == CollisionType.boxTrimesh) {
       return boxTrimesh;
     }
-    // else if(type == CollisionType.cylinderTrimesh) {
-    //   return cylinderTrimesh;
-    // }
+    else if(type == CollisionType.cylinderTrimesh) {
+      return cylinderTrimesh;
+    }
     else if(type == CollisionType.convexTrimesh) {
       return convexTrimesh;
     }
@@ -187,7 +187,7 @@ class Narrowphase {
   final _sphereTrimeshEdgeVertexB = Vec3();
   final _sphereTrimeshEdgeVector = Vec3();
   final _sphereTrimeshEdgeVectorUnit = Vec3();
-  final _sphereTrimeshLocalSpherePos = Vec3();
+  final _sphereTrimeshlocal = Vec3();
   final _sphereTrimeshTmp = Vec3();
   final _sphereTrimeshVa = Vec3();
   final _sphereTrimeshVb = Vec3();
@@ -1276,14 +1276,14 @@ class Narrowphase {
     final worldPillarOffset = _sphereHeightfieldTmp2;
 
     // Get sphere position to heightfield local!
-    final localSpherePos = _sphereHeightfieldTmp1;
-    Transform.pointToLocalFrame(xj, qj, xi, localSpherePos);
+    final local = _sphereHeightfieldTmp1;
+    Transform.pointToLocalFrame(xj, qj, xi, local);
 
     // Get the index of the data points to test against
-    int iMinX = ((localSpherePos.x - radius) / w).floor() - 1;
-    int iMaxX = ((localSpherePos.x + radius) / w).ceil() + 1;
-    int iMinY = ((localSpherePos.y - radius) / w).floor() - 1;
-    int iMaxY = ((localSpherePos.y + radius) / w).ceil() + 1;
+    int iMinX = ((local.x - radius) / w).floor() - 1;
+    int iMaxX = ((local.x + radius) / w).ceil() + 1;
+    int iMinY = ((local.y - radius) / w).floor() - 1;
+    int iMaxY = ((local.y + radius) / w).ceil() + 1;
     // Bail out if we are out of the terrain
     if (iMaxX < 0 || iMaxY < 0 || iMinX > data.length || iMinY > data[0].length) {
       return false;
@@ -1321,7 +1321,7 @@ class Narrowphase {
     final max = minMax[1];
 
     // Bail out if we can't touch the bounding height box
-    if (localSpherePos.z - radius > max || localSpherePos.z + radius < min) {
+    if (local.z - radius > max || local.z + radius < min) {
       return false;
     }
 
@@ -1628,7 +1628,6 @@ class Narrowphase {
       final projected = _particlePlaneProjected;
       normal.scale(normal.dot(xi), projected);
       xi.vsub(projected, projected);
-      //projected.vadd(bj.position,projected);
 
       // rj is now the projected world position minus plane position
       r.rj.copy(projected);
@@ -1710,14 +1709,11 @@ class Narrowphase {
         penetratedFaceNormal.negate(r.ni); // Contact normal
         r.ri.set(0, 0, 0); // Center of particle
 
-        final ri = r.ri;
-        final rj = r.rj;
-
         // Make relative to bodies
-        ri.vadd(xi, ri);
-        ri.vsub(bi.position, ri);
-        rj.vadd(xj, rj);
-        rj.vsub(bj.position, rj);
+        r.ri.vadd(xi, r.ri);
+        r.ri.vsub(bi.position, r.ri);
+        r.rj.vadd(xj, r.rj);
+        r.rj.vsub(bj.position, r.rj);
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
@@ -1775,14 +1771,14 @@ class Narrowphase {
   }
 
   bool sphereTrimesh(
-    Sphere sphereShape,
-    Trimesh trimeshShape,
-    Vec3 spherePos,
-    Vec3 trimeshPos,
-    Quaternion sphereQuat,
-    Quaternion trimeshQuat,
-    Body sphereBody,
-    Body trimeshBody,
+    Sphere si,
+    Trimesh sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1793,7 +1789,7 @@ class Narrowphase {
     final edgeVertexB = _sphereTrimeshEdgeVertexB;
     final edgeVector = _sphereTrimeshEdgeVector;
     final edgeVectorUnit = _sphereTrimeshEdgeVectorUnit;
-    final localSpherePos = _sphereTrimeshLocalSpherePos;
+    final local = _sphereTrimeshlocal;
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
     final tmp = _sphereTrimeshTmp;
     final v2 = _sphereTrimeshV2;
@@ -1801,55 +1797,55 @@ class Narrowphase {
     final triangles = _sphereTrimeshTriangles;
 
     // Convert sphere position to local in the trimesh
-    Transform.pointToLocalFrame(trimeshPos, trimeshQuat, spherePos, localSpherePos);
+    Transform.pointToLocalFrame(xj, qj, xi, local);
 
     // Get the aabb of the sphere locally in the trimesh
-    final sphereRadius = sphereShape.radius;
+    final sphereRadius = si.radius;
     localSphereAABB.lowerBound.set(
-      localSpherePos.x - sphereRadius,
-      localSpherePos.y - sphereRadius,
-      localSpherePos.z - sphereRadius
+      local.x - sphereRadius,
+      local.y - sphereRadius,
+      local.z - sphereRadius
     );
     localSphereAABB.upperBound.set(
-      localSpherePos.x + sphereRadius,
-      localSpherePos.y + sphereRadius,
-      localSpherePos.z + sphereRadius
+      local.x + sphereRadius,
+      local.y + sphereRadius,
+      local.z + sphereRadius
     );
 
-    trimeshShape.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix retreived triangles
+    sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix retreived triangles
     
     final v = _sphereTrimeshV;
-    final radiusSquared = sphereShape.radius * sphereShape.radius;
-    for (int i = 0; i < trimeshShape.indices.length/3; i++){//triangles.length
+    final radiusSquared = si.radius * si.radius;
+    for (int i = 0; i < sj.indices.length/3; i++){//triangles.length
       for (int j = 0; j < 3; j++) {
         
-        trimeshShape.getVertex(trimeshShape.indices[i*3 + j], v);//i->triangles[i]
+        sj.getVertex(sj.indices[i*3 + j], v);//i->triangles[i]
         // Check vertex overlap in sphere
-        v.vsub(localSpherePos, relpos);
+        v.vsub(local, relpos);
         
         if (relpos.lengthSquared() <= radiusSquared) {
           // Safe up
           v2.copy(v);
-          Transform.pointToWorldFrame(trimeshPos, trimeshQuat, v2, v);
+          Transform.pointToWorldFrame(xj, qj, v2, v);
 
-          v.vsub(spherePos, relpos);
+          v.vsub(xi, relpos);
 
           if (justTest) {
             return true;
           }
 
-          final r = createContactEquation(sphereBody, trimeshBody, sphereShape, trimeshShape, rsi, rsj);
+          final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
           r.ni.copy(relpos);
           r.ni.normalize();
 
           // ri is the vector from sphere center to the sphere surface
           r.ri.copy(r.ni);
-          r.ri.scale(sphereShape.radius, r.ri);
-          r.ri.vadd(spherePos, r.ri);
-          r.ri.vsub(sphereBody.position, r.ri);
-
+          r.ri.scale(si.radius, r.ri);
+          
+          r.ri.vadd(xi, r.ri);
+          r.ri.vsub(bi.position, r.ri);
           r.rj.copy(v);
-          r.rj.vsub(trimeshBody.position, r.rj);
+          r.rj.vsub(bj.position, r.rj);
 
           // Store result
           result.add(r);
@@ -1859,46 +1855,46 @@ class Narrowphase {
     }
     
     // Check all edges
-    for (int i = 0; i < trimeshShape.indices.length/3; i++) {
+    for (int i = 0; i < sj.indices.length/3; i++) {
       for (int j = 0; j < 3; j++) {
-        trimeshShape.getVertex(trimeshShape.indices[i*3 + j], edgeVertexA);
-        trimeshShape.getVertex(trimeshShape.indices[i*3 + ((j + 1) % 3)], edgeVertexB);
+        sj.getVertex(sj.indices[i*3 + j], edgeVertexA);
+        sj.getVertex(sj.indices[i*3 + ((j + 1) % 3)], edgeVertexB);
         edgeVertexB.vsub(edgeVertexA, edgeVector);
         
         // Project sphere position to the edge
-        localSpherePos.vsub(edgeVertexB, tmp);
+        local.vsub(edgeVertexB, tmp);
         final positionAlongEdgeB = tmp.dot(edgeVector);
 
-        localSpherePos.vsub(edgeVertexA, tmp);
+        local.vsub(edgeVertexA, tmp);
         double positionAlongEdgeA = tmp.dot(edgeVector);
 
         if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
           // Now check the orthogonal distance from edge to sphere center
-          localSpherePos.vsub(edgeVertexA, tmp);
+          local.vsub(edgeVertexA, tmp);
           edgeVectorUnit.copy(edgeVector);
           edgeVectorUnit.normalize();
           positionAlongEdgeA = tmp.dot(edgeVectorUnit);
           edgeVectorUnit.scale(positionAlongEdgeA, tmp);
           tmp.vadd(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
           
-          final dist = tmp.distanceTo(localSpherePos);
-          if (dist < sphereShape.radius) {
+          final dist = tmp.distanceTo(local);
+          if (dist < si.radius) {
             if (justTest) {
               return true;
             }
-            final r = createContactEquation(sphereBody, trimeshBody, sphereShape, trimeshShape, rsi, rsj);
+            final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-            tmp.vsub(localSpherePos, r.ni);
+            tmp.vsub(local, r.ni);
             r.ni.normalize();
-            r.ni.scale(sphereShape.radius, r.ri);
-            r.ri.vadd(spherePos, r.ri);
-            r.ri.vsub(sphereBody.position, r.ri);
+            r.ni.scale(si.radius, r.ri);
+            r.ri.vadd(xi, r.ri);
+            r.ri.vsub(bi.position, r.ri);
 
-            Transform.pointToWorldFrame(trimeshPos, trimeshQuat, tmp, tmp);
-            tmp.vsub(trimeshBody.position, r.rj);
+            Transform.pointToWorldFrame(xj, qj, tmp, tmp);
+            tmp.vsub(bj.position, r.rj);
 
-            Transform.vectorToWorldFrame(trimeshQuat, r.ni, r.ni);
-            Transform.vectorToWorldFrame(trimeshQuat, r.ri, r.ri);
+            Transform.vectorToWorldFrame(qj, r.ni, r.ni);
+            Transform.vectorToWorldFrame(qj, r.ri, r.ri);
 
             result.add(r);
             createFrictionEquationsFromContact(r, frictionResult);
@@ -1913,33 +1909,33 @@ class Narrowphase {
     final vc = _sphereTrimeshVc;
     final normal = _sphereTrimeshNormal;
     for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
-      trimeshShape.getTriangleVertices(triangles[i], va, vb, vc);
-      trimeshShape.getFaceNormal(triangles[i], normal);
+      sj.getTriangleVertices(triangles[i], va, vb, vc);
+      sj.getFaceNormal(triangles[i], normal);
       
-      localSpherePos.vsub(va, tmp);
+      local.vsub(va, tmp);
       double dist = tmp.dot(normal);
       normal.scale(dist, tmp);
-      localSpherePos.vsub(tmp, tmp);
+      local.vsub(tmp, tmp);
 
       // tmp is now the sphere position projected to the triangle plane
-      dist = tmp.distanceTo(localSpherePos);
-      if (Ray.pointInTriangle(tmp, va, vb, vc) && dist < sphereShape.radius) {
+      dist = tmp.distanceTo(local);
+      if (Ray.pointInTriangle(tmp, va, vb, vc) && dist < si.radius) {
         if (justTest) {
           return true;
         }
-        final r = createContactEquation(sphereBody, trimeshBody, sphereShape, trimeshShape, rsi, rsj);
+        final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-        tmp.vsub(localSpherePos, r.ni);
+        tmp.vsub(local, r.ni);
         r.ni.normalize();
-        r.ni.scale(sphereShape.radius, r.ri);
-        r.ri.vadd(spherePos, r.ri);
-        r.ri.vsub(sphereBody.position, r.ri);
+        r.ni.scale(si.radius, r.ri);
+        r.ri.vadd(xi, r.ri);
+        r.ri.vsub(bi.position, r.ri);
 
-        Transform.pointToWorldFrame(trimeshPos, trimeshQuat, tmp, tmp);
-        tmp.vsub(trimeshBody.position, r.rj);
+        Transform.pointToWorldFrame(xj, qj, tmp, tmp);
+        tmp.vsub(bj.position, r.rj);
 
-        Transform.vectorToWorldFrame(trimeshQuat, r.ni, r.ni);
-        Transform.vectorToWorldFrame(trimeshQuat, r.ri, r.ri);
+        Transform.vectorToWorldFrame(qj, r.ni, r.ni);
+        Transform.vectorToWorldFrame(qj, r.ri, r.ri);
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
@@ -1952,13 +1948,13 @@ class Narrowphase {
 
   bool planeTrimesh(
     Plane planeShape,
-    Trimesh trimeshShape,
+    Trimesh sj,
     Vec3 planePos,
-    Vec3 trimeshPos,
+    Vec3 xj,
     Quaternion planeQuat,
-    Quaternion trimeshQuat,
+    Quaternion qj,
     Body planeBody,
-    Body trimeshBody,
+    Body bj,
     [
       Shape? rsi,
       Shape? rsj,
@@ -1971,14 +1967,14 @@ class Narrowphase {
     normal.set(0, 0, 1);
     planeQuat.vmult(normal, normal);// Turn normal according to plane
 
-    for (int i = 0; i < trimeshShape.vertices.length / 3; i++) {
+    for (int i = 0; i < sj.vertices.length / 3; i++) {
       // Get world vertex from trimesh
-      trimeshShape.getVertex(i, v);
+      sj.getVertex(i, v);
 
       // Safe up
       final v2 = Vec3();
       v2.copy(v);
-      Transform.pointToWorldFrame(trimeshPos, trimeshQuat, v2, v);
+      Transform.pointToWorldFrame(xj, qj, v2, v);
 
       // Check plane side
       final relpos = _planeTrimeshRelpos;
@@ -1990,7 +1986,7 @@ class Narrowphase {
           return true;
         }
 
-        final r = createContactEquation(planeBody,trimeshBody,planeShape,trimeshShape, rsi, rsj);
+        final r = createContactEquation(planeBody,bj,planeShape,sj, rsi, rsj);
 
         r.ni.copy(normal); // Contact normal is the plane normal
 
@@ -2004,13 +2000,89 @@ class Narrowphase {
         r.ri.vsub(planeBody.position, r.ri);
 
         r.rj.copy(v);
-        r.rj.vsub(trimeshBody.position, r.rj);
+        r.rj.vsub(bj.position, r.rj);
 
         // Store result
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
       }
     }
+
+    return false;
+  }
+  bool particleTrimesh1(
+    Particle si,
+    Trimesh sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
+    [
+      Shape? rsi,
+      Shape? rsj,
+      bool justTest = false
+  ]){
+    final local = Vec3();
+    final localAABB = AABB();
+    final triangles = _sphereTrimeshTriangles;
+
+    // Transform ray to local space!
+    Transform.pointToLocalFrame(xj, qj, xi, local);
+
+    localAABB.lowerBound.set(
+      local.x - 0.1,
+      local.y - 0.1,
+      local.z - 0.1
+    );
+    localAABB.upperBound.set(
+      local.x + 0.1,
+      local.y + 0.1,
+      local.z + 0.1
+    );
+
+    sj.getTrianglesInAABB(localAABB, triangles);
+
+    final va = Vec3();
+    final vb = Vec3();
+    final vc = Vec3();
+    final normal = Vec3();
+    final relpos = Vec3();
+
+    for (int i = 0; i < triangles.length; i++) {
+      sj.getTriangleVertices(triangles[i], va, vb, vc);
+      sj.getFaceNormal(triangles[i], normal);
+
+      //final normal = Vec3();
+      //normal.set(0, 0, 1);
+      //bj.quaternion.vmult(normal, normal); // Turn normal according to plane 
+
+      xi.vsub(vc, relpos);
+      final dot = normal.dot(relpos);
+      
+      if (dot <= 0.0) {
+        if (justTest) {
+          return true;
+        }
+        final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
+        r.ni.copy(normal); // Contact normal is the plane normal
+        r.ni.negate(r.ni);
+        r.ri.set(0, 0, 0); // Center of particle
+
+        // Get particle position projected on plane
+        final projected = _particlePlaneProjected;
+        normal.scale(normal.dot(xi), projected);
+        xi.vsub(projected, projected);
+
+        // rj is now the projected world position minus plane position
+        r.rj.copy(projected);
+        result.add(r);
+        createFrictionEquationsFromContact(r, frictionResult);
+      }
+    }
+
+    triangles.clear();
 
     return false;
   }
@@ -2028,119 +2100,77 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    final vector = Vec3();
     final local = Vec3();
+    final localSphereAABB = _sphereTrimeshLocalSphereAABB;
+    final triangles = _sphereTrimeshTriangles;
 
-    // Transform ray to local space!
     Transform.pointToLocalFrame(xj, qj, xi, local);
-    //local.normalize();
 
-    final va = Vec3();
-    final vb = Vec3();
-    final vc = Vec3();
-    final normal = Vec3();
+    const sphereRadius = 0.001;
+    localSphereAABB.lowerBound.set(
+      local.x - sphereRadius,
+      local.y - sphereRadius,
+      local.z - sphereRadius
+    );
+    localSphereAABB.upperBound.set(
+      local.x + sphereRadius,
+      local.y + sphereRadius,
+      local.z + sphereRadius
+    );
+
+    sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix 
+
+    final tmp = _sphereTrimeshV2;
+    final relpos = _sphereTrimeshRelpos;
     final v = Vec3();
     final v2 = Vec3();
-    final relpos = Vec3();
+    final normal = Vec3();
 
-    //trimeshShape.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix retreived triangles
-    for (int i = 0; i < sj.indices.length/3; i++) {//N = triangles.length; i != N
-      sj.getTriangleVertices(sj.indices[i], va, vb, vc);
-      if(Ray.pointInTriangle(vector, va, vb, vc)){
-        sj.getFaceNormal(sj.indices[i], normal);
+    // For each world polygon in the polyhedra
+    for (int i = 0; i < sj.indices.length/3; i++) {
+      for (int j = 0; j < 3; j++) {
+        sj.getNormal(sj.indices[i*3 + j], normal);
+        sj.getVertex(sj.indices[i*3 + j], v);
+        // Check vertex overlap in sphere
+        v.vsub(local, relpos);
+        
+        if (relpos.lengthSquared() < 1) {
+          v2.copy(v);
+          Transform.pointToWorldFrame(xj, qj, v2, v);
 
-        xi.vsub(bj.position, relpos);
-        final dot = normal.dot(relpos);
-        if (dot <= 0.0) {
+          xi.vsub(bj.position, relpos);
           if (justTest) {
             return true;
           }
 
-          final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
+          var r = createContactEquation(bi, bj, si, sj, rsi, rsj);
           r.ni.copy(normal); // Contact normal is the plane normal
-          r.ni.negate(r.ni);
-          r.ri.set(0, 0, 0); // Center of particle
+          r.ni.normalize();
 
-          // Get particle position projected on plane
-          final projected = _particlePlaneProjected;
-          normal.scale(normal.dot(xi), projected);
-          xi.vsub(projected, projected);
-          //projected.vadd(bj.position,projected);
+          normal.scale(0.0001, tmp);
+          // rj is the particle position projected to the face
+          tmp.vadd(xi, tmp);
+          tmp.vsub(xj, tmp);
+          
+          normal.negate(r.ni);
+          r.ri.set(0,0,0); // Center of particle
 
-          // rj is now the projected world position minus plane position
-          r.rj.copy(projected);
+          // Make relative to bodies
+          r.ri.vadd(xi, r.ri);
+          r.ri.vsub(bi.position, r.ri);
+          
+          r.rj.copy(tmp);
+          r.rj.vadd(xj, r.rj);
+          r.rj.vsub(bj.position, r.rj);
+        
           result.add(r);
           createFrictionEquationsFromContact(r, frictionResult);
         }
       }
-
-      // sj.getTriangleVertices(sj.indices[i], va, vb, vc);
-      // sj.getFaceNormal(sj.indices[i], normal);
-
-      // va.vsub(local, vector);
-      // double dist = local.dot(normal);
-      // normal.scale(dist, vector);
-      // local.vsub(vector, vector);
-
-      // final scalar = normal.dot(vector) / dist;
-      // for (int j = 0; j < 3; j++) {
-      //   sj.getVertex(sj.indices[i*3 + j], v);
-      //   // Check vertex overlap in sphere
-      //   v.vsub(local, relpos);
-        
-      //   if (Ray.pointInTriangle(vector, va, vb, vc) || relpos.lengthSquared() <= 1) {
-      //       v2.copy(v);
-      //       Transform.pointToWorldFrame(xj, qj, v2, v);
-
-      //       v.vsub(xi, relpos);
-
-      //       if (justTest) {
-      //         return true;
-      //       }
-
-      //       final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-      //       r.ni.copy(relpos);
-      //       r.ni.normalize();
-
-      //       // ri is the vector from sphere center to the sphere surface
-      //       r.ri.copy(r.ni);
-      //       r.ri.scale(1, r.ri);
-      //       r.ri.vadd(xi, r.ri);
-      //       r.ri.vsub(bi.position, r.ri);
-
-      //       r.rj.copy(v);
-      //       r.rj.vsub(bj.position, r.rj);
-
-      //       // Store result
-      //       result.add(r);
-      //       createFrictionEquationsFromContact(r, frictionResult);
-      //   }
-      // }
-      
-      // if (Ray.pointInTriangle(vector, va, vb, vc) && scalar >0) {
-      //   if (justTest) {
-      //     return true;
-      //   }
-      //   final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-
-      //   vector.vsub(local, r.ni);
-      //   r.ni.normalize();
-      //   r.ni.scale(1, r.ri);
-      //   r.ri.vadd(xi, r.ri);
-      //   r.ri.vsub(bi.position, r.ri);
-
-      //   Transform.pointToWorldFrame(xj, qj, vector, vector);
-      //   vector.vsub(bj.position, r.rj);
-
-      //   Transform.vectorToWorldFrame(qj, r.ni, r.ni);
-      //   Transform.vectorToWorldFrame(qj, r.ri, r.ri);
-
-      //   result.add(r);
-      //   createFrictionEquationsFromContact(r, frictionResult);
-      //   //return false;
-      // }
     }
 
+    triangles.clear();
+    
     return false;
   }
   bool boxTrimesh(
@@ -2160,6 +2190,22 @@ class Narrowphase {
     si.convexPolyhedronRepresentation.material = si.material;
     si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
     return convexTrimesh(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
+  }
+  bool cylinderTrimesh(
+    Cylinder si,
+    Trimesh sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
+    [
+      Shape? rsi,
+      Shape? rsj,
+      bool justTest = false
+  ]){
+    return convexTrimesh(si, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
   }
   bool convexTrimesh(
     ConvexPolyhedron si,
@@ -2190,51 +2236,67 @@ class Narrowphase {
     final va = Vec3();
     final vb = Vec3();
     final vc = Vec3();
+
+    final na = Vec3();
+    final nb = Vec3();
+    final nc = Vec3();
+
+    final triangleNormal = Vec3();
     
     hullB.vertices = [va,vb,vc];
+    //hullB.faceNormals = [na,nb,nc];
 
     for (int i = 0; i < sj.indices.length / 3; i++) {
       sj.getTriangleVertices(i, va, vb, vc);
-
-      final triangleNormal = Vec3();
       sj.getFaceNormal(i, triangleNormal);
+      //sj.getTriangleNormals(i, na,nb,nc);
+
+      final d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
       hullB.faceNormals = [triangleNormal];
-
-      double? d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
-      if(si.findSeparatingAxis(si, xj, qj, xi, qi, sepAxis, faceListA, faceListB)){
+      
+      if(d != null && si.findSeparatingAxis(hullB, xi, qi, xj, qj, sepAxis, faceListA, faceListB)){
+        int numContacts = 0;
         triangleNormal.scale(1, triangleNormal);
-        d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
 
-        if(d == null){
-          continue;
+        final List<ConvexPolyhedronContactPoint> res = [];
+        final q = _convexConvexQ;
+        si.clipAgainstHull(xi,qi,hullB,xj,qj,triangleNormal,-100,100,res);
+        for(int j = 0; j != res.length; j++){
+          if (justTest) {
+            return true;
+          }
+          final r = createContactEquation(bi,bj,si,sj,rsi,rsj);
+          final ri = r.ri;
+          final rj = r.rj;
+          r.ni.copy(triangleNormal);
+          //r.ni.negate(r.ni);
+          //res[j].normal.negate(q);
+
+          sepAxis.negate(r.ni);
+          
+          q.scale(res[j].depth, q);
+          res[j].point.vadd(q, ri);
+          rj.copy(res[j].point);
+
+          //Contact points are in world coordinates. Transform back to relative
+          ri.vsub(xi,ri);
+          rj.vsub(xj,rj);
+
+          // Make relative to bodies
+          ri.vadd(xi, ri);
+          ri.vsub(bi.position, ri);
+          rj.vadd(xj, rj);
+          rj.vsub(bj.position, rj);
+
+          result.add(r);
+          numContacts++;
+          if (!enableFrictionReduction) {
+            createFrictionEquationsFromContact(r, frictionResult);
+          }
         }
-      }
-
-      final List<ConvexPolyhedronContactPoint> res = [];
-      final q = _convexConvexQ;
-      si.clipAgainstHull(xi,qi,hullB,xj,qj,triangleNormal,-100,100,res);
-      for(int j = 0; j != res.length; j++){
-        final r = createContactEquation(bi,bj,si,sj,rsi,rsj);
-        final ri = r.ri;
-        final rj = r.rj;
-        r.ni.copy(triangleNormal);
-        r.ni.negate(r.ni);
-        res[j].normal.negate(q);
-        q.scale(res[j].depth, q);
-        res[j].point.vadd(q, ri);
-        rj.copy(res[j].point);
-
-        // Contact points are in world coordinates. Transform back to relative
-        ri.vsub(xi,ri);
-        rj.vsub(xj,rj);
-
-        // Make relative to bodies
-        ri.vadd(xi, ri);
-        ri.vsub(bi.position, ri);
-        rj.vadd(xj, rj);
-        rj.vsub(bj.position, rj);
-
-        result.add(r);
+        if (enableFrictionReduction && numContacts != 0) {
+          createFrictionFromAverage(numContacts);
+        }
       }
     }
     return false;

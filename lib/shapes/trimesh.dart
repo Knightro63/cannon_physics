@@ -233,6 +233,7 @@ class Trimesh extends Shape {
       target.normalize();
     }
   }
+
   /// Get vertex i.
   /// @return The "out" vector object
   Vec3 getVertex(int i, [Vec3? out]) {

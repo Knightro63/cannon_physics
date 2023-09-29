@@ -54,10 +54,10 @@ class _WorkerState extends State<Worker> {
     const mass = 1.0;
     const size = 0.25;
     final boxShape = cannon.Sphere(size);
-    final torusGeometry = TorusKnotGeometry(size,size*0.4,8);
-    final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
-    final torusMesh = Mesh(torusGeometry, torusMaterial);
-    final torus = ConversionUtils.geometryToShape(torusGeometry);
+    //final torusGeometry = TorusKnotGeometry(size,size*0.4,8);
+    //final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
+    //final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torus = cannon.Particle();//ConversionUtils.geometryToShape(torusGeometry);
 
     final cylinderShape = cannon.Cylinder(
       radiusTop: size, 
@@ -88,8 +88,8 @@ class _WorkerState extends State<Worker> {
         body.addShape(torus);
         demo.addVisual(
           body,
-          mesh:torusMesh,
-          material: torusMaterial
+          //mesh:torusMesh,
+          //material: torusMaterial
         );
       }
       else{

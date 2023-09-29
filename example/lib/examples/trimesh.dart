@@ -95,16 +95,17 @@ class _TriMeshState extends State<TriMesh> {
   void triMesh(){
     final world = demo.world;
 
-    final groundShape = cannon.Plane();
-    final groundBody = cannon.Body(mass: 0);
-    groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    demo.world.addBody(groundBody);
-    demo.addVisual(groundBody);
+    // final groundShape = cannon.Plane();
+    // final groundBody = cannon.Body(mass: 0);
+    // groundBody.addShape(groundShape);
+    // groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    // demo.world.addBody(groundBody);
+    // demo.addVisual(groundBody);
 
     // Sphere
-    //final sphereShape = cannon.Box(cannon.Vec3(0.5,0.5,0.5));
-    final sphereShape = cannon.Particle();
+    final sphereShape = cannon.Cylinder(radiusTop: 0.5,radiusBottom:0.5);
+    //final sphereShape = cannon.Box(cannon.Vec3( 0.5,0.5,0.5));
+    //final sphereShape = cannon.Particle();
     final sphereBody = cannon.Body(
       mass: 1,
       shape: sphereShape,
@@ -120,9 +121,9 @@ class _TriMeshState extends State<TriMesh> {
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 
-    final torusBody = cannon.Body(mass: 1 );
+    final torusBody = cannon.Body(mass: 0 );
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.set(-3, -4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
     torusBody.velocity.set(0, 1, 1);
     world.addBody(torusBody);
