@@ -13,7 +13,10 @@ class Plane extends Shape {
   late bool worldNormalNeedsUpdate;
   //late double boundingSphereRadius;
 
-  Plane():super(type: ShapeType.plane ){
+  final double width;
+  final double height;
+
+  Plane([this.width = double.infinity,this.height= double.infinity]):super(type: ShapeType.plane ){
     // World oriented normal
     worldNormal = Vec3();
     worldNormalNeedsUpdate = true;

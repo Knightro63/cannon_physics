@@ -53,7 +53,8 @@ enum CollisionType{
   planeTrimesh,
   boxTrimesh,
   cylinderTrimesh,
-  convexTrimesh
+  convexTrimesh,
+  trimeshTrimesh
 }
 
 /// Helper class for the World. Generates ContactEquations.
@@ -158,6 +159,9 @@ class Narrowphase {
     }
     else if(type == CollisionType.convexTrimesh) {
       return convexTrimesh;
+    }
+    else if(type == CollisionType.trimeshTrimesh) {
+      return trimeshTrimesh;
     }
   }
 
@@ -2301,7 +2305,48 @@ class Narrowphase {
     }
     return false;
   }
+  bool trimeshTrimesh(
+    Trimesh si,
+    Trimesh sj,
+    Vec3 xi,
+    Vec3 xj,
+    Quaternion qi,
+    Quaternion qj,
+    Body bi,
+    Body bj,
+    [
+      Shape? rsi,
+      Shape? rsj,
+      bool justTest = false,
+    ]
+  ){
 
+    if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
+      return false;
+    }
+
+    // Construct a temp hull for each triangle
+    final hullB = ConvexPolyhedron();
+
+    hullB.faces = [[0,1,2]];
+    final va = Vec3();
+    final vb = Vec3();
+    final vc = Vec3();
+
+    final triangleNormal = Vec3();
+    
+    hullB.vertices = [va,vb,vc];
+
+    for (int i = 0; i < si.indices.length / 3; i++) {
+      si.getTriangleVertices(i, va, vb, vc);
+      si.getFaceNormal(i, triangleNormal);
+
+      hullB.faceNormals = [triangleNormal];
+      
+      convexTrimesh(hullB, sj, xi, xj, qi, qj, bi, bj);
+    }
+    return false;
+  }
   bool _pointInPolygon(List<Vec3> verts, Vec3 normal, Vec3 p) {
     bool? positiveResult;
     final N = verts.length;
