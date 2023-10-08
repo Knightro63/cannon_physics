@@ -51,6 +51,7 @@ class _ConstraintsState extends State<Constraints> {
   }
 
   void lockScene(){
+    setScene();
     final world = demo.world;
 
     world.gravity.set(0, -10, 0);
@@ -105,6 +106,7 @@ class _ConstraintsState extends State<Constraints> {
     demo.addVisual(body2);
   }
   void linkScene(){
+    setScene();
     final world = demo.world;
     world.gravity.set(0, -20, -1);
 
@@ -154,6 +156,7 @@ class _ConstraintsState extends State<Constraints> {
     }
   }
   void clothOnSphere(){
+    setScene();
     final world = demo.world;
 
     const dist = 0.2;
@@ -202,6 +205,7 @@ class _ConstraintsState extends State<Constraints> {
     demo.addVisual(body);
   }
   void spherePendulum(){
+    setScene();
     final world = demo.world;
 
     const size = 1.0;
@@ -235,6 +239,7 @@ class _ConstraintsState extends State<Constraints> {
     world.addConstraint(pointConstraint);
   }
   void sphereChain(){
+    setScene();
     final world = demo.world;
     // world.solver.setSpookParams(1e20, 3)
 
@@ -268,6 +273,7 @@ class _ConstraintsState extends State<Constraints> {
     }
   }
   void particleCloth(){
+    setScene();
     final world = demo.world;
     // world.solver.setSpookParams(1e20, 3)
     world.solver.iterations = 18;
@@ -308,6 +314,7 @@ class _ConstraintsState extends State<Constraints> {
     }
   }
   void clothStructure(){
+    setScene();
     final world = demo.world;
 
     // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
@@ -379,15 +386,12 @@ class _ConstraintsState extends State<Constraints> {
     }
   }
   void setupWorld(){
-    setScene();
-    lockScene();
-    //linkScene();
-    //clothOnSphere();
-    //spherePendulum();
-    //sphereChain();
-    //particleCloth();
-    //clothStructure();
-    demo.start();
+    demo.addScene('Lock',lockScene);
+    demo.addScene('Link',clothOnSphere);
+    demo.addScene('Sphere Pendulum',spherePendulum);
+    demo.addScene('Sphere Chain',sphereChain);
+    demo.addScene('Particle Cloth',particleCloth);
+    demo.addScene('Cloth Structure',clothStructure);
   }
   @override
   Widget build(BuildContext context) {

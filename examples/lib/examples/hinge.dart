@@ -175,7 +175,6 @@ class _HingeState extends State<Hinge> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

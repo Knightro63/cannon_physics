@@ -102,7 +102,6 @@ class _WorkerState extends State<Worker> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

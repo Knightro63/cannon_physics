@@ -92,7 +92,6 @@ class _CollisionFilterState extends State<CollisionFilter> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

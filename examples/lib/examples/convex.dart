@@ -84,6 +84,7 @@ class _ConvexState extends State<Convex> {
   }
 
   void convexWall(){
+    setScene();
     final world = demo.world;
 
     const size = 1.0;
@@ -103,6 +104,7 @@ class _ConvexState extends State<Convex> {
   }
 
   void convexOnConvex(){
+    setScene();
     final world = demo.world;
 
     const size = 2.0;
@@ -124,6 +126,7 @@ class _ConvexState extends State<Convex> {
     demo.addVisual(boxBody2);
   }
   void various(){
+    setScene();
     final world = demo.world;
 
     const size = 0.5;
@@ -165,10 +168,9 @@ class _ConvexState extends State<Convex> {
   }
 
   void setupWorld(){
-    setScene();
-    //convexWall();
-    //convexOnConvex();
-    various();
+    demo.addScene('Convex Wall',convexWall);
+    demo.addScene('Convex On Convex',convexOnConvex);
+    demo.addScene('Various',various);
   }
   @override
   Widget build(BuildContext context) {

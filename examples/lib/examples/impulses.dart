@@ -132,12 +132,12 @@ class _ImpulsesState extends State<Impulses> {
     body.applyTorque(torque);
   }
   void setupWorld(){
-    // centerImpulse();
-    // topImpulse();
-    // centerForce();
-    // topForce();
-    // localForce();
-    torque();
+    demo.addScene('Center Impulse',centerImpulse);
+    demo.addScene('Top Impulse',topImpulse);
+    demo.addScene('Center Force',centerForce);
+    demo.addScene('Top Force',topForce);
+    demo.addScene('Local Force',localForce);
+    demo.addScene('Torque',torque);
   }
   @override
   Widget build(BuildContext context) {

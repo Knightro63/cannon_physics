@@ -110,7 +110,6 @@ class _PileState extends State<Pile> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

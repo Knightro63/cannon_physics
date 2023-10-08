@@ -73,7 +73,6 @@ class _FixedRotationState extends State<FixedRotation> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

@@ -70,7 +70,6 @@ class _CallbackState extends State<Callback> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

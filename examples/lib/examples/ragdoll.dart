@@ -57,12 +57,9 @@ class _RagDollState extends State<RagDoll> {
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
-
-    //normalConeJoints();
-    noConeJoints();
-    //thinConeJoints();
   }
   void normalConeJoints(){
+    setScene();
     final world = demo.world;
 
     // Add a sphere to land on
@@ -93,6 +90,7 @@ class _RagDollState extends State<RagDoll> {
     });
   }
   void noConeJoints(){
+    setScene();
     final world = demo.world;
 
     // Add a sphere to land on
@@ -123,6 +121,7 @@ class _RagDollState extends State<RagDoll> {
     });
   }
   void thinConeJoints(){
+    setScene();
     final world = demo.world;
 
     // Add a sphere to land on
@@ -410,8 +409,9 @@ class _RagDollState extends State<RagDoll> {
     return RagdollData(bodies:bodies, constraints:constraints);
   }
   void setupWorld(){
-    setScene();
-    demo.start();
+    demo.addScene('Normal Cone Joints',normalConeJoints);
+    demo.addScene('No Cone Joints',noConeJoints);
+    demo.addScene('Thin Cone Joints',thinConeJoints);
   }
   @override
   Widget build(BuildContext context) {

@@ -73,7 +73,6 @@ class _PerformanceState extends State<Performance> {
 
   void setupWorld(){
     setupFallingBoxes(500);
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

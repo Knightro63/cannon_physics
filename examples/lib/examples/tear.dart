@@ -97,7 +97,6 @@ class _TearState extends State<Tear> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

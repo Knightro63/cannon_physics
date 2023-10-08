@@ -51,10 +51,10 @@ class _CollisionsState extends State<Collisions> {
     super.dispose();
   }
   void setScene(){
-    //setScene0();
-    //setScene1();
-    //setScene2();
-    setScene3();
+    demo.addScene('Sphere Sphere',setScene0);
+    demo.addScene('Box Sphere',setScene1);
+    demo.addScene('Box Edge Sphere',setScene2);
+    demo.addScene('Box Point Sphere',setScene3);
   }
   void setScene0(){
     final world = demo.world;

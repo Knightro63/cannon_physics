@@ -133,7 +133,6 @@ class _TriMeshState extends State<TriMesh> {
 
   void setupWorld(){
     triMesh();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

@@ -119,8 +119,6 @@ class _FPSGamePageState extends State<FPSGame> {
 
     scene.add( light );
 
-    
-
     // floor
     three.PlaneGeometry floorGeometry = three.PlaneGeometry(300, 300, 50, 50);
     floorGeometry.applyMatrix4(three.Matrix4().makeRotationX( - Math.PI / 2 ) );

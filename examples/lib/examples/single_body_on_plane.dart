@@ -51,6 +51,7 @@ class _SBOPState extends State<SBOP> {
     demo.addVisual(groundBody);
   }
   void box(){
+    plane();
     final world = demo.world;
 
     const size = 2.0;
@@ -64,6 +65,7 @@ class _SBOPState extends State<SBOP> {
     demo.addVisual(body);
   }
   void sphere(){
+    plane();
     final world = demo.world;
 
     const size = 2.0;
@@ -77,9 +79,8 @@ class _SBOPState extends State<SBOP> {
     demo.addVisual(body);
   }
   void setupWorld(){
-    plane();
-    sphere();
-    demo.start();
+    demo.addScene('Box',box);
+    demo.addScene('Sphere',sphere);
   }
   @override
   Widget build(BuildContext context) {

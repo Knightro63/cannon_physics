@@ -150,7 +150,6 @@ class _ShapesState extends State<Shapes> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

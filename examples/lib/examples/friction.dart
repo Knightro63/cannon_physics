@@ -99,7 +99,6 @@ class _FrictionState extends State<Friction> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

@@ -189,6 +189,7 @@ class Demo{
   late GeometryCache p2pConstraintMeshCache;
 
   List<Function(double dt)> events = [];
+  Map<String,dynamic> scenes = {};
 
   void dispose(){
     disposed = true;
@@ -202,7 +203,10 @@ class Demo{
   }
   void addDomListener(String type, Function function){
     domElements[type] = function;
-  } 
+  }
+  void addScene(String name,newScene){
+    scenes[name] = newScene;
+  }
   void initGeometryCaches(){
     // Material
     int materialColor = 0xdddddd;
@@ -380,6 +384,8 @@ class Demo{
     for(String type in domElements.keys){
       domElement.addEventListener(type, domElements[type]!);
     }
+
+    start();
   }
   void setRenderMode(RenderMode mode){
     switch(mode) {
@@ -412,7 +418,7 @@ class Demo{
 
   void addVisual(cannon.Body body, {three.Mesh? mesh, three.Material? material}){
     MeshLambertMaterial particleMaterial = MeshLambertMaterial({ 'color': 0xff0000 });
-    MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': false });
+    MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': true });
     // if it's a particle paint it red, if it's a trigger paint it as green, otherwise just gray
     final isParticle = body.shapes.every((s) => s is cannon.Particle);
     final mat = material ?? (isParticle ? particleMaterial : body.isTrigger ? triggerMaterial : _currentMaterial);
@@ -457,6 +463,7 @@ class Demo{
 
   void start(){
     resetCallTime = true;
+    buildScene(scenes.keys.first);
   }
 
   void _updateCannonPhysics() {
@@ -755,36 +762,141 @@ class Demo{
       vector.z = 1e-6;
     }
   }
+  void changeScene(String n){
+    settings.paused = false;
+    buildScene(n);
+  }
+  void buildScene(n){
+    // Remove current bodies
+    bodies.forEach((body){
+      world.removeBody(body);
+    });
+
+    // Remove all visuals
+    removeAllVisuals();
+
+    // Remove all constraints
+    while (world.constraints.isNotEmpty) {
+      world.removeConstraint(world.constraints[0]);
+    }
+
+    // Run the user defined "build scene" function
+    scenes[n].call();
+
+    // Read the newly set data to the gui
+    settings.iterations = world.solver.iterations;
+    settings.gx = world.gravity.x + 0.0;
+    settings.gy = world.gravity.y + 0.0;
+    settings.gz = world.gravity.z + 0.0;
+    settings.quatNormalizeSkip = world.quatNormalizeSkip;
+    settings.quatNormalizeFast = world.quatNormalizeFast;
+
+    restartGeometryCaches();
+  }
+  void restartCurrentScene() {
+    bodies.forEach((body){
+      body.position.copy(body.initPosition);
+      body.velocity.copy(body.initVelocity);
+      if(body.initAngularVelocity != null) {
+        body.angularVelocity.copy(body.initAngularVelocity);
+        body.quaternion.copy(body.initQuaternion);
+      }
+    });
+  }
+
+  List<Widget> selectScene(BuildContext context){
+    List<Widget> widgets = [];
+
+    for(String key in scenes.keys){
+      widgets.add(
+        InkWell(
+          onTap: (){
+            changeScene(key);
+          },
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(5,5,5,0),
+            height: 20,
+            width: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              border: Border.all(color: Theme.of(context).dividerColor)
+            ),
+            child: Text(
+              key,
+              style: Theme.of(context).primaryTextTheme.bodySmall,
+            ),
+          ),
+        )
+      );
+    }
+
+    return widgets;
+  }
+
   Widget threeDart() {
     return Builder(builder: (BuildContext context) {
       initSize(context);
-      return Container(
-        width: screenSize!.width,
-        height: screenSize!.height,
-        color: Theme.of(context).canvasColor,
-        child: DomLikeListenable(
-          key: globalKey,
-          builder: (BuildContext context) {
-            return Container(
-              width: width,
-              height: height,
-              color: Theme.of(context).canvasColor,
-              child: Builder(builder: (BuildContext context) {
-                if (kIsWeb) {
-                  return three3dRender.isInitialized
-                      ? HtmlElementView(
-                          viewType:
-                              three3dRender.textureId!.toString())
-                      : Container();
-                } else {
-                  return three3dRender.isInitialized
-                      ? Texture(textureId: three3dRender.textureId!)
-                      : Container();
-                }
-              })
-            );
-          }
-        ),
+      return Stack(
+        children:[
+          Container(
+            width: screenSize!.width,
+            height: screenSize!.height,
+            color: Theme.of(context).canvasColor,
+            child: DomLikeListenable(
+              key: globalKey,
+              builder: (BuildContext context) {
+                return Container(
+                  width: width,
+                  height: height,
+                  color: Theme.of(context).canvasColor,
+                  child: Builder(builder: (BuildContext context) {
+                    if (kIsWeb) {
+                      return three3dRender.isInitialized? HtmlElementView(viewType:three3dRender.textureId!.toString()):Container();
+                    } 
+                    else {
+                      return three3dRender.isInitialized?Texture(textureId: three3dRender.textureId!):Container();
+                    }
+                  })
+                );
+              }
+            ),
+          ),
+          if(scenes.isNotEmpty)Positioned(
+            top: 20,
+            right: 20,
+            child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(5)
+                ),
+                child: ListView(
+                  children: selectScene(context),
+                ),
+              )
+          ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: InkWell(
+              onTap: (){
+                restartCurrentScene();
+              },
+              child: Container(
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).secondaryHeaderColor,
+                  borderRadius: BorderRadius.circular(45/2)
+                ),
+                child: const Icon(
+                  Icons.refresh
+                ),
+              )
+            )
+          )
+        ]
       );
     });
   }

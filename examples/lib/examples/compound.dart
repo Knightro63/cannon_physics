@@ -39,6 +39,7 @@ class _CompoundState extends State<Compound> {
     super.dispose();
   }
   void sceneBox(){
+    setScene();
     final world = demo.world;
 
     // Create the compound shape
@@ -70,6 +71,7 @@ class _CompoundState extends State<Compound> {
 
   // Here we create a compound made out of spheres
   void sceneSpheres(){
+    setScene();
     final world = demo.world;
 
     const mass = 10.0;
@@ -88,17 +90,18 @@ class _CompoundState extends State<Compound> {
     demo.addVisual(body);
   }
 
-  void setupWorld(){
+  void setScene(){
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
+  }
 
-    sceneBox();
-    //sceneSpheres();
-    demo.start();
+  void setupWorld(){
+    demo.addScene('Box',sceneBox);
+    demo.addScene('Sphere',sceneSpheres);
   }
   @override
   Widget build(BuildContext context) {

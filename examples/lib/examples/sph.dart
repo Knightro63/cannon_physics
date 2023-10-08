@@ -127,7 +127,6 @@ class _SPHState extends State<SPH> {
 
   void setupWorld(){
     setScene();
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

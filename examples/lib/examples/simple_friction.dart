@@ -112,8 +112,8 @@ class _SimpleFrictionState extends State<SimpleFriction> {
   }
 
   void setupWorld(){
-    friction();
-    demo.start();
+    demo.addScene('Friction',friction);
+    demo.addScene('Shape',perShape);
   }
   @override
   Widget build(BuildContext context) {

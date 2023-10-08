@@ -103,8 +103,6 @@ class _BunnyState extends State<Bunny> {
 
   void setupWorld(){
     setScene();
-    // Static ground plane
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {

@@ -110,7 +110,6 @@ class _FrictionGravityState extends State<FrictionGravity> {
     world.frictionGravity = cannon.Vec3(3, -60, 0);
 
     setScene(world);
-    demo.start();
   }
   @override
   Widget build(BuildContext context) {
