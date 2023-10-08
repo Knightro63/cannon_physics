@@ -186,6 +186,53 @@ class ConversionUtils{
     return group;
   }
 
+  static cannon.Trimesh fromGraphNode(Object3D group){
+    List<double> vertices = [];
+    List<int> indices = [];
+
+    group.updateWorldMatrix(true, true);
+    group.traverse((object){
+
+      if(object.type == 'Mesh'){
+        Mesh obj = object;
+        late BufferGeometry geometry;
+        bool isTemp = false;
+
+        if(obj.geometry!.index != null){
+          isTemp = true;
+          geometry = obj.geometry!.clone().toNonIndexed();
+        } 
+        else {
+          geometry = obj.geometry!;
+        }
+
+			  BufferAttribute positionAttribute = geometry.getAttribute('position');
+
+				for(int i = 0; i < positionAttribute.count; i += 3) {
+					Vector3 v1 = Vector3().fromBufferAttribute(positionAttribute, i);
+					Vector3 v2 = Vector3().fromBufferAttribute(positionAttribute, i + 1);
+					Vector3 v3 = Vector3().fromBufferAttribute(positionAttribute, i + 2);
+
+					v1.applyMatrix4(obj.matrixWorld);
+					v2.applyMatrix4(obj.matrixWorld);
+					v3.applyMatrix4(obj.matrixWorld);
+
+          vertices.addAll([v1.x,v1.y,v1.z]);
+          vertices.addAll([v2.x,v2.y,v2.z]);
+          vertices.addAll([v3.x,v3.y,v3.z]);
+          
+          indices.addAll([i,i+1,i+2]);
+				}
+
+        if(isTemp){
+          geometry.dispose();
+        }
+      }
+    });
+
+    return cannon.Trimesh(vertices, indices);
+  }
+
   static cannon.Shape geometryToShape(BufferGeometry geometry) {
     switch (geometry.type) {
       case 'BoxGeometry':

@@ -16,6 +16,7 @@ import 'package:cannon_physics_example/examples/fixed_rotation.dart';
 import 'package:cannon_physics_example/examples/fps.dart';
 import 'package:cannon_physics_example/examples/friction.dart';
 import 'package:cannon_physics_example/examples/friction_gravity.dart';
+import 'package:cannon_physics_example/examples/games_fps.dart';
 import 'package:cannon_physics_example/examples/heightfield.dart';
 import 'package:cannon_physics_example/examples/hinge.dart';
 import 'package:cannon_physics_example/examples/impulses.dart';
@@ -140,6 +141,9 @@ class _MyAppState extends State<MyApp> {
               },
               '/friction':(BuildContext context) {
                 return const Friction();
+              },
+              '/games_fps':(BuildContext context) {
+                return const TestGame();
               },
               '/heightfield':(BuildContext context) {
                 return const Heightfield();
@@ -276,6 +280,7 @@ class _ExamplesPageState extends State<Examples> {
     'fixed_rotation',
     'friction_gravity',
     'friction',
+    'games_fps',
     'heightfield',
     'hinge',
     'impulses',

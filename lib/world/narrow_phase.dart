@@ -1913,9 +1913,9 @@ class Narrowphase {
     final vb = _sphereTrimeshVb;
     final vc = _sphereTrimeshVc;
     final normal = _sphereTrimeshNormal;
-    for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
-      sj.getTriangleVertices(triangles[i], va, vb, vc);
-      sj.getFaceNormal(triangles[i], normal);
+    for (int i = 0; i < sj.indices.length/3; i++) {//N = triangles.length; i != N
+      sj.getTriangleVertices(i, va, vb, vc);
+      sj.getFaceNormal(i, normal);
       
       local.vsub(va, tmp);
       double dist = tmp.dot(normal);
