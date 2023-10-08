@@ -16,7 +16,7 @@ export './constraints/lock_constraint.dart';
 export './constraints/point_to_point_constraint.dart';
 export './constraints/hinge_constraint.dart';
 export './equations/contact_equation.dart';
-export './equations/equation.dart';
+export 'equations/equation_class.dart';
 export './equations/friction_equation.dart';
 export './equations/rotational_equation.dart';
 export './equations/rotational_motor_equation.dart';

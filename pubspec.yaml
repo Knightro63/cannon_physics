@@ -1,15 +1,16 @@
 name: cannon_physics
 description: A Flutter plugin designed for three_dart and three_dart_jsm to allow users to add a simple physics engine to their 3D project.
-version: 0.0.2
+version: 0.0.1
 homepage: https://github.com/Knightro63/cannon_physics
 
 environment:
-  sdk: '>=2.18.1 <3.0.0'
+  sdk: '>=2.18.1 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  logger: ^2.0.2+1
 
 dev_dependencies:
   flutter_test:

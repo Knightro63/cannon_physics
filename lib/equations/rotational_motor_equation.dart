@@ -1,4 +1,4 @@
-import '../equations/equation.dart';
+import 'equation_class.dart';
 import '../math/vec3.dart';
 import '../objects/body.dart';
 

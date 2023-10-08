@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:cannon_physics/utils/logger.dart';
+
 import '../shapes/shape.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
@@ -151,12 +153,12 @@ class ConvexPolyhedron extends Shape {
       faceNormals[i] = n;
       final Vec3 vertex = vertices[faces[i][0]];
       if (n.dot(vertex) < 0) {
-        print(
+        logger?.warning(
           '.faceNormals[$i] = Vec3(${n.toString()}) looks like it points into the shape? The vertices follow. Make sure they are ordered CCW around the normal, using the right hand rule.'
         );
         int len =faces[i].length;
         for (int j = 0; j < len; j++) {
-          print('.vertices[${faces[i][j]}] = Vec3(${vertices[faces[i][j]].toString()})');
+          logger?.verbose('.vertices[${faces[i][j]}] = Vec3(${vertices[faces[i][j]].toString()})');
         }
       }
     }
@@ -523,7 +525,7 @@ class ConvexPolyhedron extends Shape {
       double depth = planeNormalWS.dot(pVtxIn[i]) + planeEqWS; // ???
 
       if (depth <= minDist) {
-        print('clamped: depth=$depth to minDist=$minDist');
+        logger?.verbose('clamped: depth=$depth to minDist=$minDist');
         depth = minDist;
       }
 

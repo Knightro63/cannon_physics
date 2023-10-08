@@ -49,7 +49,7 @@ class Heightfield extends Shape {
   ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
   Vec3 pillarOffset = Vec3();
 
-  Map<String,HeightfieldPillar> _cachedPillars = {};
+  final Map<String,HeightfieldPillar> _cachedPillars = {};
 
   late Size size;
   late Size segments;

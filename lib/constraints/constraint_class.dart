@@ -1,5 +1,5 @@
 import '../objects/body.dart';
-import '../equations/equation.dart';
+import '../equations/equation_class.dart';
 
 /// Constraint base class
 class Constraint {

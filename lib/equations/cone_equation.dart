@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import '../math/vec3.dart';
-import '../equations/equation.dart';
+import 'equation_class.dart';
 import '../objects/body.dart';
 
 /// Cone equation. Works to keep the given body world vectors aligned, or tilted within a given angle from each other.

@@ -61,9 +61,6 @@ class EventTarget {
   /// Emit an event.
   /// @return The self object, for chainability.
   EventTarget dispatchEvent(Event event){
-    if(event.type.contains('end')){
-      print(event.type);
-    }
     if (_listeners == null) {
       return this;
     }

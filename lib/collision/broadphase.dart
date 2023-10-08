@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:cannon_physics/utils/logger.dart';
+
 import  '../objects/body.dart';
 import  '../math/vec3.dart';
 import  '../collision/aabb.dart';
@@ -147,7 +149,7 @@ class Broadphase {
 
   /// Returns all the bodies within the AABB.
   List<Body> aabbQuery(World world,AABB aabb,List<Body> result) {
-    print('.aabbQuery is not implemented in this Broadphase subclass.');
+    logger?.info('.aabbQuery is not implemented in this Broadphase subclass.');
     return [];
   }
 }

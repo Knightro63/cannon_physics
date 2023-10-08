@@ -34,15 +34,17 @@ import 'package:cannon_physics_example/examples/spring.dart';
 import 'package:cannon_physics_example/examples/tear.dart';
 import 'package:cannon_physics_example/examples/trigger.dart';
 import 'package:cannon_physics_example/examples/trimesh.dart';
-import 'package:cannon_physics_example/examples/worker.dart'; //Fix
+import 'package:cannon_physics_example/examples/worker.dart';
 import 'package:css/css.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Tween;
 import 'package:cannon_physics_example/examples/cloth.dart';
 import 'package:cannon_physics_example/examples/tween.dart';
 
+import 'src/plugins/plugin.dart';
 void main() {
-  runApp(MyApp());
+  setPathUrlStrategy();
+  runApp(const MyApp());
 }
 class MyApp extends StatefulWidget{
   const MyApp({
@@ -326,11 +328,16 @@ class _ExamplesPageState extends State<Examples> {
             ),
             child: Column(
               children:[
-                Image.asset(
-                  'assets/images/${ex[i]}.png',
-                  fit: BoxFit.fitHeight,
+                Container(
                   width: response,
                   height: response-65,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: ExactAssetImage('assets/images/${ex[i]}.png'),
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: const BorderRadius.only(topRight:Radius.circular(10),topLeft:Radius.circular(10)),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text(

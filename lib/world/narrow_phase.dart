@@ -1721,8 +1721,9 @@ class Narrowphase {
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
-      } else {
-        print('Point found inside convex, but did not find penetrating face!');
+      } 
+      else {
+        //print('Point found inside convex, but did not find penetrating face!');
       }
     }
     return false;
@@ -2241,9 +2242,9 @@ class Narrowphase {
     final vb = Vec3();
     final vc = Vec3();
 
-    final na = Vec3();
-    final nb = Vec3();
-    final nc = Vec3();
+    // final na = Vec3();
+    // final nb = Vec3();
+    // final nc = Vec3();
 
     final triangleNormal = Vec3();
     

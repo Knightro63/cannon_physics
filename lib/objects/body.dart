@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:cannon_physics/utils/logger.dart';
+
 import '../utils/event_target.dart';
 import '../math/vec3.dart';
 import '../math/mat3.dart';
@@ -371,7 +373,7 @@ class Body extends EventTarget {
     final index = shapes.indexOf(shape);
 
     if (index == -1) {
-      print('Shape does not belong to the body');
+      logger?.warning('Shape does not belong to the body');
       return this;
     }
 

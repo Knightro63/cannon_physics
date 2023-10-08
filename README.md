@@ -65,7 +65,7 @@ This project is a basic physics engine for three_dart. This package includes Rig
 
 ## Example
 
-Find the example app [here](https://github.com/Knightro63/cannon_physics/tree/main/example).
+Find the example app [here](https://github.com/Knightro63/cannon_physics/tree/main/example) and the current web version of the code [here](https://knightro63.github.io/cannon_physics/).
 
 ## Contributing
 

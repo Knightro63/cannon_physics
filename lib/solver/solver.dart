@@ -1,4 +1,4 @@
-import '../equations/equation.dart';
+import '../equations/equation_class.dart';
 import '../world/world_class.dart';
 
 /// Constraint equation solver base class.

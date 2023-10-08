@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:cannon_physics/utils/logger.dart';
+
 import '../utils/event_target.dart';
 import '../utils/utils.dart';
 import '../solver/gs_solver.dart';
@@ -127,6 +129,8 @@ class World extends EventTarget {
   Map<int,Body> idToBodyMap = {};
   double? lastCallTime;
 
+  bool verbose;
+
   World({
     Vec3? gravity,
     Vec3? frictionGravity,
@@ -134,8 +138,10 @@ class World extends EventTarget {
     Broadphase? broadphase,
     Solver? solver,
     this.quatNormalizeFast = false,
-    this.quatNormalizeSkip = 0
+    this.quatNormalizeSkip = 0,
+    this.verbose = false
   }):super(){
+    logger = NRFLogger(verbose);
     if (gravity != null) {
       this.gravity.copy(gravity);
     }
