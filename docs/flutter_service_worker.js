@@ -6,7 +6,7 @@ const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
 "cannon_physics/version.json": "0361e5646ee280159bcf100354fcba83",
 "cannon_physics/index.html": "35892ec43c50c71ccbc2699f961009e6",
-"/": "35892ec43c50c71ccbc2699f961009e6",
+"cannon_physics/": "35892ec43c50c71ccbc2699f961009e6",
 "cannon_physics/main.dart.js": "230d8e96bf9395d3a0d2ef3371bca855",
 "cannon_physics/flutter.js": "6fef97aeca90b426343ba6c5c9dc5d4a",
 "cannon_physics/favicon.png": "5dcef449791fa27946b3d35ad8803796",
@@ -175,7 +175,7 @@ self.addEventListener("fetch", (event) => {
     key = key.split('?v=')[0];
   }
   if (event.request.url == origin || event.request.url.startsWith(origin + '/#') || key == '') {
-    key = '/';
+    key = 'cannon_physics/';
   }
   // If the URL is not the RESOURCE list then return to signal that the
   // browser should take over.
