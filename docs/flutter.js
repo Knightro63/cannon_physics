@@ -132,7 +132,7 @@ _flutter.loader = null;
       }
       const {
         serviceWorkerVersion,
-        serviceWorkerUrl = `cannon_physics/flutter_service_worker.js?v=${serviceWorkerVersion}`,
+        serviceWorkerUrl = `flutter_service_worker.js?v=${serviceWorkerVersion}`,
         timeoutMillis = 4000,
       } = settings;
 
@@ -250,7 +250,7 @@ _flutter.loader = null;
      * Returns undefined when an `onEntrypointLoaded` callback is supplied in `options`.
      */
     async loadEntrypoint(options) {
-      const { entrypointUrl = `cannon_physics/main.dart.js`, onEntrypointLoaded } =
+      const { entrypointUrl = `main.dart.js`, onEntrypointLoaded } =
         options || {};
 
       return this._loadEntrypoint(entrypointUrl, onEntrypointLoaded);
