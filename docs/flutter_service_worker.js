@@ -132,7 +132,7 @@ self.addEventListener("activate", function(event) {
       for (var request of await contentCache.keys()) {
         var key = request.url.substring(origin.length + 1);
         if (key == "") {
-          key = "/";
+          key = "cannon_physics/";
         }
         // If a resource from the old manifest is not in the new cache, or if
         // the MD5 sum has changed, delete it. Otherwise the resource is left
@@ -183,7 +183,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   // If the URL is the index.html, perform an online-first request.
-  if (key == '/') {
+  if (key == 'cannon_physics/') {
     return onlineFirst(event);
   }
   event.respondWith(caches.open(CACHE_NAME)
@@ -222,7 +222,7 @@ async function downloadOffline() {
   for (var request of await contentCache.keys()) {
     var key = request.url.substring(origin.length + 1);
     if (key == "") {
-      key = "/";
+      key = "cannon_physics/";
     }
     currentContent[key] = true;
   }

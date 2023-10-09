@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
     return SafeArea(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'Cannon Physics',
         theme: CSS.darkTheme,
         home: Scaffold(
           appBar: (kIsWeb||!Platform.isAndroid) && onPage != ''? PreferredSize(
@@ -84,7 +84,7 @@ class _MyAppState extends State<MyApp> {
           ):null,
           body: MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
+            title: 'Cannon Physics',
             theme: CSS.darkTheme,
             navigatorKey: _navKey,
             routes: {

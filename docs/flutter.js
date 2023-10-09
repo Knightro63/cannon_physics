@@ -14,10 +14,12 @@ _flutter.loader = null;
 
   function getBaseURI() {
     const base = document.querySelector("base");
+    console.log(base);
     return (base && base.getAttribute("href")) || "";
   }
 
   function ensureTrailingSlash(uri) {
+    console.log(uri);
     if (uri == "") {
       return uri;
     }
