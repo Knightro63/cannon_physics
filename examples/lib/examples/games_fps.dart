@@ -26,12 +26,10 @@ class SphereData{
   SphereData({
     required this.mesh,
     required this.body,
-    //required this.velocity
   });
 
   Mesh mesh;
   cannon.Body body;
-  //Vector3 velocity;
 }
 
 class TestGame extends StatefulWidget {
@@ -42,7 +40,6 @@ class TestGame extends StatefulWidget {
 }
 
 class _TestGamePageState extends State<TestGame> {
-  FocusNode node = FocusNode();
   late FirstPersonControls fpsControl;
   // gl values
   //late Object3D object;
@@ -71,6 +68,7 @@ class _TestGamePageState extends State<TestGame> {
   int sphereIdx = 0;
 
   Capsule playerCollider = Capsule(Vector3( 0, 0.35, 0 ), Vector3( 0, 1, 0 ), 0.35);
+  late cannon.Body playerBody;
 
   bool playerOnFloor = false;
   int mouseTime = 0;
@@ -122,22 +120,20 @@ class _TestGamePageState extends State<TestGame> {
     cannon.GSSolver solver = cannon.GSSolver();
 
     lastCallTime = world.performance.now().toDouble();
-    world.defaultContactMaterial.contactEquationStiffness = 1e9;
+    world.defaultContactMaterial.contactEquationStiffness = 1e7;
     world.defaultContactMaterial.contactEquationRelaxation = 4;
 
-    solver.iterations = 7;
+    solver.iterations = 1;
     solver.tolerance = 0.1;
-    world.solver = cannon.SplitSolver(solver);
-
     
-    if(split){
+    if(!split){
       world.solver = cannon.SplitSolver(solver);
     }
     else{
-        world.solver = solver;
+      world.solver = solver;
     }
 
-    world.gravity.set(0, -20, 0);
+    world.gravity.set(0, -gravity, 0);
     world.broadphase = cannon.NaiveBroadphase();
   }
   void initSize(BuildContext context) {
@@ -165,7 +161,7 @@ class _TestGamePageState extends State<TestGame> {
     }
     double timeSinceLastCall = now - lastCallTime!;
 
-    world.step(timeStep, timeSinceLastCall, 20);
+    world.step(timeStep, timeSinceLastCall, stepsPerFrame);
     lastCallTime = now;
   }
   void animate() {
@@ -232,13 +228,13 @@ class _TestGamePageState extends State<TestGame> {
 
     // Create a slippery material (friction coefficient = 0.0)
     cannon.Material physicsMaterial = cannon.Material(name:'slipperyMaterial');
-    cannon.ContactMaterial physics_physics = cannon.ContactMaterial(
+    cannon.ContactMaterial physicsPhysics = cannon.ContactMaterial(
       physicsMaterial, 
       physicsMaterial,
       friction: 0.0,
       restitution: 0.3,
     );
-    world.addContactMaterial(physics_physics);
+    world.addContactMaterial(physicsPhysics);
 
     // Create the user collision sphere
     const double mass = 5;
@@ -249,6 +245,16 @@ class _TestGamePageState extends State<TestGame> {
     sphereBody.position.set(0, 5, 0);
     sphereBody.linearDamping = 0.9;
 
+    //Create Player
+    late cannon.Cylinder playerShape = cannon.Cylinder(
+      radiusTop:radius,
+      radiusBottom: radius
+    );
+    playerBody = cannon.Body(mass: mass);
+    playerBody.addShape(playerShape);
+    world.addBody(playerBody);
+
+    //add fps controller
     fpsControl = FirstPersonControls(camera, _globalKey);
     fpsControl.lookSpeed = 1/100;
     fpsControl.movementSpeed = 15.0;
@@ -258,6 +264,9 @@ class _TestGamePageState extends State<TestGame> {
       if(event.keyId == 32){
         playerVelocity.y = 15;
       }
+    }, false );
+    fpsControl.domElement.addEventListener( 'pointerdown', (event){
+      mouseTime = DateTime.now().millisecondsSinceEpoch;
     }, false );
     fpsControl.domElement.addEventListener( 'pointerup', (event){
       throwBall();
@@ -305,7 +314,6 @@ class _TestGamePageState extends State<TestGame> {
     initCannonPhysics();
     await initPage();
     initRenderer();
-    
     animate();
   }
   Future<void> initPlatformState() async {
@@ -334,7 +342,7 @@ class _TestGamePageState extends State<TestGame> {
   }
 
   void throwBall() {
-    double shootVelocity = 15 + 15 * ( 1 - Math.exp((mouseTime-DateTime.now().millisecondsSinceEpoch) * 0.001));
+    double shootVelocity = 15 + ( 1 - Math.exp((mouseTime-DateTime.now().millisecondsSinceEpoch) * 0.1));
     cannon.Sphere ballShape = cannon.Sphere(0.2);
     three.SphereGeometry ballGeometry = three.SphereGeometry(ballShape.radius, 32, 32);
 
@@ -352,8 +360,6 @@ class _TestGamePageState extends State<TestGame> {
     ballMesh.castShadow = true;
     ballMesh.receiveShadow = true;
 
-    world.addBody(ballBody);
-    scene.add(ballMesh);
     spheres.add(SphereData(
       mesh: ballMesh,
       body: ballBody,
@@ -372,6 +378,23 @@ class _TestGamePageState extends State<TestGame> {
     double z = sphereBody.position.z + shootDirection.z * (radius * 1.02 + ballShape.radius);
     ballBody.position.set(x, y, z);
     ballMesh.position.copy(ballBody.position.toVector3());
+
+    world.addBody(ballBody);
+    scene.add(ballMesh);
+  }
+  void updatePlayer(){
+    final body = playerBody;
+    // Interpolated or not?
+    cannon.Vec3 position = body.interpolatedPosition;
+    //cannon.Quaternion quaternion = body.interpolatedQuaternion;
+
+    if(paused) {
+      position = body.position;
+      //quaternion = body.quaternion;
+    }
+
+    //camera.position.copy(position.toVector3());
+    camera.position.copy(playerCollider.end);
   }
   void updateVisuals(){
     for (int i = 0; i < spheres.length; i++) {
@@ -395,11 +418,13 @@ class _TestGamePageState extends State<TestGame> {
 
         visual.setMatrixAt(body.index, dummy.matrix);
         visual.instanceMatrix!.needsUpdate = true;
-      } else {
+      } 
+      else {
         visual.position.copy(position.toVector3());
         visual.quaternion.copy(quaternion.toQuaternion());
       }
     }
+    updatePlayer();
   }
 
   void teleportPlayerIfOob(){
@@ -422,7 +447,6 @@ class _TestGamePageState extends State<TestGame> {
         child: DomLikeListenable(
           key: _globalKey,
           builder: (BuildContext context) {
-            FocusScope.of(context).requestFocus(node);
             return Container(
               width: width,
               height: height,

@@ -118,7 +118,7 @@ class _TriMeshState extends State<TriMesh> {
     // Torus
     final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
     //final torusGeometry = IcosahedronGeometry(2,2);
-    final torusMaterial = MeshStandardMaterial({'color': 0x2b4c7f });
+    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 

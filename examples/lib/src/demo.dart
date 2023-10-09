@@ -345,7 +345,7 @@ class Demo{
     scene.fog = three.Fog(0x222222, 1000, 2000);
 
     camera = PerspectiveCamera(24, width/height, 5, 2000);
-    camera.position.set(0,20,30);
+    camera.position.set(0,20,40);
     camera.lookAt(three.Vector3(0, 0, 0));
 
     controls = OrbitControls(camera, globalKey);
