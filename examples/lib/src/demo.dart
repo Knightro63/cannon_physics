@@ -418,7 +418,7 @@ class Demo{
 
   void addVisual(cannon.Body body, {three.Mesh? mesh, three.Material? material}){
     MeshLambertMaterial particleMaterial = MeshLambertMaterial({ 'color': 0xff0000 });
-    MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': true });
+    MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': true, 'wireframeLinewidth':1.0 });
     // if it's a particle paint it red, if it's a trigger paint it as green, otherwise just gray
     final isParticle = body.shapes.every((s) => s is cannon.Particle);
     final mat = material ?? (isParticle ? particleMaterial : body.isTrigger ? triggerMaterial : _currentMaterial);
