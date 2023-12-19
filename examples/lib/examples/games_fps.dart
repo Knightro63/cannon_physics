@@ -96,7 +96,7 @@ class _TestGamePageState extends State<TestGame> {
   late cannon.World world;
   List<SphereData> spheres = [];
   double? lastCallTime;
-  bool split = false;
+  bool split = true;
   bool paused = false;
 
   @override
@@ -115,7 +115,8 @@ class _TestGamePageState extends State<TestGame> {
   void initCannonPhysics(){
     world = cannon.World();
     world.quatNormalizeSkip = 0;
-    world.quatNormalizeFast = false;
+    world.quatNormalizeFast = true;
+    world.allowSleep = true;
 
     cannon.GSSolver solver = cannon.GSSolver();
 
@@ -171,7 +172,8 @@ class _TestGamePageState extends State<TestGame> {
     render();
     Future.delayed(const Duration(milliseconds: 1000~/60), () {
       if(!paused){
-        updatePhysics();
+        world.fixedStep();
+        //updatePhysics();
         fpsControl.update(lastCallTime!);
         updateVisuals();
         teleportPlayerIfOob();
@@ -214,6 +216,31 @@ class _TestGamePageState extends State<TestGame> {
       final triBody = cannon.Body();
       triBody.addShape(triShape);
       world.addBody(triBody);
+
+    // final va = cannon.Vec3();
+    // final vb = cannon.Vec3();
+    // final vc = cannon.Vec3();
+    // final normal = cannon.Vec3();
+
+    // for (int i = 0; i < triShape.indices.length/3; i++) {//N = triangles.length; i != N
+    //   triShape.getTriangleVertices( triShape.indices[i], va, vb, vc);
+
+    //   MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': false, 'wireframeLinewidth':1.0 });
+      
+    //     final geometry = three.BufferGeometry();
+        
+    //     geometry.setIndex([0,1,2]);
+    //     geometry.setAttribute(
+    //         'position', Float32BufferAttribute(Float32Array.from([
+    //           va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z
+    //         ]), 3));
+
+    //     geometry.computeBoundingSphere();
+    //     geometry.computeFaceNormals();
+
+    //   scene.add(three.Mesh(geometry, triggerMaterial));
+    // }
+      
       scene.add(object);
 
       object.traverse((child){

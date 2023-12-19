@@ -11,6 +11,11 @@ class AABB {
   /// The upper bound of the bounding box
   Vec3 upperBound = Vec3();
 
+  /// Axis aligned bounding box class.
+  /// 
+  /// [upperBound] The max location of the boundry
+  /// 
+  /// [lowerBound] The min location of the boundry
   AABB({
     Vec3? upperBound,
     Vec3? lowerBound 
@@ -99,8 +104,8 @@ class AABB {
   }
 
   /// Copy bounds from an AABB to this AABB
-  /// @param aabb Source to copy from
-  /// @return The this object, for chainability
+  /// [aabb] Source to copy from
+  /// return this object, for chainability
   AABB copy(AABB aabb) {
     lowerBound.copy(aabb.lowerBound);
     upperBound.copy(aabb.upperBound);

@@ -87,7 +87,6 @@ class _BunnyState extends State<Bunny> {
 
       // Get offset
       final offset = cannon.Vec3(rawOffset[0], rawOffset[1], rawOffset[2]);
-
       // Construct polyhedron
       final bunnyPart = cannon.ConvexPolyhedron(vertices:vertices, faces:faces);
 

@@ -51,7 +51,7 @@ class OctreeNode {
         subdivided = true;
       }
       // add to whichever node will accept it
-      for (int i = 0; i != 8; i++) {
+      for (int i = 0; i < 8; i++) {
         if (children[i].insert(aabb, elementData, level + 1)) {
           return false;
         }
@@ -92,7 +92,7 @@ class OctreeNode {
 
     final root = this.root ?? this;
 
-    for (int i = 0; i != 8; i++) {
+    for (int i = 0; i < 8; i++) {
       final child = children[i];
 
       // Set current node as root

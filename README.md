@@ -4,6 +4,8 @@
 [![analysis](https://github.com/Knightro63/cannon_physics/actions/workflows/flutter.yml/badge.svg)](https://github.com/Knightro63/cannon_physics/actions/)
 [![License: BSD](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/BSD)
 
+A Flutter plugin designed for three_dart and three_dart_jsm to allow users to add a simple physics engine to their 3D  project.
+
 This is a dart conversion of cannon.js and cannon-es, originally created by Stefan Hedman [@schteppe](https://github.com/schteppe) and has a maintaind fork by Poimandres [@pmndrs](https://github.com/pmndrs).
 
 ### Getting started

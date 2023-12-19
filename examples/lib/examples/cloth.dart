@@ -62,8 +62,8 @@ class _ClothPageState extends State<Cloth> {
   late cannon.Body sphereBody;
   double clothMass = 1; // 1 kg in total
   double clothSize = 1; // 1 meter
-  int Nx = 12; // number of horizontal particles in the cloth
-  int Ny = 12; // number of vertical particles in the cloth
+  int cols = 12; // number of horizontal particles in the cloth
+  int rows = 12; // number of vertical particles in the cloth
   late double mass;
   late double restDistance;
   double sphereSize = 0.1;
@@ -73,8 +73,8 @@ class _ClothPageState extends State<Cloth> {
 
   @override
   void initState() {
-    mass = (clothMass / Nx) * Ny;
-    restDistance = clothSize / Nx;
+    mass = (clothMass / cols) * rows;
+    restDistance = clothSize / cols;
     super.initState();
   }
   @override
@@ -140,7 +140,7 @@ class _ClothPageState extends State<Cloth> {
       'side': three.DoubleSide,
     });
     // Cloth geometry
-    clothGeometry = three.ParametricGeometry(clothFunction, Nx, Ny);
+    clothGeometry = three.ParametricGeometry(clothFunction, cols, rows);
 
     // Cloth mesh
     three.Mesh clothMesh = three.Mesh(clothGeometry, clothMaterial);
@@ -203,20 +203,20 @@ class _ClothPageState extends State<Cloth> {
     world.addBody(sphereBody);
 
     // Create cannon particles
-    for (int i = 0; i < Nx + 1; i++) {
+    for (int i = 0; i < cols + 1; i++) {
       particles.add([]);
-      for (int j = 0; j < Ny + 1; j++) {
-        //int index = j * (Nx + 1) + i;
+      for (int j = 0; j < rows + 1; j++) {
+        //int index = j * (cols + 1) + i;
 
         late final three.Vector3 point = three.Vector3();
-        clothFunction(i / (Nx + 1), j / (Ny + 1), point);
+        clothFunction(i / (cols + 1), j / (rows + 1), point);
         cannon.Body particle = cannon.Body(
-          mass: j == Ny ? 0 : mass,
+          mass: j == rows ? 0 : mass,
         );
         particle.addShape(cannon.Particle());
         particle.linearDamping = 0.5;
-        particle.position.set(point.x, point.y - Ny * 0.9 * restDistance, point.z);
-        particle.velocity.set(0, 0, -0.1 * (Ny - j));
+        particle.position.set(point.x, point.y - rows * 0.9 * restDistance, point.z);
+        particle.velocity.set(0, 0, -0.1 * (rows - j));
 
         particles[i].add(particle);
         world.addBody(particle);
@@ -227,18 +227,18 @@ class _ClothPageState extends State<Cloth> {
     void connect(int i1,int j1,int i2,int j2) {
       world.addConstraint(cannon.DistanceConstraint(particles[i1][j1], particles[i2][j2], restDistance));
     }
-    for (int i = 0; i < Nx + 1; i++) {
-      for (int j = 0; j < Ny + 1; j++) {
-        if (i < Nx) connect(i, j, i + 1, j);
-        if (j < Ny) connect(i, j, i, j + 1);
+    for (int i = 0; i < cols + 1; i++) {
+      for (int j = 0; j < rows + 1; j++) {
+        if (i < cols) connect(i, j, i + 1, j);
+        if (j < rows) connect(i, j, i, j + 1);
       }
     }
   }
   // Parametric function
   // https://threejs.org/docs/index.html#api/en/geometries/ParametricGeometry
   three.Vector3 clothFunction(double u, double v, three.Vector3 target) {
-    double x = (u - 0.5) * restDistance * Nx;
-    double y = (v + 0.5) * restDistance * Ny;
+    double x = (u - 0.5) * restDistance * cols;
+    double y = (v + 0.5) * restDistance * rows;
     double z = 0;
 
     target.set(x, y, z);
@@ -248,9 +248,9 @@ class _ClothPageState extends State<Cloth> {
 
   void updateCannonPhysics() {
     // Make the three.js cloth follow the cannon.js particles
-    for (int i = 0; i < Nx + 1; i++) {
-      for (int j = 0; j < Ny + 1; j++) {
-        int index = j * (Nx + 1) + i;
+    for (int i = 0; i < cols + 1; i++) {
+      for (int j = 0; j < rows + 1; j++) {
+        int index = j * (cols + 1) + i;
         cannon.Vec3 v = particles[i][j].position;
         clothGeometry.attributes["position"].setXYZ(index, v.x, v.y, v.z);
       }

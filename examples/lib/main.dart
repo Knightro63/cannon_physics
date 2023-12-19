@@ -59,9 +59,13 @@ class MyApp extends StatefulWidget{
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
   String onPage = '';
+  double pageLocation = 0;
 
-  void callback(String page){
+  void callback(String page, [double? location]){
     onPage = page;
+    if(location != null){
+      pageLocation = location;
+    }
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) { 
       _navKey.currentState!.popAndPushNamed('/$page');
       setState(() {});
@@ -89,7 +93,10 @@ class _MyAppState extends State<MyApp> {
             navigatorKey: _navKey,
             routes: {
               '/':(BuildContext context) {
-                return Examples(callback: callback);
+                return Examples(
+                  callback: callback,
+                  prevLocation: pageLocation,
+                );
               },
               '/cloth':(BuildContext context) {
                 return const Cloth();
@@ -213,14 +220,15 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+@immutable
 class AppBar extends StatelessWidget{
-  AppBar({
+  const AppBar({
     Key? key,
     required this.page,
     required this.callback
   }):super(key: key);
-  String page;
-  void Function(String page) callback;
+  final String page;
+  final void Function(String page,[double? loc]) callback;
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -252,10 +260,12 @@ class AppBar extends StatelessWidget{
 class Examples extends StatefulWidget{
   const Examples({
     Key? key,
-    required this.callback
+    required this.callback,
+    required this.prevLocation
   }) : super(key: key);
 
-  final void Function(String page) callback;
+  final void Function(String page,[double? location]) callback;
+  final double prevLocation;
 
   @override
   _ExamplesPageState createState() => _ExamplesPageState();
@@ -304,6 +314,7 @@ class _ExamplesPageState extends State<Examples> {
   ];
   double deviceHeight = double.infinity;
   double deviceWidth = double.infinity;
+  ScrollController controller = ScrollController();
 
   List<Widget> displayExamples(){
     List<Widget> widgets = [];
@@ -314,7 +325,7 @@ class _ExamplesPageState extends State<Examples> {
       widgets.add(
         InkWell(
           onTap: (){
-            widget.callback(ex[i]);
+            widget.callback(ex[i],controller.offset);
           },
           child: Container(
             margin: const EdgeInsets.all(10),
@@ -360,11 +371,20 @@ class _ExamplesPageState extends State<Examples> {
   }
 
   @override
+  void initState(){
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) { 
+      controller.jumpTo(widget.prevLocation);
+    });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
     
     return SingleChildScrollView(
+      controller: controller,
       child: Wrap(
         runAlignment: WrapAlignment.spaceBetween,
         alignment: WrapAlignment.center,

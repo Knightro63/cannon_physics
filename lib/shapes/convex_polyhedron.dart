@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:cannon_physics/cannon_physics.dart';
 import 'package:cannon_physics/utils/logger.dart';
 
 import '../shapes/shape.dart';
@@ -787,6 +788,57 @@ class ConvexPolyhedron extends Shape {
     }
     // If we got here, all dot products were of the same sign.
     return true;
+  }
+
+  static Body trimeshToPolyhedron(Trimesh trimesh,Body body, [Vec3? upvector]){
+    final p1 = Vec3();
+    final p2 = Vec3();
+    final p3 = Vec3();
+    final p4 = Vec3();
+    final mp = Vec3();
+    final tmp = Vec3();
+    final e1 = Vec3();
+    final e2 = Vec3();
+
+    for(int i = 0; i < trimesh.indices.length/3;i++){
+      mp.set(0,0,0);
+      trimesh.getTriangleVertices(i,p1,p2,p3);
+      trimesh.getFaceNormal(i,p4);
+      if(upvector != null && p4.dot(upvector) < 0){
+        p4.scale(-1,p4);
+      }
+      p4.normalize();
+      mp.vadd(p1).vadd(p2).vadd(p3).scale(1/3);
+      final vertices = [Vec3().copy(p1),Vec3().copy(p2),Vec3().copy(p3),mp.vadd(Vec3().copy(p4).scale(-1))];
+      final faces = [[0,1,2],[0,3,1],[1,3,2],[2,3,0]];
+      final normals = [Vec3().copy(p4)];
+      for(int j = 0;j < 3;j++){
+        vertices[j].vsub(vertices[(j+1)%3],e1);
+        vertices[(j+1)%3].vsub(p4,e2);
+        tmp.set(1,1,1);
+        final points = faces[j+1];
+        for(int p = 0;p < points.length;p++){
+            tmp.vadd(vertices[points[p]],tmp);
+        }
+        tmp.scale(1/points.length,tmp);
+        final normal = e1.cross(e2);
+        normal.normalize();
+        normal.scale(-1,normal);
+        final angle = normal.dot(tmp);
+        
+        if(angle <= 0 ){
+          normal.scale(-1,normal);
+        }
+        normals.add(normal);
+      }
+      final polyhedron = ConvexPolyhedron(
+        vertices:vertices,
+        faces:faces,
+        normals:normals
+      );
+      body.addShape(polyhedron);
+    }
+    return body;
   }
 
   /// Get max and min dot product of a convex hull at position (pos,quat) projected onto an axis.

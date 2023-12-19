@@ -42,7 +42,7 @@ class _TriMeshState extends State<TriMesh> {
     demo.dispose();
     super.dispose();
   }
-  void rayCasting(){
+  void triMeshRay(){
     final world = demo.world;
 
     world.gravity.set(0, 0, 0);
@@ -92,7 +92,7 @@ class _TriMeshState extends State<TriMesh> {
 
     world.addEventListener('postStep', postStepListener);
   }
-  void triMesh(){
+  void triMeshSphere(){
     final world = demo.world;
 
     final groundShape = cannon.Plane();
@@ -104,9 +104,6 @@ class _TriMeshState extends State<TriMesh> {
 
     // Sphere
     final sphereShape = cannon.Sphere();
-    //final sphereShape = cannon.Cylinder(radiusTop: 0.5,radiusBottom:0.5);
-    //final sphereShape = cannon.Box(cannon.Vec3( 0.5,0.5,0.5));
-    //final sphereShape = cannon.Particle();
     final sphereBody = cannon.Body(
       mass: 1,
       shape: sphereShape,
@@ -130,9 +127,153 @@ class _TriMeshState extends State<TriMesh> {
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
+  void triMeshSphere1(){
+    final world = demo.world;
 
+    final groundShape = cannon.Plane();
+    final groundBody = cannon.Body(mass: 0);
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    demo.world.addBody(groundBody);
+    demo.addVisual(groundBody);
+
+    // Sphere
+    final sphereShape = cannon.Sphere(0.2);
+    final sphereBody = cannon.Body(
+      mass: 1,
+      shape: sphereShape,
+      position: cannon.Vec3(-3, 11, 3),
+    );
+    world.addBody(sphereBody);
+    demo.addVisual(sphereBody);
+
+    // Torus
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//cannon.Body(mass: 1 );
+    torusBody.mass = 1;
+    torusBody.addShape(torusShape);
+    torusBody.position.set(0, 4, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
+    torusBody.velocity.set(0, 1, 1);
+    world.addBody(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
+  }
+  void triMeshPartical(){
+    final world = demo.world;
+
+    final groundShape = cannon.Plane();
+    final groundBody = cannon.Body(mass: 0);
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    demo.world.addBody(groundBody);
+    demo.addVisual(groundBody);
+
+    final shape = cannon.Particle();
+    final body = cannon.Body(
+      mass: 10,
+      shape: shape,
+      position: cannon.Vec3(-3, 11, 4),
+    );
+    world.addBody(body);
+    demo.addVisual(body);
+
+    // Torus
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1000 ));//cannon.Body(mass: 1 );
+    torusBody.addShape(torusShape);
+    torusBody.position.set(0, 4, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
+    torusBody.velocity.set(0, 1, 1);
+    world.addBody(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
+  }
+  void triMeshBox(){
+    final world = demo.world;
+
+    final groundShape = cannon.Plane();
+    final groundBody = cannon.Body(mass: 0);
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    demo.world.addBody(groundBody);
+    demo.addVisual(groundBody);
+
+    final shape = cannon.Box(cannon.Vec3( 0.5,0.5,0.5));
+    final body = cannon.Body(
+      mass: 1,
+      shape: shape,
+      position: cannon.Vec3(-3, 11, 0),
+    );
+    world.addBody(body);
+    demo.addVisual(body);
+
+    // Torus
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//cannon.Body(mass: 1 );
+    torusBody.mass = 1;
+    torusBody.addShape(torusShape);
+    torusBody.position.set(0, 4, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
+    torusBody.velocity.set(0, 1, 1);
+    world.addBody(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
+  }
+  void triMeshCylinder(){
+    final world = demo.world;
+
+    final groundShape = cannon.Plane();
+    final groundBody = cannon.Body(mass: 0);
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    demo.world.addBody(groundBody);
+    demo.addVisual(groundBody);
+
+    final shape = cannon.Cylinder(radiusTop: 0.5,radiusBottom:0.5);
+    final body = cannon.Body(
+      mass: 1,
+      shape: shape,
+      position: cannon.Vec3(0, 11, 3),
+    );
+    world.addBody(body);
+    demo.addVisual(body);
+
+    // Torus
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//cannon.Body(mass: 1 );
+    torusBody.mass = 1;
+    torusBody.addShape(torusShape);
+    torusBody.position.set(0, 4, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
+    torusBody.velocity.set(0, 1, 1);
+    world.addBody(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
+  }
   void setupWorld(){
-    triMesh();
+    demo.addScene('Sphere',triMeshSphere);
+    demo.addScene('Sphere Convex',triMeshSphere1);    
+    demo.addScene('Box',triMeshBox);
+    demo.addScene('Cylinder',triMeshCylinder);
+    demo.addScene('Partical',triMeshPartical);
+    demo.addScene('Ray',triMeshRay);
   }
   @override
   Widget build(BuildContext context) {
