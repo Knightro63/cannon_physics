@@ -193,6 +193,9 @@ class Demo{
 
   void dispose(){
     disposed = true;
+    // renderTarget?.dispose();
+    // renderer?.dispose();
+    scene.dispose();
     three3dRender.dispose();
   }
   // void addEventListener(String type,Function(dynamic) listener){
@@ -463,7 +466,9 @@ class Demo{
 
   void start(){
     resetCallTime = true;
-    buildScene(scenes.keys.first);
+    if(scenes.keys.isNotEmpty){
+      buildScene(scenes.keys.first);
+    }
   }
 
   void _updateCannonPhysics() {
