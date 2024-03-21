@@ -61,7 +61,7 @@ This project is a basic physics engine for three_dart. This package includes Rig
 | Box         | -      | -     | Yes | Yes    | Yes      | Yes         | (todo)  |
 | Cylinder    | -      | -     | Yes | Yes    | Yes      | Yes         | (todo)  |
 | Convex      | -      | -     | -   | Yes    | Yes      | Yes         | (todo)  |
-| Particle    | -      | -     | -   | -      | -        | (todo)      | (todo)  |
+| Particle    | -      | -     | -   | -      | -        | Yes         | Yes     |
 | Heightfield | -      | -     | -   | -      | -        | -           | (todo)  |
 | Trimesh     | -      | -     | -   | -      | -        | -           | (todo)  |
 

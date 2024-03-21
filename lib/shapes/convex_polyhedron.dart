@@ -803,7 +803,7 @@ class ConvexPolyhedron extends Shape {
     for(int i = 0; i < trimesh.indices.length/3;i++){
       mp.set(0,0,0);
       trimesh.getTriangleVertices(i,p1,p2,p3);
-      trimesh.getFaceNormal(i,p4);
+      trimesh.getIndicesNormal(i,p4);
       if(upvector != null && p4.dot(upvector) < 0){
         p4.scale(-1,p4);
       }

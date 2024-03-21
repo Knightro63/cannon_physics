@@ -433,7 +433,8 @@ class Heightfield extends Shape {
       faces[4][1] = 5;
       faces[4][2] = 2;
       faces[4][3] = 1;
-    } else {
+    } 
+    else {
       // Center of the triangle pillar - all polygons are given relative to this one
       offsetResult.set(
         (xi + 0.75) * elementSize, // sort of center of a triangle

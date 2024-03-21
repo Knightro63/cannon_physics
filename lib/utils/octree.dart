@@ -113,6 +113,10 @@ class OctreeNode {
   /// @return The "result" object
   List<int> aabbQuery(AABB aabb, List<int> result){
     final List<OctreeNode> queue = [this];
+    final children = this.children;
+    for (int i = 0, N = this.children.length; i != N; i++) {
+        children[i].aabbQuery(aabb, result);
+    }
     while (queue.isNotEmpty) {
       final OctreeNode node = queue.removeLast();
       if (node.aabb.overlaps(aabb)) {
@@ -138,15 +142,15 @@ class OctreeNode {
   }
 
   void removeEmptyNodes(){
-    final List<OctreeNode> queue = [this];
+    final List<OctreeNode> queue = children;
     while (queue.isNotEmpty) {
-        final OctreeNode node = queue.removeLast();
-        for (int i = node.children.length - 1; i >= 0; i--) {
-          if(node.children[i].data.isNotEmpty){
-            node.children.removeAt(i);
-          }
+      final OctreeNode node = queue.removeLast();
+      for (int i = node.children.length - 1; i >= 0; i--) {
+        if(node.children[i].data.isNotEmpty){
+          node.children.removeAt(i);
         }
-        queue.addAll(node.children);
+      }
+      queue.addAll(node.children);
     }
     // for (int i = children.length - 1; i >= 0; i--) {
     //   children[i].removeEmptyNodes();

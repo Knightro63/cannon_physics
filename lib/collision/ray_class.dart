@@ -21,6 +21,17 @@ typedef RaycastCallback = void Function(RaycastResult result);
 
 /// RayOptions
 class RayOptions{
+  RayOptions({
+    this.from,
+    this.to,
+    this.callback,
+    this.mode,
+    this.checkCollisionResponse,
+    this.collisionFilterGroup,
+    this.collisionFilterMask,
+    this.result,
+    this.skipBackfaces
+  });
   Vec3? from;
   Vec3? to;
   RayMode? mode;
@@ -591,7 +602,7 @@ class Ray {
     for (int i = 0, N = triangles.length; !result.shouldStop && i != N; i++) {
       final trianglesIndex = triangles[i];
 
-      mesh.getFaceNormal(trianglesIndex, normal);
+      mesh.getIndicesNormal(trianglesIndex, normal);
 
       // determine if ray intersects the plane of the face
       // note: this works regardless of the direction of the face normal
@@ -692,9 +703,9 @@ class Ray {
     final dot02 = _v0.dot(_v2);
     final dot11 = _v1.dot(_v1);
     final dot12 = _v1.dot(_v2);
-    double u;
-    double v;
-    return (u = dot11 * dot02 - dot01 * dot12) >= 0 && (v = dot00 * dot12 - dot01 * dot02) >= 0 && u + v < dot00 * dot11 - dot01 * dot01;
+    final double u = dot11 * dot02 - dot01 * dot12;
+    final double v = dot00 * dot12 - dot01 * dot02;
+    return u  >= 0 && v >= 0 && (u + v) < (dot00 * dot11 - dot01 * dot01);
   }
   static double distanceFromIntersection(Vec3 from, Vec3 direction, Vec3 position) {
     // v0 is vector from from to position

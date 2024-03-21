@@ -62,13 +62,12 @@ class Trimesh extends Shape {
     this.vertices, 
     this.indices, 
     [
-      List<double>? normals, 
+      this.normals, 
       this.uvs
     ]
   ):super(type: ShapeType.trimesh) {
     updateEdges();
     updateNormals();
-    normals = normals;
     
     updateAABB();
     updateBoundingSphereRadius();
@@ -273,19 +272,33 @@ class Trimesh extends Shape {
   /// Get the three vertices for triangle i.
   void getTriangleNormals(int i, Vec3 a, Vec3 b, Vec3 c) {
     final i3 = i * 3;
-    getNormal(indices[i3], a);
-    getNormal(indices[i3 + 1], b);
-    getNormal(indices[i3 + 2], c);
+    getIndicesNormal(indices[i3], a);
+    getIndicesNormal(indices[i3 + 1], b);
+    getIndicesNormal(indices[i3 + 2], c);
   }
-  /// Compute the normal of triangle i.
-  /// @return The "target" vector object
-  Vec3 getNormal(int i, Vec3 target) {
-    final i3 = i * 3;
-    return target.set(normals![i3], normals![i3 + 1], normals![i3 + 2]);
-  }
-  /// Compute the normal of triangle i.
-  /// @return The "target" vector object
   Vec3 getFaceNormal(int i, Vec3 target) {
+    final i3 = i * 3;
+    final Vec3 a = Vec3();
+    final Vec3 b = Vec3();
+    final Vec3 c = Vec3();
+    getIndicesNormal(indices[i3], a);
+    getIndicesNormal(indices[i3 + 1], b);
+    getIndicesNormal(indices[i3 + 2], c);
+    return target.set(
+      (a.x+b.x+c.x)/3,
+      (a.y+b.y+c.y)/3,
+      (a.z+b.z+c.z)/3
+    );
+  }
+  /// Compute the normal of triangle i.
+  /// @return The "target" vector object
+  // Vec3 getNormal(int i, Vec3 target) {
+  //   final i3 = i * 3;
+  //   return target.set(normals![i3], normals![i3 + 1], normals![i3 + 2]);
+  // }
+  /// Compute the normal of triangle i.
+  /// @return The "target" vector object
+  Vec3 getIndicesNormal(int i, Vec3 target) {
     final i3 = i * 3;
     return target.set(faceNormals[i3], faceNormals[i3 + 1], faceNormals[i3 + 2]);
   }
@@ -299,9 +312,9 @@ class Trimesh extends Shape {
     final y = _cliAabb.upperBound.y - _cliAabb.lowerBound.y;
     final z = _cliAabb.upperBound.z - _cliAabb.lowerBound.z;
     return target.set(
-      1.0 / 12.0 * mass * (2*y*2*y + 2*z*2*z),
-      1.0 / 12.0 * mass * (2*x*2*x + 2*z*2*z),
-      1.0 / 12.0 * mass * (2*y*2*y + 2*x*2*x)
+      (1.0 / 12.0) * mass * (2*y*2*y + 2*z*2*z),
+      (1.0 / 12.0) * mass * (2*x*2*x + 2*z*2*z),
+      (1.0 / 12.0) * mass * (2*y*2*y + 2*x*2*x)
     );
   }
 
@@ -374,7 +387,7 @@ class Trimesh extends Shape {
   /// Get approximate volume
   @override
   double volume() {
-    return 4.0 * math.pi * boundingSphereRadius / 3.0;
+    return (4.0 * math.pi * boundingSphereRadius) / 3.0;
   }
 
   /// Create a Trimesh instance, shaped as a torus.

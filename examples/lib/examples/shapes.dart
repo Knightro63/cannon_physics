@@ -128,6 +128,11 @@ class _ShapesState extends State<Shapes> {
     world.addBody(particle);
     demo.addVisual(particle);
 
+    final particle2 = cannon.Body(mass:mass);
+    particle2.addShape(cannon.Particle());
+    particle2.position.set(size *2 , size *12, -size-0.5);
+    world.addBody(particle2);
+    demo.addVisual(particle2);
     // Compound
     final compoundBody = cannon.Body(mass:mass);
     final shape = cannon.Box(cannon.Vec3(size * 0.5, size * 0.5, size * 0.5));

@@ -255,7 +255,7 @@ class World extends EventTarget {
 
   /// Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
   /// @return True if any body was hit.
-  bool raycastAny([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result ]) {
+  bool raycastAny([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result]) {
     options ??= RayOptions();
     options.mode = RayMode.any;
     options.from = from;
