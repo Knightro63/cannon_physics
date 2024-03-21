@@ -192,8 +192,7 @@ class ConversionUtils{
 
     group.updateWorldMatrix(true, true);
     group.traverse((object){
-
-      if(object.type == 'Mesh'){
+      if(object is Mesh){
         Mesh obj = object;
         late BufferGeometry geometry;
         bool isTemp = false;

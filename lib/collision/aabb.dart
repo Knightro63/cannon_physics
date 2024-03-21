@@ -16,18 +16,13 @@ class AABB {
   /// [upperBound] The max location of the boundry
   /// 
   /// [lowerBound] The min location of the boundry
-  AABB({
-    Vec3? upperBound,
-    Vec3? lowerBound 
-  }) 
-  {
+  AABB({Vec3? upperBound,Vec3? lowerBound}) {
     if(lowerBound != null){
       this.lowerBound.copy(lowerBound);
     }
     if(upperBound != null){
       this.upperBound.copy(upperBound);
     }
-    
   }
 
   final Vec3 _tmp = Vec3();
@@ -114,10 +109,11 @@ class AABB {
 
   /// Clone an AABB
   AABB clone() {
-    return AABB(
-      lowerBound: lowerBound.clone(),
-      upperBound: upperBound.clone()
-    );
+    // return AABB(
+    //   lowerBound: lowerBound.clone(),
+    //   upperBound: upperBound.clone()
+    // );
+    return AABB().copy(this);
   }
 
   /// Extend this AABB so that it covers the given AABB too.

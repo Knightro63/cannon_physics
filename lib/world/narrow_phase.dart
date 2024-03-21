@@ -261,17 +261,86 @@ class Narrowphase {
   final _sphereHeightfieldTmp1 = Vec3();
   final _sphereHeightfieldTmp2 = Vec3();
 
+  CollisionType? _getCollisionType(String type){
+    switch (type) {
+      case "spheresphere":
+        return CollisionType.sphereSphere;
+      case "sphereplane":
+        return CollisionType.spherePlane;
+      case "boxbox":
+        return CollisionType.boxBox;
+      case "spherebox":
+        return CollisionType.sphereBox;
+      case "planebox":
+        return CollisionType.planeBox;
+      case "convexconvex":
+        return CollisionType.convexConvex;
+      case "sphereconvex":
+        return CollisionType.sphereConvex;
+      case "planeconvex":
+        return CollisionType.planeConvex;
+      case "boxconvex":
+        return CollisionType.boxConvex;
+      case "sphereheightfield":
+        return CollisionType.sphereHeightfield;
+      case "boxheightfield":
+        return CollisionType.boxHeightfield;
+      case "convexheightfield":
+        return CollisionType.convexHeightfield;
+      case "sphereparticle":
+        return CollisionType.sphereParticle;
+      case "planeparticle":
+        return CollisionType.planeParticle;
+      case "boxparticle":
+        return CollisionType.boxParticle;
+      case "convexparticle":
+        return CollisionType.convexParticle;
+      case "cylindercylinder":
+        return CollisionType.cylinderCylinder;
+      case "spherecylinder":
+        return CollisionType.sphereCylinder;
+      case "planecylinder":
+        return CollisionType.planeCylinder;
+      case "boxcylinder":
+        return CollisionType.boxCylinder;
+      case "convexcylinder":
+        return CollisionType.convexCylinder;
+      case "heightfieldcylinder":
+        return CollisionType.heightfieldCylinder;
+      case "particlecylinder":
+        return CollisionType.particleCylinder;
+      case "particletrimesh":
+        return CollisionType.particleTrimesh;
+      case "spheretrimesh":
+        return CollisionType.sphereTrimesh;
+      case "planetrimesh":
+        return CollisionType.planeTrimesh;
+      case "boxtrimesh":
+        return CollisionType.boxTrimesh;
+      case "cylindertrimesh":
+        return CollisionType.cylinderTrimesh;
+      case "convextrimesh":
+        return CollisionType.convexTrimesh;
+      case "trimeshtrimesh":
+        return CollisionType.trimeshTrimesh;
+      default:
+        return null;
+    }
+  }
+
   CollisionType? getCollisionType(ShapeType a, ShapeType b){
     String n1 = a.name+b.name;
     String n2 = b.name+a.name;
-    for(int i = 0; i < CollisionType.values.length; i++){
-      if(n1 == CollisionType.values[i].name.toLowerCase()){
-        return CollisionType.values[i];
-      }
-      else if(n2 == CollisionType.values[i].name.toLowerCase()){
-        return CollisionType.values[i];
-      }
-    }
+
+    return _getCollisionType(n1) ?? _getCollisionType(n2);
+    // for(int i = 0; i < CollisionType.values.length; i++){
+    //   if(n1 == CollisionType.values[i].name.toLowerCase()){
+    //     return CollisionType.values[i];
+    //   }
+    //   else if(n2 == CollisionType.values[i].name.toLowerCase()){
+    //     return CollisionType.values[i];
+    //   }
+    // }
 
     return null;
   }
@@ -1266,12 +1335,14 @@ class Narrowphase {
     );
 
     sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix retreived triangles
+
+    //print(triangles);
     
     final v = _sphereTrimeshV;
     final radiusSquared = si.radius * si.radius;
-    for (int i = 0; i < triangles.length; i++){//triangles.length
-      for (int j = 0; j < 3; j++) {
-        sj.getVertex(sj.indices[triangles[i]*3 + j], v);//i->triangles[i]
+    for (int i = 0; i < sj.indices.length; i++){//triangles.length
+      //for (int j = 0; j < 3; j++) {
+        sj.getVertex(sj.indices[i], v);//i->triangles[i]//triangles[i]*3 + j
         // Check vertex overlap in sphere
         v.vsub(local, relpos);
         
@@ -1303,14 +1374,14 @@ class Narrowphase {
           result.add(r);
           createFrictionEquationsFromContact(r, frictionResult);
         }
-      }
+      //}
     }
     
     // Check all edges
-    for (int i = 0; i < triangles.length; i++) {
-      for (int j = 0; j < 3; j++) {
-        sj.getVertex(sj.indices[triangles[i]*3 + j], edgeVertexA);
-        sj.getVertex(sj.indices[triangles[i]*3 + ((j + 1) % 3)], edgeVertexB);
+    for (int i = 0; i < sj.indices.length-1; i++) {
+      //for (int j = 0; j < 3; j++) {
+        sj.getVertex(sj.indices[i], edgeVertexA);//triangles[i]*3 + j
+        sj.getVertex(sj.indices[i+1], edgeVertexB);//triangles[i]*3 + ((j + 1) % 3)
         edgeVertexB.vsub(edgeVertexA, edgeVector);
         
         // Project sphere position to the edge
@@ -1352,7 +1423,7 @@ class Narrowphase {
             createFrictionEquationsFromContact(r, frictionResult);
           }
         }
-      }
+      //}
     }
 
     // Triangle faces
@@ -1360,9 +1431,9 @@ class Narrowphase {
     final vb = _sphereTrimeshVb;
     final vc = _sphereTrimeshVc;
     final normal = _sphereTrimeshNormal;
-    for (int i = 0; i < triangles.length; i++) {//N = triangles.length; i != N
-      sj.getTriangleVertices( sj.indices[triangles[i]], va, vb, vc);
-      sj.getFaceNormal(sj.indices[triangles[i]], normal);
+    for (int i = 0; i < sj.indices.length; i++) {//N = triangles.length; i != N
+      sj.getTriangleVertices( sj.indices[i], va, vb, vc);//triangles[i]
+      sj.getFaceNormal(sj.indices[i], normal);//triangles[i]
       
       local.vsub(va, tmp);
       double dist = tmp.dot(normal);
@@ -2128,7 +2199,7 @@ class Narrowphase {
     return convexTrimesh(si, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
   }
 
-  bool particleTrimesh(
+  bool particleTrimesh1(
     Particle si,
     Trimesh sj,
     Vec3 xi,
@@ -2246,7 +2317,7 @@ class Narrowphase {
     triangles.clear();
     return false;
   }
-  bool particleTrimesh1(
+  bool particleTrimesh(
     Particle si,
     Trimesh sj,
     Vec3 xi,
@@ -2287,10 +2358,10 @@ class Narrowphase {
     final normal = Vec3();
 
     // For each world polygon in the polyhedra
-    for (int i = 0; i < sj.indices.length/3; i++) {
-      for (int j = 0; j < 3; j++) {
-        sj.getNormal(sj.indices[i*3 + j], normal);
-        sj.getVertex(sj.indices[i*3 + j], v);
+    for (int i = 0; i < sj.indices.length; i++) {
+      //for (int j = 0; j < 3; j++) {
+        sj.getNormal(sj.indices[i], normal);
+        sj.getVertex(sj.indices[i], v);
         // Check vertex overlap in sphere
         v.vsub(local, relpos);
         
@@ -2325,7 +2396,7 @@ class Narrowphase {
         
           result.add(r);
           createFrictionEquationsFromContact(r, frictionResult);
-        }
+        //}
       }
     }
 

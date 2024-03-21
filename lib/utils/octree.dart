@@ -4,12 +4,10 @@ import '../math/transform.dart';
 import '../collision/ray_class.dart';
 
 class OctreeNode {
-  OctreeNode({
-    this.root,
-    AABB? aabb
-  }) {
+  OctreeNode({this.root,AABB? aabb}) {
     this.aabb = aabb?.clone() ?? AABB();
   }
+
   int? maxDepth;
   /// The root node 
   OctreeNode? root;
@@ -20,9 +18,9 @@ class OctreeNode {
   /// Children to this node
   List<OctreeNode> children = [];
 
-  Vec3 halfDiagonal = Vec3();
+  final Vec3 halfDiagonal = Vec3();
 
-  AABB tmpAABB = AABB();
+  final AABB tmpAABB = AABB();
 
   /// reset
   void reset(){
@@ -52,7 +50,7 @@ class OctreeNode {
       }
       // add to whichever node will accept it
       for (int i = 0; i < 8; i++) {
-        if (children[i].insert(aabb, elementData, level + 1)) {
+        if (children[i].insert(aabb.clone(), elementData, level + 1)) {
           return false;
         }
       }
@@ -92,7 +90,7 @@ class OctreeNode {
 
     final root = this.root ?? this;
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i != 8; i++) {
       final child = children[i];
 
       // Set current node as root
@@ -114,9 +112,9 @@ class OctreeNode {
   /// Get all data, potentially within an AABB
   /// @return The "result" object
   List<int> aabbQuery(AABB aabb, List<int> result){
-    var queue = [this];
+    final List<OctreeNode> queue = [this];
     while (queue.isNotEmpty) {
-      var node = queue.removeLast();
+      final OctreeNode node = queue.removeLast();
       if (node.aabb.overlaps(aabb)) {
         result.addAll(node.data);
       }
@@ -140,12 +138,22 @@ class OctreeNode {
   }
 
   void removeEmptyNodes(){
-    for (int i = children.length - 1; i >= 0; i--) {
-      children[i].removeEmptyNodes();
-      if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
-        children.removeAt(i);
-      }
+    final List<OctreeNode> queue = [this];
+    while (queue.isNotEmpty) {
+        final OctreeNode node = queue.removeLast();
+        for (int i = node.children.length - 1; i >= 0; i--) {
+          if(node.children[i].data.isNotEmpty){
+            node.children.removeAt(i);
+          }
+        }
+        queue.addAll(node.children);
     }
+    // for (int i = children.length - 1; i >= 0; i--) {
+    //   children[i].removeEmptyNodes();
+    //   if (children[i].children.isNotEmpty && children[i].data.isNotEmpty) {
+    //     children.removeAt(i);
+    //   }
+    // }
   }
 }
 

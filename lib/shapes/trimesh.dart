@@ -45,6 +45,7 @@ class Trimesh extends Shape {
 
   /// The local AABB of the mesh.
   final AABB aabb = AABB();
+  final AABB unscaledAABB = AABB();
 
   ///References to vertex pairs, making up all unique edges in the trimesh.
   List<int> edges = [];
@@ -121,7 +122,7 @@ class Trimesh extends Shape {
   /// Get triangles in a local AABB from the trimesh.
   /// @param result An array of integers, referencing the queried triangles.
   List<int> getTrianglesInAABB(AABB aabb, List<int> result){
-    AABB unscaledAABB = aabb.clone();
+    unscaledAABB.copy(aabb);// = aabb.clone();
 
     // Scale it to local
     final scale = this.scale;

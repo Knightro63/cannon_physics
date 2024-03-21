@@ -217,29 +217,29 @@ class _TestGamePageState extends State<TestGame> {
       triBody.addShape(triShape);
       world.addBody(triBody);
 
-    // final va = cannon.Vec3();
-    // final vb = cannon.Vec3();
-    // final vc = cannon.Vec3();
-    // final normal = cannon.Vec3();
+      // final va = cannon.Vec3();
+      // final vb = cannon.Vec3();
+      // final vc = cannon.Vec3();
+      // final normal = cannon.Vec3();
 
-    // for (int i = 0; i < triShape.indices.length/3; i++) {//N = triangles.length; i != N
-    //   triShape.getTriangleVertices( triShape.indices[i], va, vb, vc);
+      // for (int i = 0; i < triShape.indices.length/3; i+=3) {//N = triangles.length; i != N
+      //   triShape.getTriangleVertices( triShape.indices[i], va, vb, vc);
 
-    //   MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': false, 'wireframeLinewidth':1.0 });
-      
-    //     final geometry = three.BufferGeometry();
+      //   MeshBasicMaterial triggerMaterial = MeshBasicMaterial({'color': 0x00ff00, 'wireframe': false, 'wireframeLinewidth':1.0});
         
-    //     geometry.setIndex([0,1,2]);
-    //     geometry.setAttribute(
-    //         'position', Float32BufferAttribute(Float32Array.from([
-    //           va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z
-    //         ]), 3));
+      //     final geometry = three.BufferGeometry();
+          
+      //     geometry.setIndex([0,1,2]);
+      //     geometry.setAttribute(
+      //         'position', Float32BufferAttribute(Float32Array.from([
+      //           va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z
+      //         ]), 3));
 
-    //     geometry.computeBoundingSphere();
-    //     geometry.computeFaceNormals();
+      //     //geometry.computeBoundingSphere();
+      //     //geometry.computeFaceNormals();
 
-    //   scene.add(three.Mesh(geometry, triggerMaterial));
-    // }
+      //   scene.add(three.Mesh(geometry, triggerMaterial));
+      // }
       
       scene.add(object);
 
