@@ -1,4 +1,4 @@
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../equations/equation_class.dart';
 
 /// Constraint base class

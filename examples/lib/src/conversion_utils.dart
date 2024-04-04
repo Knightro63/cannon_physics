@@ -1,18 +1,14 @@
-import 'dart:typed_data';
-
 import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
-import 'package:three_dart_jsm/three_dart_jsm.dart';
-import 'package:three_dart_jsm/three_dart_jsm/renderers/nodes/index.dart';
 
 extension on cannon.Quaternion{
   Quaternion toQuaternion(){
     return Quaternion(x,y,z,w);
   }
 }
-extension on cannon.Vec3{
+extension V2V on cannon.Vec3{
   Vector3 toVector3(){
     return Vector3(x,y,z);
   }

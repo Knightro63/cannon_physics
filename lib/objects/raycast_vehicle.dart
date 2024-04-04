@@ -1,4 +1,4 @@
-import '../objects/body.dart';
+import 'rigid_body.dart';
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
 import '../objects/wheel_info.dart';

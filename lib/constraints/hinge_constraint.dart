@@ -1,5 +1,5 @@
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../constraints/point_to_point_constraint.dart';
 import '../equations/rotational_equation.dart';
 import '../equations/rotational_motor_equation.dart';

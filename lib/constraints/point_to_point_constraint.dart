@@ -1,7 +1,7 @@
 import '../constraints/constraint_class.dart';
 import '../equations/contact_equation.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 
 /// Connects two bodies at given offset points.

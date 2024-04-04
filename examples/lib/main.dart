@@ -29,6 +29,7 @@ import 'package:cannon_physics_example/examples/rigid_vehicle.dart';
 import 'package:cannon_physics_example/examples/shapes.dart';
 import 'package:cannon_physics_example/examples/simple_friction.dart';
 import 'package:cannon_physics_example/examples/single_body_on_plane.dart';
+import 'package:cannon_physics_example/examples/soft_body.dart';
 import 'package:cannon_physics_example/examples/sph.dart';
 import 'package:cannon_physics_example/examples/split_solver.dart';
 import 'package:cannon_physics_example/examples/spring.dart';
@@ -179,6 +180,9 @@ class _MyAppState extends State<MyApp> {
               '/rigid_vehicle':(BuildContext context) {
                 return const RigidVehicle();
               },
+              '/soft_body':(BuildContext context) {
+                return const SoftBody();
+              },
               '/shapes':(BuildContext context) {
                 return const Shapes();
               },
@@ -300,6 +304,7 @@ class _ExamplesPageState extends State<Examples> {
     'ragdoll',
     'raycast_vehicle',
     'rigid_vehicle',
+    'soft_body',
     'shapes',
     'simple_friction',
     'single_body_on_plane',

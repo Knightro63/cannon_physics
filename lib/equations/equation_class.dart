@@ -1,7 +1,7 @@
 import '../math/jacobian_element.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
-import '../shapes/shape.dart';
+import '../objects/rigid_body.dart';
+import '../rigid_body_shapes/shape.dart';
 
 /// Equation base class.
 ///

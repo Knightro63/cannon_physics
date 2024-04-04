@@ -6,8 +6,8 @@ import '../math/vec3.dart';
 import '../math/mat3.dart';
 import '../math/quaternion.dart';
 import '../collision/aabb.dart';
-import '../shapes/box.dart';
-import '../shapes/shape.dart';
+import '../rigid_body_shapes/box.dart';
+import '../rigid_body_shapes/shape.dart';
 import '../material/material.dart';
 import '../world/world_class.dart';
 

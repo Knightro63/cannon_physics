@@ -19,11 +19,6 @@ extension on cannon.Quaternion{
     return Quaternion(x,y,z,w);
   }
 }
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
 extension on three.Vector3{
   cannon.Vec3 toVec3(){
     return cannon.Vec3(x,y,z);

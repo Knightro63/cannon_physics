@@ -1,6 +1,6 @@
 import 'equation_class.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Rotational motor constraint. Tries to keep the relative angular velocity of the bodies to a given value.
 class RotationalMotorEquation extends Equation {

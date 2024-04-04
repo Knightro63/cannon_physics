@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:cannon_physics/cannon_physics.dart';
 import 'package:cannon_physics/utils/logger.dart';
 
-import '../shapes/shape.dart';
+import 'shape.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../math/quaternion.dart';
@@ -495,7 +495,7 @@ class ConvexPolyhedron extends Shape {
       quatA.vmult(worldA1, worldA1);
       posA.vadd(worldA1, worldA1);
       
-      final otherFace = polyA.connectedFaces[i];
+      final otherFace = polyA.connectedFaces.isNotEmpty? polyA.connectedFaces[i]:0;
       localPlaneNormal.copy(faceNormals[otherFace]!);
       final localPlaneEq = getPlaneConstantOfFace(otherFace);
       planeNormalWS.copy(localPlaneNormal);

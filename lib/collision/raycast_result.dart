@@ -1,6 +1,6 @@
 import '../math/vec3.dart';
-import '../objects/body.dart';
-import  '../shapes/shape.dart';
+import '../objects/rigid_body.dart';
+import  '../rigid_body_shapes/shape.dart';
 
 /// Storage for Ray casting data
 class RaycastResult {

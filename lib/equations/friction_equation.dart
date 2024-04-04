@@ -1,6 +1,6 @@
 import 'equation_class.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Constrains the slipping in a contact along a tangent
 class FrictionEquation extends Equation {

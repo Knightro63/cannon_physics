@@ -1,22 +1,22 @@
 import 'dart:math' as math;
-import '../shapes/shape.dart';
+import '../rigid_body_shapes/shape.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../math/quaternion.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../collision/aabb.dart';
 import '../collision/ray_class.dart';
 import '../utils/vec3_pool.dart';
 import '../equations/contact_equation.dart';
 import '../equations/friction_equation.dart';
-import '../shapes/box.dart';
-import '../shapes/sphere.dart';
-import '../shapes/convex_polyhedron.dart';
-import '../shapes/particle.dart';
-import '../shapes/plane.dart';
-import '../shapes/trimesh.dart';
-import '../shapes/heightfield.dart';
-import '../shapes/cylinder.dart';
+import '../rigid_body_shapes/box.dart';
+import '../rigid_body_shapes/sphere.dart';
+import '../rigid_body_shapes/convex_polyhedron.dart';
+import '../rigid_body_shapes/particle.dart';
+import '../rigid_body_shapes/plane.dart';
+import '../rigid_body_shapes/trimesh.dart';
+import '../rigid_body_shapes/heightfield.dart';
+import '../rigid_body_shapes/cylinder.dart';
 import '../material/contact_material.dart';
 import '../world/world_class.dart';
 
@@ -337,7 +337,6 @@ class Narrowphase {
   CollisionType? getCollisionType(ShapeType a, ShapeType b){
     String n1 = a.name+b.name;
     String n2 = b.name+a.name;
-
     return _getCollisionType(n1) ?? _getCollisionType(n2);
     // for(int i = 0; i < CollisionType.values.length; i++){
     //   if(n1 == CollisionType.values[i].name.toLowerCase()){
@@ -347,8 +346,7 @@ class Narrowphase {
     //     return CollisionType.values[i];
     //   }
     // }
-
-    return null;
+    // return null;
   }
 
   /// Make a contact object, by using the internal pool or creating a one.
@@ -2067,9 +2065,9 @@ class Narrowphase {
     qj.conjugate(cqj);
     cqj.vmult(local, local);
     if (sj.pointIsInside(local)) {
-      if (sj.worldVerticesNeedsUpdate) {
+      //if (sj.worldVerticesNeedsUpdate) {
         sj.computeWorldVertices(xj, qj);
-      }
+      //}
       if (sj.worldFaceNormalsNeedsUpdate) {
         sj.computeWorldFaceNormals(qj);
       }
@@ -2107,7 +2105,7 @@ class Narrowphase {
         //projectedToFace.copy(r.rj);
 
         //qj.vmult(r.rj,r.rj);
-        penetratedFaceNormal.negate(r.ni); // Contact normal
+        //penetratedFaceNormal.negate(r.ni); // Contact normal
         r.ri.set(0, 0, 0); // Center of particle
 
         // Make relative to bodies
@@ -2166,23 +2164,27 @@ class Narrowphase {
     final va = Vec3();
     final vb = Vec3();
     final vc = Vec3();
+    final triangleNormal = Vec3();
+    final cp = ConvexPolyhedron(
+      vertices:[va,vb,vc],
+      faces: [[0, 1, 2]],
+      normals: [triangleNormal]
+    );
     // For each world polygon in the polyhedra
-    for (int i = 0; i < triangles.length; i++) {
+    for (int i = 0; i < sj.indices.length/3; i++) {
       bool intersecting = false;
-      sj.getTriangleVertices(sj.indices[triangles[i]], va, vb, vc);
-      final cp = ConvexPolyhedron(
-        vertices:[va,vb,vc],
-        faces: [[0, 1, 2]],
-      );
+      sj.getTriangleVertices(sj.indices[i], va, vb, vc);
+      sj.getIndicesNormal(i, triangleNormal);
+
       Vec3 offsetResult = Vec3(
         (va.x+vb.x+vc.x)/3,
         (va.y+vb.y+vc.y)/3,
         (va.z+vb.z+vc.z)/3
       );
       cp.computeEdges();
-      cp.computeNormals();
+      //cp.computeNormals();
       cp.updateBoundingSphereRadius();
-      Transform.pointToWorldFrame(xj, qj, offsetResult, worldPillarOffset);
+      Transform.pointToWorldFrame(xj, qj, xi, worldPillarOffset);
       if (
         xi.distanceTo(worldPillarOffset) < sj.boundingSphereRadius
       ) {
@@ -2362,7 +2364,6 @@ class Narrowphase {
     }
     return false;
   }
-  
   bool particleTrimesh(
     Particle si,
     Trimesh sj,
@@ -2401,27 +2402,19 @@ class Narrowphase {
     final va = Vec3();
     final vb = Vec3();
     final vc = Vec3();
+    final hullB = ConvexPolyhedron(
+      vertices:[va,vb,vc],
+      faces: [[0, 1, 2]],
+    );
     // For each world polygon in the polyhedra
     for (int i = 0; i < triangles.length; i++) {
       bool intersecting = false;
       sj.getTriangleVertices(sj.indices[triangles[i]], va, vb, vc);
-      final cp = ConvexPolyhedron(
-        vertices:[va,vb,vc],
-        faces: [[0, 1, 2]],
-      );
-      Vec3 offsetResult = Vec3(
-        (va.x+vb.x+vc.x)/3,
-        (va.y+vb.y+vc.y)/3,
-        (va.z+vb.z+vc.z)/3
-      );
-      cp.computeEdges();
-      cp.computeNormals();
-      cp.updateBoundingSphereRadius();
-      Transform.pointToWorldFrame(xj, qj, offsetResult, worldPillarOffset);
+      Transform.pointToWorldFrame(xj, qj, xi, worldPillarOffset);
       if (
         xi.distanceTo(worldPillarOffset) < sj.boundingSphereRadius
       ) {
-        intersecting = convexParticle(cp, si, xj, worldPillarOffset, qj, qi, bj, bi, rsi, rsj, justTest);
+        intersecting = convexParticle(hullB, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
       }
 
       if (justTest && intersecting) {
@@ -2449,30 +2442,63 @@ class Narrowphase {
       bool justTest = false,
     ]
   ){
+    final local = Vec3();
+    final localSphereAABB = _sphereTrimeshLocalSphereAABB;
+    final triangles = _sphereTrimeshTriangles;
+    final worldPillarOffset = _convexHeightfieldTmp2;
 
-    if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
-      return false;
-    }
+    Transform.pointToLocalFrame(xj, qj, xi, local);
+
+    final sphereRadius = si.boundingSphereRadius;
+    localSphereAABB.lowerBound.set(
+      local.x - sphereRadius,
+      local.y - sphereRadius,
+      local.z - sphereRadius
+    );
+    localSphereAABB.upperBound.set(
+      local.x + sphereRadius,
+      local.y + sphereRadius,
+      local.z + sphereRadius
+    );
+
+    sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix 
 
     // Construct a temp hull for each triangle
-    final hullB = ConvexPolyhedron();
-
-    hullB.faces = [[0,1,2]];
     final va = Vec3();
     final vb = Vec3();
     final vc = Vec3();
-
+    final hullB = ConvexPolyhedron(
+      vertices:[va,vb,vc],
+      faces: [[0, 1, 2]],
+    );
     final triangleNormal = Vec3();
-    
-    hullB.vertices = [va,vb,vc];
 
     for (int i = 0; i < si.indices.length / 3; i++) {
+      bool intersecting = false;
       si.getTriangleVertices(i, va, vb, vc);
       si.getIndicesNormal(i, triangleNormal);
 
-      hullB.faceNormals = [triangleNormal];
+      //hullB.faceNormals = [triangleNormal];
       
       convexTrimesh(hullB, sj, xi, xj, qi, qj, bi, bj);
+
+      
+      sj.getTriangleVertices(sj.indices[triangles[i]], va, vb, vc);
+      // Vec3 offsetResult = Vec3(
+      //   (va.x+vb.x+vc.x)/3,
+      //   (va.y+vb.y+vc.y)/3,
+      //   (va.z+vb.z+vc.z)/3
+      // );
+      Transform.pointToWorldFrame(xj, qj, xi, worldPillarOffset);
+      if (
+        xi.distanceTo(worldPillarOffset) < sj.boundingSphereRadius
+      ) {
+        intersecting = convexTrimesh(hullB, sj, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
+      }
+
+      if (justTest && intersecting) {
+        return true;
+      }
     }
     return false;
   }

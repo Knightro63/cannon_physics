@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import '../shapes/convex_polyhedron.dart';
+import 'convex_polyhedron.dart';
 import '../math/vec3.dart';
-import './shape.dart';
+import 'shape.dart';
 
 /// Cylinder class.
 /// @example

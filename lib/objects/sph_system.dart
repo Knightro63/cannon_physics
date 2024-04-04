@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import '../math/vec3.dart';
-import './body.dart';
+import 'rigid_body.dart';
 
 /// Smoothed-particle hydrodynamics system
 /// @todo Make parameters customizable in the constructor

@@ -3,15 +3,15 @@ import '../math/vec3.dart';
 import '../math/quaternion.dart';
 import '../math/transform.dart';
 import '../collision/raycast_result.dart';
-import '../shapes/shape.dart';
+import '../rigid_body_shapes/shape.dart';
 import '../collision/aabb.dart';
-import '../objects/body.dart';
-import '../shapes/sphere.dart';
-import '../shapes/box.dart';
-import '../shapes/plane.dart';
-import '../shapes/heightfield.dart';
-import '../shapes/convex_polyhedron.dart';
-import '../shapes/trimesh.dart';
+import '../objects/rigid_body.dart';
+import '../rigid_body_shapes/sphere.dart';
+import '../rigid_body_shapes/box.dart';
+import '../rigid_body_shapes/plane.dart';
+import '../rigid_body_shapes/heightfield.dart';
+import '../rigid_body_shapes/convex_polyhedron.dart';
+import '../rigid_body_shapes/trimesh.dart';
 import '../world/world_class.dart';
 
 /// RAY_MODES
@@ -693,7 +693,6 @@ class Ray {
   }
 
   /// As per "Barycentric Technique" as named
-  /// {@link https://www.blackpawn.com/texts/pointinpoly/default.html here} but without the division
   static bool pointInTriangle(Vec3 p, Vec3 a, Vec3 b, Vec3 c,[Vec3? target]) {
     c.vsub(a, _v0);
     b.vsub(a, _v1);

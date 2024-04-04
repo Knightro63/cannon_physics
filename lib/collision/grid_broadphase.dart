@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 import '../collision/broadphase.dart';
 import '../math/vec3.dart';
-import '../shapes/shape.dart';
-import '../objects/body.dart';
-import '../shapes/sphere.dart';
-import '../shapes/plane.dart';
+import '../rigid_body_shapes/shape.dart';
+import '../objects/rigid_body.dart';
+import '../rigid_body_shapes/sphere.dart';
+import '../rigid_body_shapes/plane.dart';
 import '../world/world_class.dart';
 
 /// Axis aligned uniform grid broadphase.

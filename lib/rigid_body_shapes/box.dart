@@ -1,6 +1,6 @@
-import '../shapes/shape.dart';
+import 'shape.dart';
 import '../math/vec3.dart';
-import '../shapes/convex_polyhedron.dart';
+import 'convex_polyhedron.dart';
 import '../math/quaternion.dart';
 
 /// A 3d box shape.

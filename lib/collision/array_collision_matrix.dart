@@ -1,4 +1,4 @@
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Collision "matrix".
 /// It's actually a triangular-shaped array of whether two bodies are touching this step, for reference next step

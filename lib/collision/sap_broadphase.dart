@@ -3,7 +3,7 @@ import '../utils/utils.dart';
 import '../collision/broadphase.dart';
 import '../collision/aabb.dart';
 import '../world/world_class.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Sweep and prune broadphase along one axis.
 class SAPBroadphase extends Broadphase {

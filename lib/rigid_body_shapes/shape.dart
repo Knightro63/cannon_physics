@@ -1,6 +1,6 @@
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../material/material.dart';
 
 /// The available shape types.

@@ -1,5 +1,5 @@
-import '../objects/body.dart';
-import '../shapes/shape.dart';
+import '../objects/rigid_body.dart';
+import '../rigid_body_shapes/shape.dart';
 import '../equations/contact_equation.dart';
 
 /// Base class for objects that dispatches events.

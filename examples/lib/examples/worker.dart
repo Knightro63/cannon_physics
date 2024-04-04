@@ -1,4 +1,3 @@
-import 'package:cannon_physics_example/src/conversion_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';

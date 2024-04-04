@@ -191,7 +191,46 @@ class _TriMeshState extends State<TriMesh> {
     // Torus
     final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
     //final torusGeometry = IcosahedronGeometry(2,2);
-    final torusMaterial = MeshStandardMaterial();//{'color': 0x2b4c7f }
+    final torusMaterial = MeshStandardMaterial({});//{'color': 0x2b4c7f }'wireframe':true
+    final torusMesh = Mesh(torusGeometry, torusMaterial);
+    final torusShape = ConversionUtils.geometryToShape(torusGeometry);
+
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1000 ));//
+    //final torusBody = cannon.Body(mass: 1 );
+    torusBody.addShape(torusShape);
+    torusBody.position.set(0, 4, 0);
+    torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
+    torusBody.velocity.set(0, 1, 1);
+    world.addBody(torusBody);
+    demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
+  }
+  void triMeshTriMesh(){
+    final world = demo.world;
+
+    final groundShape = cannon.Plane();
+    final groundBody = cannon.Body(mass: 0);
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    demo.world.addBody(groundBody);
+    demo.addVisual(groundBody);
+
+   final torusGeometry1 = TorusGeometry();
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial1 = MeshStandardMaterial({'color': 0x2b4c7f});//{'color': 0x2b4c7f }'wireframe':true
+    final torusMesh1 = Mesh(torusGeometry1, torusMaterial1);
+    final shape = ConversionUtils.geometryToShape(torusGeometry1);
+    final body = cannon.Body(
+      mass: 1,
+      shape: shape,
+      position: cannon.Vec3(-3, 11, 4),
+    );
+    world.addBody(body);
+    demo.addVisual(body, mesh: torusMesh1, material: torusMaterial1);
+
+    // Torus
+    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    //final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial({});//{'color': 0x2b4c7f }'wireframe':true
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 
@@ -230,7 +269,7 @@ class _TriMeshState extends State<TriMesh> {
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 
-    final torusBody = cannon.Body(mass: 1 );//cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//
+    final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//
     torusBody.mass = 1;
     torusBody.addShape(torusShape);
     torusBody.position.set(0, 4, 0);
@@ -280,6 +319,7 @@ class _TriMeshState extends State<TriMesh> {
     demo.addScene('Box',triMeshBox);
     demo.addScene('Cylinder',triMeshCylinder);
     demo.addScene('Partical',triMeshPartical);
+    demo.addScene('TriMesh',triMeshTriMesh);
     demo.addScene('Ray',triMeshRay);
   }
   @override

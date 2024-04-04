@@ -1,5 +1,5 @@
 import '../solver/solver.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../equations/equation_class.dart';
 import '../world/world_class.dart';
 import './gs_solver.dart';

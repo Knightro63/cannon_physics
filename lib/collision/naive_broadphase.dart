@@ -1,5 +1,5 @@
 import 'broadphase.dart';
-import  '../objects/body.dart';
+import  '../objects/rigid_body.dart';
 import  '../collision/aabb.dart';
 import  '../world/world_class.dart';
 

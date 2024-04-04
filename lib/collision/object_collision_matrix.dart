@@ -1,4 +1,4 @@
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Records what objects are colliding with each other
 class ObjectCollisionMatrix {

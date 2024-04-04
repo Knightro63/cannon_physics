@@ -139,18 +139,18 @@ class _RigidVehicleState extends State<RigidVehicle> {
     demo.addVisual(heightfieldBody);
 
     // Define interactions between wheels and ground
-    final wheel_ground = cannon.ContactMaterial(wheelMaterial, groundMaterial,
+    final wheelGround = cannon.ContactMaterial(wheelMaterial, groundMaterial,
       friction: 0.3,
       restitution: 0,
       contactEquationStiffness: 1000,
     );
-    world.addContactMaterial(wheel_ground);
+    world.addContactMaterial(wheelGround);
 
     // Keybindings
     // Add force on keydown
     demo.addDomListener('keydown', (event){
       const maxSteerVal = Math.PI / 8;
-      const maxSpeed = 10.0;
+      //const maxSpeed = 100.0;
       const maxForce = 100.0;
 
       switch (event.keyId) {

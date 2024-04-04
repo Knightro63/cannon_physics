@@ -1,4 +1,4 @@
-import '../shapes/shape.dart';
+import 'shape.dart';
 import '../math/vec3.dart';
 import '../math/quaternion.dart';
 

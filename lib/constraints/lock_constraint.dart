@@ -1,7 +1,7 @@
 import '../constraints/point_to_point_constraint.dart';
 import '../equations/rotational_equation.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../equations/rotational_motor_equation.dart';
 
 /// Lock constraint. Will remove all degrees of freedom between the bodies.

@@ -1,6 +1,6 @@
 import 'equation_class.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Contact/non-penetration constraint equation
 class ContactEquation extends Equation {

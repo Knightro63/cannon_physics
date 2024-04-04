@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import '../shapes/shape.dart';
-import '../shapes/convex_polyhedron.dart';
+import 'shape.dart';
+import 'convex_polyhedron.dart';
 import '../math/vec3.dart';
 import '../collision/aabb.dart';
 import '../math/quaternion.dart';

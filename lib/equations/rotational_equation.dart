@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'equation_class.dart';
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 
 /// Rotational constraint. Works to keep the local vectors orthogonal to each other in world space.
 class RotationalEquation extends Equation {

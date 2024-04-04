@@ -15,13 +15,13 @@ import '../utils/tuple_dictionary.dart';
 import '../collision/raycast_result.dart';
 import '../collision/ray_class.dart';
 // import '../collision/aabb.dart';
-import '../objects/body.dart';
+import '../objects/rigid_body.dart';
 import '../collision/broadphase.dart';
 import '../solver/solver.dart';
 import '../equations/contact_equation.dart';
 import '../equations/friction_equation.dart';
 import '../constraints/constraint_class.dart';
-import '../shapes/shape.dart';
+import '../rigid_body_shapes/shape.dart';
 
 class Profile{
   Profile({

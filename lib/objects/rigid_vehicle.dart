@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import '../math/vec3.dart';
-import '../objects/body.dart';
-import '../shapes/sphere.dart';
-import '../shapes/box.dart';
+import 'rigid_body.dart';
+import '../rigid_body_shapes/sphere.dart';
+import '../rigid_body_shapes/box.dart';
 import '../constraints/hinge_constraint.dart';
 import '../world/world_class.dart';
 

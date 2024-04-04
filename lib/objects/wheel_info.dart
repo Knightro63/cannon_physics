@@ -1,7 +1,7 @@
 import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../collision/raycast_result.dart';
-import '../objects/body.dart';
+import 'rigid_body.dart';
 
 final chassisVelocityAtContactPoint = Vec3();
 

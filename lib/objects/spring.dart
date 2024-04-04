@@ -1,5 +1,5 @@
 import '../math/vec3.dart';
-import '../objects/body.dart';
+import 'rigid_body.dart';
 
 /// A spring, connecting two bodies.
 /// @example

@@ -147,19 +147,19 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
     demo.addVisual(heightfieldBody);
 
     // Define interactions between wheels and ground
-    final wheel_ground = cannon.ContactMaterial(wheelMaterial, groundMaterial, 
+    final wheelGround = cannon.ContactMaterial(wheelMaterial, groundMaterial, 
       friction: 0.3,
       restitution: 0,
       contactEquationStiffness: 1000,
     );
-    world.addContactMaterial(wheel_ground);
+    world.addContactMaterial(wheelGround);
 
     // Keybindings
     // Add force on keydown
     demo.addDomListener('keydown', (event){
       const maxSteerVal = 0.5;
-      const maxForce = 1000.0;
-      const brakeForce = 1000000.0;
+      const maxForce = 10000.0;
+      const brakeForce = 10000.0;
 
       switch (event.keyId) {
         case 4294968068:
