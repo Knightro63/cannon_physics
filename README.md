@@ -14,7 +14,7 @@ This is a dart conversion of cannon.js and cannon-es, originally created by Stef
 
 ### Getting started
 
-To get started add cannon_physics, three_dart, and three_dart_jsm to your pubspec.yaml file.
+To get started add cannon_physics, and you favorite 3D rendering engine to your pubspec.yaml file.
 
 The Cannon World is the main scene that has all of the objects that will be manipulated to the scene. To get started add the cannon world then all of the objects in it.
 
