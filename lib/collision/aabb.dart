@@ -3,58 +3,59 @@ import 'ray_class.dart';
 import 'dart:math' as math;
 import '../math/transform.dart';
 import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart' hide Ray;
 
 /// Axis aligned bounding box class.
 class AABB {
   /// The lower bound of the bounding box
-  Vec3 lowerBound = Vec3();
+  Vector3 lowerBound = Vector3.zero();
   /// The upper bound of the bounding box
-  Vec3 upperBound = Vec3();
+  Vector3 upperBound = Vector3.zero();
 
   /// Axis aligned bounding box class.
   /// 
   /// [upperBound] The max location of the boundry
   /// 
   /// [lowerBound] The min location of the boundry
-  AABB({Vec3? upperBound,Vec3? lowerBound}) {
+  AABB({Vector3? upperBound,Vector3? lowerBound}) {
     if(lowerBound != null){
-      this.lowerBound.copy(lowerBound);
+      this.lowerBound.setFrom(lowerBound);
     }
     if(upperBound != null){
-      this.upperBound.copy(upperBound);
+      this.upperBound.setFrom(upperBound);
     }
   }
 
-  final Vec3 _tmp = Vec3();
+  final Vector3 _tmp = Vector3.zero();
 
-  final List<Vec3> _transformIntoFrameCorners = [
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
+  final List<Vector3> _transformIntoFrameCorners = [
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
   ];
 
   /// Set the AABB bounds from a set of points.
-  /// [points] An array of Vec3's.
+  /// [points] An array of Vector3's.
   /// return The self object 
-  AABB setFromPoints(List<Vec3> points, [Vec3? position, Quaternion? quaternion, num? skinSize]){
+  AABB setFromPoints(List<Vector3> points, [Vector3? position, Quaternion? quaternion, num? skinSize]){
     final l = lowerBound;
     final u = upperBound;
     final q = quaternion;
 
     // Set to the first point
-    l.copy(points[0]);
+    l.setFrom(points[0]);
     if (q != null) {
       q.vmult(l, l);
     }
-    u.copy(l);
+    u.setFrom(l);
 
     for (int i = 1; i < points.length; i++) {
-      Vec3 p = points[i];
+      Vector3 p = points[i];
       if (q != null) {
         q.vmult(p, _tmp);
         p = _tmp;
@@ -82,8 +83,8 @@ class AABB {
 
     // Add offset
     if (position != null) {
-      position.vadd(l, l);
-      position.vadd(u, u);
+      position.add2(l, l);
+      position.add2(u, u);
     }
 
     if (skinSize != null) {
@@ -102,8 +103,8 @@ class AABB {
   /// [aabb] Source to copy from
   /// return this object, for chainability
   AABB copy(AABB aabb) {
-    lowerBound.copy(aabb.lowerBound);
-    upperBound.copy(aabb.upperBound);
+    lowerBound.setFrom(aabb.lowerBound);
+    upperBound.setFrom(aabb.upperBound);
     return this;
   }
 
@@ -171,18 +172,18 @@ class AABB {
     );
   }
 
-  void getCorners(Vec3 a,Vec3 b,Vec3 c,Vec3 d,Vec3 e,Vec3 f,Vec3 g,Vec3 h) {
+  void getCorners(Vector3 a,Vector3 b,Vector3 c,Vector3 d,Vector3 e,Vector3 f,Vector3 g,Vector3 h) {
     final l = lowerBound;
     final u = upperBound;
 
-    a.copy(l);
-    b.set(u.x, l.y, l.z);
-    c.set(u.x, u.y, l.z);
-    d.set(l.x, u.y, u.z);
-    e.set(u.x, l.y, u.z);
-    f.set(l.x, u.y, l.z);
-    g.set(l.x, l.y, u.z);
-    h.copy(u);
+    a.setFrom(l);
+    b.setValues(u.x, l.y, l.z);
+    c.setValues(u.x, u.y, l.z);
+    d.setValues(l.x, u.y, u.z);
+    e.setValues(u.x, l.y, u.z);
+    f.setValues(l.x, u.y, l.z);
+    g.setValues(l.x, l.y, u.z);
+    h.setFrom(u);
   }
 
   /// Get the representation of an AABB in another frame.

@@ -2,6 +2,7 @@ import '../collision/aabb.dart';
 import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../collision/ray_class.dart';
+import 'package:vector_math/vector_math.dart' hide Ray;
 
 class OctreeNode {
   OctreeNode({this.root,AABB? aabb}) {
@@ -18,7 +19,7 @@ class OctreeNode {
   /// Children to this node
   List<OctreeNode> children = [];
 
-  final Vec3 halfDiagonal = Vec3();
+  final Vector3 halfDiagonal = Vector3.zero();
 
   final AABB tmpAABB = AABB();
 
@@ -75,18 +76,18 @@ class OctreeNode {
     final children = this.children;
 
     children.addAll([
-      OctreeNode(aabb: AABB(lowerBound: Vec3(0, 0, 0))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(1, 0, 0))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(1, 1, 0))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(1, 1, 1))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(0, 1, 1))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(0, 0, 1))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(1, 0, 1))),
-      OctreeNode(aabb: AABB(lowerBound: Vec3(0, 1, 0)))
+      OctreeNode(aabb: AABB(lowerBound: Vector3(0, 0, 0))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(1, 0, 0))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(1, 1, 0))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(1, 1, 1))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(0, 1, 1))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(0, 0, 1))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(1, 0, 1))),
+      OctreeNode(aabb: AABB(lowerBound: Vector3(0, 1, 0)))
     ]);
 
-    u.vsub(l, halfDiagonal);
-    halfDiagonal.scale(0.5, halfDiagonal);
+    u.sub2(l, halfDiagonal);
+    halfDiagonal.scale2(0.5, halfDiagonal);
 
     final root = this.root ?? this;
 
@@ -102,10 +103,10 @@ class OctreeNode {
       lowerBound.y *= halfDiagonal.y;
       lowerBound.z *= halfDiagonal.z;
 
-      lowerBound.vadd(l, lowerBound);
+      lowerBound.add2(l, lowerBound);
 
       // Upper bound is always lower bound + halfDiagonal
-      lowerBound.vadd(halfDiagonal, child.aabb.upperBound);
+      lowerBound.add2(halfDiagonal, child.aabb.upperBound);
     }
   }
 

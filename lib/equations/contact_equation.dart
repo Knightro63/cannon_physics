@@ -1,6 +1,7 @@
 import 'equation_class.dart';
 import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Contact/non-penetration constraint equation
 class ContactEquation extends Equation {
@@ -13,21 +14,21 @@ class ContactEquation extends Equation {
   /// "bounciness": u1 = -e*u0
   double restitution = 0.0;
   /// World-oriented vector that goes from the center of bi to the contact point.
-  Vec3 ri = Vec3();
+  Vector3 ri = Vector3.zero();
   /// World-oriented vector that starts in body j position and goes to the contact point.
-  Vec3 rj = Vec3();
+  Vector3 rj = Vector3.zero();
   /// Contact normal, pointing out of body i.
-  Vec3 ni = Vec3();
+  Vector3 ni = Vector3.zero();
 
-  final _contactEquationComputeBTemp1 = Vec3(); // Temp vectors
-  final _contactEquationComputeBTemp2 = Vec3();
-  final _contactEquationComputeBTemp3 = Vec3();
+  final _contactEquationComputeBTemp1 = Vector3.zero(); // Temp vectors
+  final _contactEquationComputeBTemp2 = Vector3.zero();
+  final _contactEquationComputeBTemp3 = Vector3.zero();
 
-  final _contactEquationGetImpactVelocityAlongNormalVi = Vec3();
-  final _contactEquationGetImpactVelocityAlongNormalVj = Vec3();
-  final _contactEquationGetImpactVelocityAlongNormalXi = Vec3();
-  final _contactEquationGetImpactVelocityAlongNormalXj = Vec3();
-  final _contactEquationGetImpactVelocityAlongNormalRelVel = Vec3();
+  final _contactEquationGetImpactVelocityAlongNormalVi = Vector3.zero();
+  final _contactEquationGetImpactVelocityAlongNormalVj = Vector3.zero();
+  final _contactEquationGetImpactVelocityAlongNormalXi = Vector3.zero();
+  final _contactEquationGetImpactVelocityAlongNormalXj = Vector3.zero();
+  final _contactEquationGetImpactVelocityAlongNormalRelVel = Vector3.zero();
 
   @override
   double computeB(double h) {
@@ -49,19 +50,19 @@ class ContactEquation extends Equation {
     final n = ni;
 
     // Caluclate cross products
-    ri.cross(n, rixn);
-    rj.cross(n, rjxn);
+    ri.cross2(n, rixn);
+    rj.cross2(n, rjxn);
 
-    n.negate(ga.spatial);
-    rixn.negate(ga.rotational);
-    gb.spatial.copy(n);
-    gb.rotational.copy(rjxn);
+    ga.spatial..setFrom(n)..negate();
+    ga.rotational..setFrom(rixn)..negate();
+    gb.spatial.setFrom(n);
+    gb.rotational.setFrom(rjxn);
 
     // Calculate the penetration vector
-    penetrationVec.copy(bj.position);
-    penetrationVec.vadd(rj, penetrationVec);
-    penetrationVec.vsub(bi.position, penetrationVec);
-    penetrationVec.vsub(ri, penetrationVec);
+    penetrationVec.setFrom(bj.position);
+    penetrationVec.add2(rj, penetrationVec);
+    penetrationVec.sub2(bi.position, penetrationVec);
+    penetrationVec.sub2(ri, penetrationVec);
 
     final g = n.dot(penetrationVec);
 
@@ -83,13 +84,13 @@ class ContactEquation extends Equation {
     final xj = _contactEquationGetImpactVelocityAlongNormalXj;
     final relVel = _contactEquationGetImpactVelocityAlongNormalRelVel;
 
-    bi.position.vadd(ri, xi);
-    bj.position.vadd(rj, xj);
+    bi.position.add2(ri, xi);
+    bj.position.add2(rj, xj);
 
     bi.getVelocityAtWorldPoint(xi, vi);
     bj.getVelocityAtWorldPoint(xj, vj);
 
-    vi.vsub(vj, relVel);
+    vi.sub2(vj, relVel);
 
     return ni.dot(relVel);
   }

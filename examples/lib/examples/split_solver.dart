@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class SplitSolver extends StatefulWidget {
   const SplitSolver({
@@ -63,7 +64,7 @@ class _SplitSolverState extends State<SplitSolver> {
     // Shape
     const size = 0.5;
     // const shape = cannon.Sphere(size)
-    final shape = cannon.Box(cannon.Vec3(size * 0.5, size * 0.5, size * 0.5));
+    final shape = cannon.Box(vmath.Vector3(size * 0.5, size * 0.5, size * 0.5));
 
     // Shape on plane
     const N = 5;
@@ -71,7 +72,7 @@ class _SplitSolverState extends State<SplitSolver> {
       for (int j = 0; j < N; j++) {
         final shapeBody = cannon.Body( mass: 1 );
         shapeBody.addShape(shape);
-        shapeBody.position.set((i - N * 0.5) * size * 2 * 1.1, size * 1.05, (j - N * 0.5) * size * 2 * 1.1);
+        shapeBody.position.setValues((i - N * 0.5) * size * 2 * 1.1, size * 1.05, (j - N * 0.5) * size * 2 * 1.1);
         world.addBody(shapeBody);
         demo.addVisual(shapeBody);
       }
@@ -80,7 +81,7 @@ class _SplitSolverState extends State<SplitSolver> {
     // Shape on top
     final shapeBody = cannon.Body(mass: 1 );
     shapeBody.addShape(shape);
-    shapeBody.position.set(-size, size * 5, size);
+    shapeBody.position.setValues(-size, size * 5, size);
     world.addBody(shapeBody);
     demo.addVisual(shapeBody)  ;
   }

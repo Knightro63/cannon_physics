@@ -1,14 +1,14 @@
 import '../utils/pool.dart';
-import '../math/vec3.dart';
+import 'package:vector_math/vector_math.dart';
 
 class Vec3Pool extends Pool {
   Vec3Pool(){
-    type = Vec3();
+    type = Vector3.zero();
   }
 
   /// Construct a vector
   @override
-  Vec3 constructObject(){
-    return Vec3();
+  Vector3 constructObject(){
+    return Vector3.zero();
   }
 }

@@ -1,6 +1,5 @@
 import 'shape.dart';
-import '../math/vec3.dart';
-import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Particle shape.
 /// @example
@@ -11,9 +10,9 @@ class Particle extends Shape {
   Particle():super(type: ShapeType.particle );
 
   @override
-  Vec3 calculateLocalInertia(double mass, [Vec3? target]) {
-    target ??= Vec3();
-    target.set(0, 0, 0);
+  Vector3 calculateLocalInertia(double mass, [Vector3? target]) {
+    target ??= Vector3.zero();
+    target.setValues(0, 0, 0);
     return target;
   }
 
@@ -28,9 +27,9 @@ class Particle extends Shape {
   }
 
   @override
-  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min,Vec3 max) {
+  void calculateWorldAABB(Vector3 pos, Quaternion quat, Vector3 min, Vector3 max) {
     // Get each axis max
-    min.copy(pos);
-    max.copy(pos);
+    min.setFrom(pos);
+    max.setFrom(pos);
   }
 }

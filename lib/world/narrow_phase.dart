@@ -19,6 +19,7 @@ import '../rigid_body_shapes/heightfield.dart';
 import '../rigid_body_shapes/cylinder.dart';
 import '../material/contact_material.dart';
 import '../world/world_class.dart';
+import 'package:vector_math/vector_math.dart' hide Plane, Sphere, Ray;
 
 // Naming rule: based of the order in SHAPE_TYPES,
 // the first part of the method is formed by the
@@ -173,97 +174,97 @@ class Narrowphase {
     currentContactMaterial = world.defaultContactMaterial;
   }
 
-  final _averageNormal = Vec3();
-  final _averageContactPointA = Vec3();
-  final _averageContactPointB = Vec3();
+  final _averageNormal = Vector3.zero();
+  final _averageContactPointA = Vector3.zero();
+  final _averageContactPointB = Vector3.zero();
 
-  final _tmpVec1 = Vec3();
-  final _tmpVec2 = Vec3();
-  final _tmpQuat1 = Quaternion();
-  final _tmpQuat2 = Quaternion();
+  final _tmpVec1 = Vector3.zero();
+  final _tmpVec2 = Vector3.zero();
+  final _tmpQuat1 = Quaternion(0,0,0,1);
+  final _tmpQuat2 = Quaternion(0,0,0,1);
 
-  final _planeTrimeshNormal = Vec3();
-  final _planeTrimeshRelpos = Vec3();
-  final _planeTrimeshProjected = Vec3();
+  final _planeTrimeshNormal = Vector3.zero();
+  final _planeTrimeshRelpos = Vector3.zero();
+  final _planeTrimeshProjected = Vector3.zero();
 
-  final _sphereTrimeshNormal = Vec3();
-  final _sphereTrimeshRelpos = Vec3();
-  //final _sphereTrimeshProjected = Vec3();
-  final _sphereTrimeshV = Vec3();
-  final _sphereTrimeshV2 = Vec3();
-  final _sphereTrimeshEdgeVertexA = Vec3();
-  final _sphereTrimeshEdgeVertexB = Vec3();
-  final _sphereTrimeshEdgeVector = Vec3();
-  final _sphereTrimeshEdgeVectorUnit = Vec3();
-  final _sphereTrimeshlocal = Vec3();
-  final _sphereTrimeshTmp = Vec3();
-  final _sphereTrimeshVa = Vec3();
-  final _sphereTrimeshVb = Vec3();
-  final _sphereTrimeshVc = Vec3();
+  final _sphereTrimeshNormal = Vector3.zero();
+  final _sphereTrimeshRelpos = Vector3.zero();
+  //final _sphereTrimeshProjected = Vector3.zero();
+  final _sphereTrimeshV = Vector3.zero();
+  final _sphereTrimeshV2 = Vector3.zero();
+  final _sphereTrimeshEdgeVertexA = Vector3.zero();
+  final _sphereTrimeshEdgeVertexB = Vector3.zero();
+  final _sphereTrimeshEdgeVector = Vector3.zero();
+  final _sphereTrimeshEdgeVectorUnit = Vector3.zero();
+  final _sphereTrimeshlocal = Vector3.zero();
+  final _sphereTrimeshTmp = Vector3.zero();
+  final _sphereTrimeshVa = Vector3.zero();
+  final _sphereTrimeshVb = Vector3.zero();
+  final _sphereTrimeshVc = Vector3.zero();
   final _sphereTrimeshLocalSphereAABB = AABB();
   final List<int> _sphereTrimeshTriangles = [];
 
-  final _pointOnPlaneToSphere = Vec3();
-  final _planeToSphereOrtho = Vec3();
+  final _pointOnPlaneToSphere = Vector3.zero();
+  final _planeToSphereOrtho = Vector3.zero();
 
   // See http://bulletphysics.com/Bullet/BulletFull/SphereTriangleDetector_8cpp_source.html
-  final _pointInPolygonEdge = Vec3();
-  final _pointInPolygonEdgeXNormal = Vec3();
-  final _pointInPolygonVtp = Vec3();
+  final _pointInPolygonEdge = Vector3.zero();
+  final _pointInPolygonEdgeXNormal = Vector3.zero();
+  final _pointInPolygonVtp = Vector3.zero();
 
 
-  final _boxToSphere = Vec3();
-  final _sphereBoxNs = Vec3();
-  final _sphereBoxNs1 = Vec3();
-  final _sphereBoxNs2 = Vec3();
-  final List<Vec3> sphereBoxSides = [Vec3(), Vec3(), Vec3(), Vec3(), Vec3(), Vec3()];
-  final _sphereBoxSphereToCorner = Vec3();
-  final _sphereBoxSideNs = Vec3();
-  final _sphereBoxSideNs1 = Vec3();
-  final _sphereBoxSideNs2 = Vec3();
+  final _boxToSphere = Vector3.zero();
+  final _sphereBoxNs = Vector3.zero();
+  final _sphereBoxNs1 = Vector3.zero();
+  final _sphereBoxNs2 = Vector3.zero();
+  final List<Vector3> sphereBoxSides = [Vector3.zero(), Vector3.zero(), Vector3.zero(), Vector3.zero(), Vector3.zero(), Vector3.zero()];
+  final _sphereBoxSphereToCorner = Vector3.zero();
+  final _sphereBoxSideNs = Vector3.zero();
+  final _sphereBoxSideNs1 = Vector3.zero();
+  final _sphereBoxSideNs2 = Vector3.zero();
 
-  final _convexToSphere = Vec3();
-  final _sphereConvexEdge = Vec3();
-  final _sphereConvexEdgeUnit = Vec3();
-  final _sphereConvexSphereToCorner = Vec3();
-  final _sphereConvexWorldCorner = Vec3();
-  final _sphereConvexWorldNormal = Vec3();
-  final _sphereConvexWorldPoint = Vec3();
-  final _sphereConvexWorldSpherePointClosestToPlane = Vec3();
-  final _sphereConvexPenetrationVec = Vec3();
-  final _sphereConvexSphereToWorldPoint = Vec3();
+  final _convexToSphere = Vector3.zero();
+  final _sphereConvexEdge = Vector3.zero();
+  final _sphereConvexEdgeUnit = Vector3.zero();
+  final _sphereConvexSphereToCorner = Vector3.zero();
+  final _sphereConvexWorldCorner = Vector3.zero();
+  final _sphereConvexWorldNormal = Vector3.zero();
+  final _sphereConvexWorldPoint = Vector3.zero();
+  final _sphereConvexWorldSpherePointClosestToPlane = Vector3.zero();
+  final _sphereConvexPenetrationVec = Vector3.zero();
+  final _sphereConvexSphereToWorldPoint = Vector3.zero();
 
-  //final _planeBoxNormal = Vec3();
-  //final _planeToCorner = Vec3();
+  //final _planeBoxNormal = Vector3.zero();
+  //final _planeToCorner = Vector3.zero();
 
-  final _planeConvexV = Vec3();
-  final _planeConvexNormal = Vec3();
-  final _planeConvexRelpos = Vec3();
-  final _planeConvexProjected = Vec3();
+  final _planeConvexV = Vector3.zero();
+  final _planeConvexNormal = Vector3.zero();
+  final _planeConvexRelpos = Vector3.zero();
+  final _planeConvexProjected = Vector3.zero();
 
-  final _convexConvexSepAxis = Vec3();
-  final _convexConvexQ = Vec3();
+  final _convexConvexSepAxis = Vector3.zero();
+  final _convexConvexQ = Vector3.zero();
 
-  final _particlePlaneNormal = Vec3();
-  final _particlePlaneRelpos = Vec3();
-  final _particlePlaneProjected = Vec3();
+  final _particlePlaneNormal = Vector3.zero();
+  final _particlePlaneRelpos = Vector3.zero();
+  final _particlePlaneProjected = Vector3.zero();
 
-  final _particleSphereNormal = Vec3();
+  final _particleSphereNormal = Vector3.zero();
 
   // WIP
   
-  final _convexParticleLocal = Vec3();
-  //final _convexParticleNormal = Vec3();
-  final _convexParticlePenetratedFaceNormal = Vec3();
+  final _convexParticleLocal = Vector3.zero();
+  //final _convexParticleNormal = Vector3.zero();
+  final _convexParticlePenetratedFaceNormal = Vector3.zero();
   
-  final _convexParticleWorldPenetrationVec = Vec3();
+  final _convexParticleWorldPenetrationVec = Vector3.zero();
 
-  final _convexHeightfieldTmp1 = Vec3();
-  final _convexHeightfieldTmp2 = Vec3();
+  final _convexHeightfieldTmp1 = Vector3.zero();
+  final _convexHeightfieldTmp2 = Vector3.zero();
   List<int> convexHeightfieldFaceList = [0];
 
-  final _sphereHeightfieldTmp1 = Vec3();
-  final _sphereHeightfieldTmp2 = Vec3();
+  final _sphereHeightfieldTmp1 = Vector3.zero();
+  final _sphereHeightfieldTmp2 = Vector3.zero();
 
   CollisionType? _getCollisionType(String type){
     switch (type) {
@@ -408,7 +409,7 @@ class Narrowphase {
     if (friction > 0) {
       // Create 2 tangent equations
       // Users may provide a force different from global gravity to use when computing contact friction.
-      final mug = friction * (world.frictionGravity ?? world.gravity).length();
+      final mug = friction * (world.frictionGravity ?? world.gravity).length;
       double reducedMass = bodyA.invMass + bodyB.invMass;
       if (reducedMass > 0) {
         reducedMass = 1 / reducedMass;
@@ -423,10 +424,10 @@ class Narrowphase {
       c1.maxForce = c2.maxForce = mug * reducedMass;
 
       // Copy over the relative vectors
-      c1.ri.copy(contactEquation.ri);
-      c1.rj.copy(contactEquation.rj);
-      c2.ri.copy(contactEquation.ri);
-      c2.rj.copy(contactEquation.rj);
+      c1.ri.setFrom(contactEquation.ri);
+      c1.rj.setFrom(contactEquation.rj);
+      c2.ri.setFrom(contactEquation.ri);
+      c2.rj.setFrom(contactEquation.rj);
 
       // Construct tangents
       contactEquation.ni.tangents(c1.t, c2.t);
@@ -468,21 +469,21 @@ class Narrowphase {
     for (int i = 0; i != numContacts; i++) {
       c = result[result.length - 1 - i];
       if (c.bi != bodyA) {
-        _averageNormal.vadd(c.ni, _averageNormal);
-        _averageContactPointA.vadd(c.ri, _averageContactPointA);
-        _averageContactPointB.vadd(c.rj, _averageContactPointB);
+        _averageNormal.add2(c.ni, _averageNormal);
+        _averageContactPointA.add2(c.ri, _averageContactPointA);
+        _averageContactPointB.add2(c.rj, _averageContactPointB);
       } else {
-        _averageNormal.vsub(c.ni, _averageNormal);
-        _averageContactPointA.vadd(c.rj, _averageContactPointA);
-        _averageContactPointB.vadd(c.ri, _averageContactPointB);
+        _averageNormal.sub2(c.ni, _averageNormal);
+        _averageContactPointA.add2(c.rj, _averageContactPointA);
+        _averageContactPointB.add2(c.ri, _averageContactPointB);
       }
     }
 
     final invNumContacts = 1 / numContacts;
-    _averageContactPointA.scale(invNumContacts, f1.ri);
-    _averageContactPointB.scale(invNumContacts, f1.rj);
-    f2.ri.copy(f1.ri); // Should be the same
-    f2.rj.copy(f1.rj);
+    _averageContactPointA.scale2(invNumContacts, f1.ri);
+    _averageContactPointB.scale2(invNumContacts, f1.rj);
+    f2.ri.setFrom(f1.ri); // Should be the same
+    f2.rj.setFrom(f1.rj);
     _averageNormal.normalize();
     _averageNormal.tangents(f1.t, f2.t);
   }
@@ -529,16 +530,16 @@ class Narrowphase {
         (bi.type == BodyTypes.kinematic && bj.type == BodyTypes.kinematic);
 
       for (int i = 0; i < bi.shapes.length; i++) {
-        bi.quaternion.mult(bi.shapeOrientations[i], qi);
+        bi.quaternion.multiply2(bi.shapeOrientations[i], qi);
         bi.quaternion.vmult(bi.shapeOffsets[i], xi);
-        xi.vadd(bi.position, xi);
+        xi.add2(bi.position, xi);
         final si = bi.shapes[i];
 
         for (int j = 0; j < bj.shapes.length; j++) {
           // Compute world transform of shapes
-          bj.quaternion.mult(bj.shapeOrientations[j], qj);
+          bj.quaternion.multiply2(bj.shapeOrientations[j], qj);
           bj.quaternion.vmult(bj.shapeOffsets[j], xj);
-          xj.vadd(bj.position, xj);
+          xj.add2(bj.position, xj);
           final sj = bj.shapes[j];
    
           if (!(si.collisionFilterMask & sj.collisionFilterGroup != 0 && sj.collisionFilterMask & si.collisionFilterGroup != 0)) {
@@ -584,8 +585,8 @@ class Narrowphase {
   bool sphereSphere(
     Sphere si,
     Sphere sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -603,20 +604,20 @@ class Narrowphase {
     final contactEq = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
     // Contact normal
-    xj.vsub(xi, contactEq.ni);
+    xj.sub2(xi, contactEq.ni);
     contactEq.ni.normalize();
 
     // Contact point locations
-    contactEq.ri.copy(contactEq.ni);
-    contactEq.rj.copy(contactEq.ni);
-    contactEq.ri.scale(si.radius, contactEq.ri);
-    contactEq.rj.scale(-sj.radius, contactEq.rj);
+    contactEq.ri.setFrom(contactEq.ni);
+    contactEq.rj.setFrom(contactEq.ni);
+    contactEq.ri.scale2(si.radius, contactEq.ri);
+    contactEq.rj.scale2(-sj.radius, contactEq.rj);
 
-    contactEq.ri.vadd(xi, contactEq.ri);
-    contactEq.ri.vsub(bi.position, contactEq.ri);
+    contactEq.ri.add2(xi, contactEq.ri);
+    contactEq.ri.sub2(bi.position, contactEq.ri);
 
-    contactEq.rj.vadd(xj, contactEq.rj);
-    contactEq.rj.vsub(bj.position, contactEq.rj);
+    contactEq.rj.add2(xj, contactEq.rj);
+    contactEq.rj.sub2(bj.position, contactEq.rj);
 
     result.add(contactEq);
 
@@ -627,8 +628,8 @@ class Narrowphase {
   bool spherePlane(
     Sphere si,
     Plane sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -642,18 +643,18 @@ class Narrowphase {
     final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
     // Contact normal
-    r.ni.set(0, 0, 1);
+    r.ni.setValues(0, 0, 1);
     qj.vmult(r.ni, r.ni);
-    r.ni.negate(r.ni); // body i is the sphere, flip normal
+    r.ni.negate(); // body i is the sphere, flip normal
     r.ni.normalize(); // Needed?
 
     // Vector from sphere center to contact point
-    r.ni.scale(si.radius, r.ri);
+    r.ni.scale2(si.radius, r.ri);
 
     // Project down sphere on plane
-    xi.vsub(xj, _pointOnPlaneToSphere);
-    r.ni.scale(r.ni.dot(_pointOnPlaneToSphere), _planeToSphereOrtho);
-    _pointOnPlaneToSphere.vsub(_planeToSphereOrtho, r.rj); // The sphere position projected to plane
+    xi.sub2(xj, _pointOnPlaneToSphere);
+    r.ni.scale2(r.ni.dot(_pointOnPlaneToSphere), _planeToSphereOrtho);
+    _pointOnPlaneToSphere.sub2(_planeToSphereOrtho, r.rj); // The sphere position projected to plane
 
     if (-_pointOnPlaneToSphere.dot(r.ni) <= si.radius) {
       if (justTest) {
@@ -663,10 +664,10 @@ class Narrowphase {
       // Make it relative to the body
       final ri = r.ri;
       final rj = r.rj;
-      ri.vadd(xi, ri);
-      ri.vsub(bi.position, ri);
-      rj.vadd(xj, rj);
-      rj.vsub(bj.position, rj);
+      ri.add2(xi, ri);
+      ri.sub2(bi.position, ri);
+      rj.add2(xj, rj);
+      rj.sub2(bj.position, rj);
 
       result.add(r);
       createFrictionEquationsFromContact(r, frictionResult);
@@ -677,8 +678,8 @@ class Narrowphase {
   bool sphereBox(
     Sphere si,
     Box sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -692,7 +693,7 @@ class Narrowphase {
 
     // we refer to the box as body j
     final sides = sphereBoxSides;
-    xi.vsub(xj, _boxToSphere);
+    xi.sub2(xj, _boxToSphere);
     sj.getSideNormals(sides, qj);
     final R = si.radius;
     //final penetrating_sides = [];
@@ -713,9 +714,9 @@ class Narrowphase {
     for (int idx = 0, nsides = sides.length; idx != nsides && found == false; idx++) {
       // Get the plane side normal (ns)
       final ns = _sphereBoxNs;
-      ns.copy(sides[idx]);
+      ns.setFrom(sides[idx]);
 
-      final h = ns.length();
+      final h = ns.length;
       ns.normalize();
 
       // The normal/distance dot product tells which side of the plane we are
@@ -725,10 +726,10 @@ class Narrowphase {
         // Intersects plane. Now check the other two dimensions
         final ns1 = _sphereBoxNs1;
         final ns2 = _sphereBoxNs2;
-        ns1.copy(sides[(idx + 1) % 3]);
-        ns2.copy(sides[(idx + 2) % 3]);
-        final h1 = ns1.length();
-        final h2 = ns2.length();
+        ns1.setFrom(sides[(idx + 1) % 3]);
+        ns2.setFrom(sides[(idx + 2) % 3]);
+        final h1 = ns1.length;
+        final h2 = ns2.length;
         ns1.normalize();
         ns2.normalize();
         final dot1 = _boxToSphere.dot(ns1);
@@ -740,9 +741,9 @@ class Narrowphase {
             sideDot1 = dot1;
             sideDot2 = dot2;
             sideH = h;
-            sideNs.copy(ns);
-            sideNs1.copy(ns1);
-            sideNs2.copy(ns2);
+            sideNs.setFrom(ns);
+            sideNs1.setFrom(ns1);
+            sideNs2.setFrom(ns2);
             sidePenetrations++;
 
             if (justTest) {
@@ -755,69 +756,69 @@ class Narrowphase {
     if (sidePenetrations != 0) {
       found = true;
       final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-      sideNs.scale(-R, r.ri); // Sphere r
-      r.ni.copy(sideNs);
-      r.ni.negate(r.ni); // Normal should be out of sphere
-      sideNs.scale(sideH!, sideNs);
-      sideNs1.scale(sideDot1, sideNs1);
-      sideNs.vadd(sideNs1, sideNs);
-      sideNs2.scale(sideDot2, sideNs2);
-      sideNs.vadd(sideNs2, r.rj);
+      sideNs.scale2(-R, r.ri); // Sphere r
+      r.ni.setFrom(sideNs);
+      r.ni.negate(); // Normal should be out of sphere
+      sideNs.scale2(sideH!, sideNs);
+      sideNs1.scale2(sideDot1, sideNs1);
+      sideNs.add2(sideNs1, sideNs);
+      sideNs2.scale2(sideDot2, sideNs2);
+      sideNs.add2(sideNs2, r.rj);
 
       // Make relative to bodies
-      r.ri.vadd(xi, r.ri);
-      r.ri.vsub(bi.position, r.ri);
-      r.rj.vadd(xj, r.rj);
-      r.rj.vsub(bj.position, r.rj);
+      r.ri.add2(xi, r.ri);
+      r.ri.sub2(bi.position, r.ri);
+      r.rj.add2(xj, r.rj);
+      r.rj.sub2(bj.position, r.rj);
 
       result.add(r);
       createFrictionEquationsFromContact(r, frictionResult);
     }
 
     // Check corners
-    dynamic rj = v3pool.get();
+    Vector3? rj = v3pool.get();
     final sphereToCorner = _sphereBoxSphereToCorner;
     for (int j = 0; j != 2 && !found; j++) {
       for (int k = 0; k != 2 && !found; k++) {
         for (int l = 0; l != 2 && !found; l++) {
-          rj.set(0.0, 0.0, 0.0);
+          rj!.setValues(0.0, 0.0, 0.0);
           if (j != 0) {
-            rj.vadd(sides[0], rj);
+            rj.add2(sides[0], rj);
           } else {
-            rj.vsub(sides[0], rj);
+            rj.sub2(sides[0], rj);
           }
           if (k != 0) {
-            rj.vadd(sides[1], rj);
+            rj.add2(sides[1], rj);
           } else {
-            rj.vsub(sides[1], rj);
+            rj.sub2(sides[1], rj);
           }
           if (l != 0) {
-            rj.vadd(sides[2], rj);
+            rj.add2(sides[2], rj);
           } else {
-            rj.vsub(sides[2], rj);
+            rj.sub2(sides[2], rj);
           }
 
           // World position of corner
-          xj.vadd(rj, sphereToCorner);
-          sphereToCorner.vsub(xi, sphereToCorner);
+          xj.add2(rj, sphereToCorner);
+          sphereToCorner.sub2(xi, sphereToCorner);
 
-          if (sphereToCorner.lengthSquared() < R * R) {
+          if (sphereToCorner.length2 < R * R) {
             if (justTest) {
               return true;
             }
             found = true;
             final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-            r.ri.copy(sphereToCorner);
+            r.ri.setFrom(sphereToCorner);
             r.ri.normalize();
-            r.ni.copy(r.ri);
-            r.ri.scale(R, r.ri);
-            r.rj.copy(rj);
+            r.ni.setFrom(r.ri);
+            r.ri.scale2(R, r.ri);
+            r.rj.setFrom(rj);
 
             // Make relative to bodies
-            r.ri.vadd(xi, r.ri);
-            r.ri.vsub(bi.position, r.ri);
-            r.rj.vadd(xj, r.rj);
-            r.rj.vsub(bj.position, r.rj);
+            r.ri.add2(xi, r.ri);
+            r.ri.sub2(bi.position, r.ri);
+            r.rj.add2(xj, r.rj);
+            r.rj.sub2(bj.position, r.rj);
 
             result.add(r);
             createFrictionEquationsFromContact(r, frictionResult);
@@ -829,24 +830,24 @@ class Narrowphase {
     rj = null;
 
     // Check edges
-    final edgeTangent = v3pool.get();
-    final edgeCenter = v3pool.get();
-    final r = v3pool.get(); // r = edge center to sphere center
-    final orthogonal = v3pool.get();
-    final dist = v3pool.get();
-    final nSides = sides.length;
+    final Vector3 edgeTangent = v3pool.get();
+    final Vector3 edgeCenter = v3pool.get();
+    final Vector3 r = v3pool.get(); // r = edge center to sphere center
+    final Vector3 orthogonal = v3pool.get();
+    final Vector3 dist = v3pool.get();
+    final int nSides = sides.length;
     for (int j = 0; j != nSides && !found; j++) {
       for (int k = 0; k != nSides && !found; k++) {
         if (j % 3 != k % 3) {
           // Get edge tangent
-          sides[k].cross(sides[j], edgeTangent);
+          sides[k].cross2(sides[j], edgeTangent);
           edgeTangent.normalize();
-          sides[j].vadd(sides[k], edgeCenter);
-          r.copy(xi);
-          r.vsub(edgeCenter, r);
-          r.vsub(xj, r);
+          sides[j].add2(sides[k], edgeCenter);
+          r.setFrom(xi);
+          r.sub2(edgeCenter, r);
+          r.sub2(xj, r);
           final orthonorm = r.dot(edgeTangent); // distance from edge center to sphere center in the tangent direction
-          edgeTangent.scale(orthonorm, orthogonal); // Vector from edge center to sphere center in the tangent direction
+          edgeTangent.scale2(orthonorm, orthogonal); // Vector from edge center to sphere center in the tangent direction
 
           // Find the third side orthogonal to this one
           int l = 0;
@@ -855,37 +856,37 @@ class Narrowphase {
           }
 
           // vec from edge center to sphere projected to the plane orthogonal to the edge tangent
-          dist.copy(xi);
-          dist.vsub(orthogonal, dist);
-          dist.vsub(edgeCenter, dist);
-          dist.vsub(xj, dist);
+          dist.setFrom(xi);
+          dist.sub2(orthogonal, dist);
+          dist.sub2(edgeCenter, dist);
+          dist.sub2(xj, dist);
 
           // Distances in tangent direction and distance in the plane orthogonal to it
           final tdist = orthonorm.abs();
-          final ndist = dist.length();
+          final ndist = dist.length;
 
-          if (tdist < sides[l].length() && ndist < R) {
+          if (tdist < sides[l].length && ndist < R) {
             if (justTest) {
               return true;
             }
             found = true;
             final res = createContactEquation(bi, bj, si, sj, rsi, rsj);
-            edgeCenter.vadd(orthogonal, res.rj); // box rj
-            res.rj.copy(res.rj);
-            dist.negate(res.ni);
+            edgeCenter.add2(orthogonal, res.rj); // box rj
+            res.rj.setFrom(res.rj);
+            res.ni..setFrom(dist)..negate();
             res.ni.normalize();
 
-            res.ri.copy(res.rj);
-            res.ri.vadd(xj, res.ri);
-            res.ri.vsub(xi, res.ri);
+            res.ri.setFrom(res.rj);
+            res.ri.add2(xj, res.ri);
+            res.ri.sub2(xi, res.ri);
             res.ri.normalize();
-            res.ri.scale(R, res.ri);
+            res.ri.scale2(R, res.ri);
 
             // Make relative to bodies
-            res.ri.vadd(xi, res.ri);
-            res.ri.vsub(bi.position, res.ri);
-            res.rj.vadd(xj, res.rj);
-            res.rj.vsub(bj.position, res.rj);
+            res.ri.add2(xi, res.ri);
+            res.ri.sub2(bi.position, res.ri);
+            res.rj.add2(xj, res.rj);
+            res.rj.sub2(bj.position, res.rj);
 
             result.add(res);
             createFrictionEquationsFromContact(res, frictionResult);
@@ -900,8 +901,8 @@ class Narrowphase {
   bool sphereConvex(
     Sphere si,
     ConvexPolyhedron sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -912,7 +913,7 @@ class Narrowphase {
       bool justTest = false
   ]){
     final v3pool = this.v3pool;
-    xi.vsub(xj, _convexToSphere);
+    xi.sub2(xj, _convexToSphere);
     final normals = sj.faceNormals;
     final faces = sj.faces;
     final verts = sj.vertices;
@@ -926,28 +927,28 @@ class Narrowphase {
       // World position of corner
       final worldCorner = _sphereConvexWorldCorner;
       qj.vmult(v, worldCorner);
-      xj.vadd(worldCorner, worldCorner);
+      xj.add2(worldCorner, worldCorner);
       final sphereToCorner = _sphereConvexSphereToCorner;
-      worldCorner.vsub(xi, sphereToCorner);
-      if (sphereToCorner.lengthSquared() < R * R) {
+      worldCorner.sub2(xi, sphereToCorner);
+      if (sphereToCorner.length2 < R * R) {
         if (justTest) {
           return true;
         }
         found = true;
         final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-        r.ri.copy(sphereToCorner);
+        r.ri.setFrom(sphereToCorner);
         r.ri.normalize();
-        r.ni.copy(r.ri);
-        r.ri.scale(R, r.ri);
-        worldCorner.vsub(xj, r.rj);
+        r.ni.setFrom(r.ri);
+        r.ri.scale2(R, r.ri);
+        worldCorner.sub2(xj, r.rj);
 
         // Should be relative to the body.
-        r.ri.vadd(xi, r.ri);
-        r.ri.vsub(bi.position, r.ri);
+        r.ri.add2(xi, r.ri);
+        r.ri.sub2(bi.position, r.ri);
 
         // Should be relative to the body.
-        r.rj.vadd(xj, r.rj);
-        r.rj.vsub(bj.position, r.rj);
+        r.rj.add2(xj, r.rj);
+        r.rj.sub2(bj.position, r.rj);
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
@@ -967,30 +968,30 @@ class Narrowphase {
       // Get a world vertex from the face
       final worldPoint = _sphereConvexWorldPoint;
       qj.vmult(verts[face[0]], worldPoint);
-      worldPoint.vadd(xj, worldPoint);
+      worldPoint.add2(xj, worldPoint);
 
       // Get a point on the sphere, closest to the face normal
       final worldSpherePointClosestToPlane = _sphereConvexWorldSpherePointClosestToPlane;
-      worldNormal.scale(-R, worldSpherePointClosestToPlane);
-      xi.vadd(worldSpherePointClosestToPlane, worldSpherePointClosestToPlane);
+      worldNormal.scale2(-R, worldSpherePointClosestToPlane);
+      xi.add2(worldSpherePointClosestToPlane, worldSpherePointClosestToPlane);
 
       // Vector from a face point to the closest point on the sphere
       final penetrationVec = _sphereConvexPenetrationVec;
-      worldSpherePointClosestToPlane.vsub(worldPoint, penetrationVec);
+      worldSpherePointClosestToPlane.sub2(worldPoint, penetrationVec);
 
       // The penetration. Negative value means overlap.
       final penetration = penetrationVec.dot(worldNormal);
 
       final worldPointToSphere = _sphereConvexSphereToWorldPoint;
-      xi.vsub(worldPoint, worldPointToSphere);
+      xi.sub2(worldPoint, worldPointToSphere);
 
       if (penetration < 0 && worldPointToSphere.dot(worldNormal) > 0) {
         // Intersects plane. Now check if the sphere is inside the face polygon
-        final List<Vec3> faceVerts = []; // Face vertices, in world coords
+        final List<Vector3> faceVerts = []; // Face vertices, in world coords
         for (int j = 0, nVerts = face.length; j != nVerts; j++) {
           final worldVertex = v3pool.get();
           qj.vmult(verts[face[j]], worldVertex);
-          xj.vadd(worldVertex, worldVertex);
+          xj.add2(worldVertex, worldVertex);
           faceVerts.add(worldVertex);
         }
 
@@ -1002,26 +1003,26 @@ class Narrowphase {
           found = true;
           final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-          worldNormal.scale(-R, r.ri); // Contact offset, from sphere center to contact
-          worldNormal.negate(r.ni); // Normal pointing out of sphere
+          worldNormal.scale2(-R, r.ri); // Contact offset, from sphere center to contact
+          r.ni..setFrom(worldNormal)..negate(); // Normal pointing out of sphere
 
           final penetrationVec2 = v3pool.get();
-          worldNormal.scale(-penetration, penetrationVec2);
+          worldNormal.scale2(-penetration, penetrationVec2);
           final penetrationSpherePoint = v3pool.get();
-          worldNormal.scale(-R, penetrationSpherePoint);
+          worldNormal.scale2(-R, penetrationSpherePoint);
 
-          //xi.vsub(xj).vadd(penetrationSpherePoint).vadd(penetrationVec2 , r.rj);
-          xi.vsub(xj, r.rj);
-          r.rj.vadd(penetrationSpherePoint, r.rj);
-          r.rj.vadd(penetrationVec2, r.rj);
-
-          // Should be relative to the body.
-          r.rj.vadd(xj, r.rj);
-          r.rj.vsub(bj.position, r.rj);
+          //xi.sub2(xj).add2(penetrationSpherePoint).add2(penetrationVec2 , r.rj);
+          xi.sub2(xj, r.rj);
+          r.rj.add2(penetrationSpherePoint, r.rj);
+          r.rj.add2(penetrationVec2, r.rj);
 
           // Should be relative to the body.
-          r.ri.vadd(xi, r.ri);
-          r.ri.vsub(bi.position, r.ri);
+          r.rj.add2(xj, r.rj);
+          r.rj.sub2(bj.position, r.rj);
+
+          // Should be relative to the body.
+          r.ri.add2(xi, r.ri);
+          r.ri.sub2(bi.position, r.ri);
 
           v3pool.release([penetrationVec2,penetrationSpherePoint]);
 
@@ -1042,52 +1043,52 @@ class Narrowphase {
             final v2 = v3pool.get();
             qj.vmult(verts[face[(j + 1) % face.length]], v1);
             qj.vmult(verts[face[(j + 2) % face.length]], v2);
-            xj.vadd(v1, v1);
-            xj.vadd(v2, v2);
+            xj.add2(v1, v1);
+            xj.add2(v2, v2);
 
             // Construct edge vector
             final edge = _sphereConvexEdge;
-            v2.vsub(v1, edge);
+            v2.sub2(v1, edge);
 
             // Construct the same vector, but normalized
             final edgeUnit = _sphereConvexEdgeUnit;
             edge.unit(edgeUnit);
 
             // p is xi projected onto the edge
-            final p = v3pool.get() as Vec3;
-            final v1ToXi = v3pool.get() as Vec3;
-            xi.vsub(v1, v1ToXi);
+            final p = v3pool.get() as Vector3;
+            final v1ToXi = v3pool.get() as Vector3;
+            xi.sub2(v1, v1ToXi);
             final dot = v1ToXi.dot(edgeUnit);
-            edgeUnit.scale(dot, p);
-            p.vadd(v1, p);
+            edgeUnit.scale2(dot, p);
+            p.add2(v1, p);
 
             // Compute a vector from p to the center of the sphere
             final xiToP = v3pool.get();
-            p.vsub(xi, xiToP);
+            p.sub2(xi, xiToP);
 
             // Collision if the edge-sphere distance is less than the radius
             // AND if p is in between v1 and v2
-            if (dot > 0 && dot * dot < edge.lengthSquared() && xiToP.lengthSquared() < R * R) {
+            if (dot > 0 && dot * dot < edge.length2 && xiToP.length2 < R * R) {
               // Collision if the edge-sphere distance is less than the radius
               // Edge contact!
               if (justTest) {
                 return true;
               }
               final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-              p.vsub(xj, r.rj);
+              p.sub2(xj, r.rj);
 
-              p.vsub(xi, r.ni);
+              p.sub2(xi, r.ni);
               r.ni.normalize();
 
-              r.ni.scale(R, r.ri);
+              r.ni.scale2(R, r.ri);
 
               // Should be relative to the body.
-              r.rj.vadd(xj, r.rj);
-              r.rj.vsub(bj.position, r.rj);
+              r.rj.add2(xj, r.rj);
+              r.rj.sub2(bj.position, r.rj);
 
               // Should be relative to the body.
-              r.ri.vadd(xi, r.ri);
-              r.ri.vsub(bi.position, r.ri);
+              r.ri.add2(xi, r.ri);
+              r.ri.sub2(bi.position, r.ri);
 
               result.add(r);
               createFrictionEquationsFromContact(r, frictionResult);
@@ -1106,7 +1107,7 @@ class Narrowphase {
         }
 
         // Release world vertices
-        List<Vec3> toRelease = [];
+        List<Vector3> toRelease = [];
         for (int j = 0, nFaceverts = faceVerts.length; j != nFaceverts; j++) {
           toRelease.add(faceVerts[j]);
         }
@@ -1119,8 +1120,8 @@ class Narrowphase {
   bool sphereParticle(
     Sphere sj,
     Particle si,
-    Vec3 xj,
-    Vec3 xi,
+    Vector3 xj,
+    Vector3 xi,
     Quaternion qj,
     Quaternion qi,
     Body bj,
@@ -1132,9 +1133,9 @@ class Narrowphase {
   ]){
     // The normal is the unit vector from sphere center to particle center
     final normal = _particleSphereNormal;
-    normal.set(0, 0, 1);
-    xi.vsub(xj, normal);
-    final lengthSquared = normal.lengthSquared();
+    normal.setValues(0, 0, 1);
+    xi.sub2(xj, normal);
+    final lengthSquared = normal.length2;
 
     if (lengthSquared <= sj.radius * sj.radius) {
       if (justTest) {
@@ -1142,11 +1143,11 @@ class Narrowphase {
       }
       final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
       normal.normalize();
-      r.rj.copy(normal);
-      r.rj.scale(sj.radius, r.rj);
-      r.ni.copy(normal); // Contact normal
-      r.ni.negate(r.ni);
-      r.ri.set(0, 0, 0); // Center of particle
+      r.rj.setFrom(normal);
+      r.rj.scale2(sj.radius, r.rj);
+      r.ni.setFrom(normal); // Contact normal
+      r.ni.negate();
+      r.ri.setValues(0, 0, 0); // Center of particle
       result.add(r);
       createFrictionEquationsFromContact(r, frictionResult);
     }
@@ -1156,8 +1157,8 @@ class Narrowphase {
   bool sphereHeightfield(
     Sphere si,
     Heightfield sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1299,8 +1300,8 @@ class Narrowphase {
   bool sphereTrimesh(
     Sphere si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1327,12 +1328,12 @@ class Narrowphase {
 
     // Get the aabb of the sphere locally in the trimesh
     final sphereRadius = si.radius;
-    localSphereAABB.lowerBound.set(
+    localSphereAABB.lowerBound.setValues(
       local.x - sphereRadius,
       local.y - sphereRadius,
       local.z - sphereRadius
     );
-    localSphereAABB.upperBound.set(
+    localSphereAABB.upperBound.setValues(
       local.x + sphereRadius,
       local.y + sphereRadius,
       local.z + sphereRadius
@@ -1352,30 +1353,30 @@ class Narrowphase {
       for (int j = 0; j < 3; j++) {
         {
           sj.getVertex(sj.indices[i*3+j], v);//triangles[i]*3 + j
-          v.vsub(local, relpos);
-          if (relpos.lengthSquared() <= radiusSquared) {
+          v.sub2(local, relpos);
+          if (relpos.length2 <= radiusSquared) {
             // Safe up
-            v2.copy(v);
+            v2.setFrom(v);
             Transform.pointToWorldFrame(xj, qj, v2, v);
 
-            v.vsub(xi, relpos);
+            v.sub2(xi, relpos);
 
             if (justTest) {
               return true;
             }
 
             final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-            r.ni.copy(relpos);
+            r.ni.setFrom(relpos);
             r.ni.normalize();
 
             // ri is the vector from sphere center to the sphere surface
-            r.ri.copy(r.ni);
-            r.ri.scale(si.radius, r.ri);
+            r.ri.setFrom(r.ni);
+            r.ri.scale2(si.radius, r.ri);
             
-            r.ri.vadd(xi, r.ri);
-            r.ri.vsub(bi.position, r.ri);
-            r.rj.copy(v);
-            r.rj.vsub(bj.position, r.rj);
+            r.ri.add2(xi, r.ri);
+            r.ri.sub2(bi.position, r.ri);
+            r.rj.setFrom(v);
+            r.rj.sub2(bj.position, r.rj);
 
             // Store result
             result.add(r);
@@ -1384,23 +1385,23 @@ class Narrowphase {
           {
             sj.getVertex(sj.indices[i*3 + j], edgeVertexA);//triangles[i]*3
             sj.getVertex(sj.indices[i*3 + ((j + 1) % 3)], edgeVertexB);//triangles[i]*3
-            edgeVertexB.vsub(edgeVertexA, edgeVector);
+            edgeVertexB.sub2(edgeVertexA, edgeVector);
             
             // Project sphere position to the edge
-            local.vsub(edgeVertexB, tmp);
+            local.sub2(edgeVertexB, tmp);
             final positionAlongEdgeB = tmp.dot(edgeVector);
 
-            local.vsub(edgeVertexA, tmp);
+            local.sub2(edgeVertexA, tmp);
             double positionAlongEdgeA = tmp.dot(edgeVector);
 
             if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
               // Now check the orthogonal distance from edge to sphere center
-              local.vsub(edgeVertexA, tmp);
-              edgeVectorUnit.copy(edgeVector);
+              local.sub2(edgeVertexA, tmp);
+              edgeVectorUnit.setFrom(edgeVector);
               edgeVectorUnit.normalize();
               positionAlongEdgeA = tmp.dot(edgeVectorUnit);
-              edgeVectorUnit.scale(positionAlongEdgeA, tmp);
-              tmp.vadd(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
+              edgeVectorUnit.scale2(positionAlongEdgeA, tmp);
+              tmp.add2(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
               
               final dist = tmp.distanceTo(local);
               if (dist < si.radius) {
@@ -1409,14 +1410,14 @@ class Narrowphase {
                 }
                 final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-                tmp.vsub(local, r.ni);
+                tmp.sub2(local, r.ni);
                 r.ni.normalize();
-                r.ni.scale(si.radius, r.ri);
-                r.ri.vadd(xi, r.ri);
-                r.ri.vsub(bi.position, r.ri);
+                r.ni.scale2(si.radius, r.ri);
+                r.ri.add2(xi, r.ri);
+                r.ri.sub2(bi.position, r.ri);
 
                 Transform.pointToWorldFrame(xj, qj, tmp, tmp);
-                tmp.vsub(bj.position, r.rj);
+                tmp.sub2(bj.position, r.rj);
 
                 Transform.vectorToWorldFrame(qj, r.ni, r.ni);
                 Transform.vectorToWorldFrame(qj, r.ri, r.ri);
@@ -1431,10 +1432,10 @@ class Narrowphase {
           sj.getTriangleVertices(i, va, vb, vc);//triangles[i]
           sj.getIndicesNormal(i, normal);//triangles[i]
 
-          local.vsub(va, tmp);
+          local.sub2(va, tmp);
           double dist = tmp.dot(normal);
-          normal.scale(dist, tmp);
-          local.vsub(tmp, tmp);
+          normal.scale2(dist, tmp);
+          local.sub2(tmp, tmp);
 
           // tmp is now the sphere position projected to the triangle plane
           dist = tmp.distanceTo(local);
@@ -1444,14 +1445,14 @@ class Narrowphase {
             }
             final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-            tmp.vsub(local, r.ni);
+            tmp.sub2(local, r.ni);
             r.ni.normalize();
-            r.ni.scale(si.radius, r.ri);
-            r.ri.vadd(xi, r.ri);
-            r.ri.vsub(bi.position, r.ri);
+            r.ni.scale2(si.radius, r.ri);
+            r.ri.add2(xi, r.ri);
+            r.ri.sub2(bi.position, r.ri);
 
             Transform.pointToWorldFrame(xj, qj, tmp, tmp);
-            tmp.vsub(bj.position, r.rj);
+            tmp.sub2(bj.position, r.rj);
 
             Transform.vectorToWorldFrame(qj, r.ni, r.ni);
             Transform.vectorToWorldFrame(qj, r.ri, r.ri);
@@ -1468,23 +1469,23 @@ class Narrowphase {
     //   for (int j = 0; j < 3; j++) {
     //     sj.getVertex(sj.indices[i*3 + j], edgeVertexA);//triangles[i]*3
     //     sj.getVertex(sj.indices[i*3 + ((j + 1) % 3)], edgeVertexB);//triangles[i]*3
-    //     edgeVertexB.vsub(edgeVertexA, edgeVector);
+    //     edgeVertexB.sub2(edgeVertexA, edgeVector);
         
     //     // Project sphere position to the edge
-    //     local.vsub(edgeVertexB, tmp);
+    //     local.sub2(edgeVertexB, tmp);
     //     final positionAlongEdgeB = tmp.dot(edgeVector);
 
-    //     local.vsub(edgeVertexA, tmp);
+    //     local.sub2(edgeVertexA, tmp);
     //     double positionAlongEdgeA = tmp.dot(edgeVector);
 
     //     if (positionAlongEdgeA > 0 && positionAlongEdgeB < 0) {
     //       // Now check the orthogonal distance from edge to sphere center
-    //       local.vsub(edgeVertexA, tmp);
-    //       edgeVectorUnit.copy(edgeVector);
+    //       local.sub2(edgeVertexA, tmp);
+    //       edgeVectorUnit.setFrom(edgeVector);
     //       edgeVectorUnit.normalize();
     //       positionAlongEdgeA = tmp.dot(edgeVectorUnit);
     //       edgeVectorUnit.scale(positionAlongEdgeA, tmp);
-    //       tmp.vadd(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
+    //       tmp.add2(edgeVertexA, tmp); // tmp is now the sphere center position projected to the edge, defined locally in the trimesh frame
           
     //       final dist = tmp.distanceTo(local);
     //       if (dist < si.radius) {
@@ -1493,14 +1494,14 @@ class Narrowphase {
     //         }
     //         final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-    //         tmp.vsub(local, r.ni);
+    //         tmp.sub2(local, r.ni);
     //         r.ni.normalize();
     //         r.ni.scale(si.radius, r.ri);
-    //         r.ri.vadd(xi, r.ri);
-    //         r.ri.vsub(bi.position, r.ri);
+    //         r.ri.add2(xi, r.ri);
+    //         r.ri.sub2(bi.position, r.ri);
 
     //         Transform.pointToWorldFrame(xj, qj, tmp, tmp);
-    //         tmp.vsub(bj.position, r.rj);
+    //         tmp.sub2(bj.position, r.rj);
 
     //         Transform.vectorToWorldFrame(qj, r.ni, r.ni);
     //         Transform.vectorToWorldFrame(qj, r.ri, r.ri);
@@ -1517,10 +1518,10 @@ class Narrowphase {
     //   sj.getTriangleVertices(i, va, vb, vc);//triangles[i]
     //   sj.getIndicesNormal(i, normal);//triangles[i]
 
-    //   local.vsub(va, tmp);
+    //   local.sub2(va, tmp);
     //   double dist = tmp.dot(normal);
     //   normal.scale(dist, tmp);
-    //   local.vsub(tmp, tmp);
+    //   local.sub2(tmp, tmp);
 
     //   // tmp is now the sphere position projected to the triangle plane
     //   dist = tmp.distanceTo(local);
@@ -1530,14 +1531,14 @@ class Narrowphase {
     //     }
     //     final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
 
-    //     tmp.vsub(local, r.ni);
+    //     tmp.sub2(local, r.ni);
     //     r.ni.normalize();
     //     r.ni.scale(si.radius, r.ri);
-    //     r.ri.vadd(xi, r.ri);
-    //     r.ri.vsub(bi.position, r.ri);
+    //     r.ri.add2(xi, r.ri);
+    //     r.ri.sub2(bi.position, r.ri);
 
     //     Transform.pointToWorldFrame(xj, qj, tmp, tmp);
-    //     tmp.vsub(bj.position, r.rj);
+    //     tmp.sub2(bj.position, r.rj);
 
     //     Transform.vectorToWorldFrame(qj, r.ni, r.ni);
     //     Transform.vectorToWorldFrame(qj, r.ri, r.ri);
@@ -1554,8 +1555,8 @@ class Narrowphase {
   bool boxBox(
     Box si,
     Box sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1574,8 +1575,8 @@ class Narrowphase {
   bool boxConvex(
     Box si,
     ConvexPolyhedron sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1592,8 +1593,8 @@ class Narrowphase {
   bool boxParticle(
     Box si,
     Particle sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1610,8 +1611,8 @@ class Narrowphase {
   bool boxHeightfield(
     Box si,
     Heightfield sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1628,8 +1629,8 @@ class Narrowphase {
   bool boxTrimesh(
     Box si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1647,8 +1648,8 @@ class Narrowphase {
   bool planeBox(
     Plane si,
     Box sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1666,8 +1667,8 @@ class Narrowphase {
   bool planeParticle(
     Plane sj,
     Particle si,
-    Vec3 xj,
-    Vec3 xi,
+    Vector3 xj,
+    Vector3 xi,
     Quaternion qj,
     Quaternion qi,
     Body bj,
@@ -1678,10 +1679,10 @@ class Narrowphase {
       bool justTest = false
   ]){
     final normal = _particlePlaneNormal;
-    normal.set(0, 0, 1);
+    normal.setValues(0, 0, 1);
     bj.quaternion.vmult(normal, normal); // Turn normal according to plane orientation
     final relpos = _particlePlaneRelpos;
-    xi.vsub(bj.position, relpos);
+    xi.sub2(bj.position, relpos);
     final dot = normal.dot(relpos);
     if (dot <= 0.0) {
       if (justTest) {
@@ -1689,17 +1690,17 @@ class Narrowphase {
       }
 
       final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-      r.ni.copy(normal); // Contact normal is the plane normal
-      r.ni.negate(r.ni);
-      r.ri.set(0, 0, 0); // Center of particle
+      r.ni.setFrom(normal); // Contact normal is the plane normal
+      r.ni.negate();
+      r.ri.setValues(0, 0, 0); // Center of particle
 
       // Get particle position projected on plane
       final projected = _particlePlaneProjected;
-      normal.scale(normal.dot(xi), projected);
-      xi.vsub(projected, projected);
+      normal.scale2(normal.dot(xi), projected);
+      xi.sub2(projected, projected);
 
       // rj is now the projected world position minus plane position
-      r.rj.copy(projected);
+      r.rj.setFrom(projected);
       result.add(r);
       createFrictionEquationsFromContact(r, frictionResult);
     }
@@ -1708,8 +1709,8 @@ class Narrowphase {
   bool planeConvex(
     Plane si,
     ConvexPolyhedron sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1723,17 +1724,17 @@ class Narrowphase {
     final worldVertex = _planeConvexV;
 
     final worldNormal = _planeConvexNormal;
-    worldNormal.set(0, 0, 1);
+    worldNormal.setValues(0, 0, 1);
     qi.vmult(worldNormal, worldNormal) ;// Turn normal according to plane orientation
 
     int numContacts = 0;
     final relpos = _planeConvexRelpos;
     for (int i = 0; i != sj.vertices.length; i++) {
       // Get world convex vertex
-      worldVertex.copy(sj.vertices[i]);
+      worldVertex.setFrom(sj.vertices[i]);
       qj.vmult(worldVertex, worldVertex);
-      xj.vadd(worldVertex, worldVertex);
-      worldVertex.vsub(xi, relpos);
+      xj.add2(worldVertex, worldVertex);
+      worldVertex.sub2(xi, relpos);
 
       final dot = worldNormal.dot(relpos);
       if (dot <= 0.0) {
@@ -1745,20 +1746,20 @@ class Narrowphase {
 
         // Get vertex position projected on plane
         final projected = _planeConvexProjected;
-        worldNormal.scale(worldNormal.dot(relpos), projected);
-        worldVertex.vsub(projected, projected);
-        projected.vsub(xi, r.ri); // From plane to vertex projected on plane
+        worldNormal.scale2(worldNormal.dot(relpos), projected);
+        worldVertex.sub2(projected, projected);
+        projected.sub2(xi, r.ri); // From plane to vertex projected on plane
 
-        r.ni.copy(worldNormal) ;// Contact normal is the plane normal out from plane
+        r.ni.setFrom(worldNormal) ;// Contact normal is the plane normal out from plane
 
         // rj is now just the vector from the convex center to the vertex
-        worldVertex.vsub(xj, r.rj);
+        worldVertex.sub2(xj, r.rj);
 
         // Make it relative to the body
-        r.ri.vadd(xi, r.ri);
-        r.ri.vsub(bi.position, r.ri);
-        r.rj.vadd(xj, r.rj);
-        r.rj.vsub(bj.position, r.rj);
+        r.ri.add2(xi, r.ri);
+        r.ri.sub2(bi.position, r.ri);
+        r.rj.add2(xj, r.rj);
+        r.rj.sub2(bj.position, r.rj);
 
         result.add(r);
         numContacts++;
@@ -1777,8 +1778,8 @@ class Narrowphase {
   bool planeTrimesh(
     Plane planeShape,
     Trimesh sj,
-    Vec3 planePos,
-    Vec3 xj,
+    Vector3 planePos,
+    Vector3 xj,
     Quaternion planeQuat,
     Quaternion qj,
     Body planeBody,
@@ -1789,10 +1790,10 @@ class Narrowphase {
       bool justTest = false
   ]){
     // Make contacts!
-    final v = Vec3();
+    final v = Vector3.zero();
 
     final normal = _planeTrimeshNormal;
-    normal.set(0, 0, 1);
+    normal.setValues(0, 0, 1);
     planeQuat.vmult(normal, normal);// Turn normal according to plane
 
     for (int i = 0; i < sj.vertices.length / 3; i++) {
@@ -1800,13 +1801,13 @@ class Narrowphase {
       sj.getVertex(i, v);
 
       // Safe up
-      final v2 = Vec3();
-      v2.copy(v);
+      final v2 = Vector3.zero();
+      v2.setFrom(v);
       Transform.pointToWorldFrame(xj, qj, v2, v);
 
       // Check plane side
       final relpos = _planeTrimeshRelpos;
-      v.vsub(planePos, relpos);
+      v.sub2(planePos, relpos);
       final dot = normal.dot(relpos);
 
       if (dot <= 0.0) {
@@ -1816,19 +1817,19 @@ class Narrowphase {
 
         final r = createContactEquation(planeBody,bj,planeShape,sj, rsi, rsj);
 
-        r.ni.copy(normal); // Contact normal is the plane normal
+        r.ni.setFrom(normal); // Contact normal is the plane normal
 
         // Get vertex position projected on plane
         final projected = _planeTrimeshProjected;
-        normal.scale(relpos.dot(normal), projected);
-        v.vsub(projected, projected);
+        normal.scale2(relpos.dot(normal), projected);
+        v.sub2(projected, projected);
 
         // ri is the projected world position minus plane position
-        r.ri.copy(projected);
-        r.ri.vsub(planeBody.position, r.ri);
+        r.ri.setFrom(projected);
+        r.ri.sub2(planeBody.position, r.ri);
 
-        r.rj.copy(v);
-        r.rj.vsub(bj.position, r.rj);
+        r.rj.setFrom(v);
+        r.rj.sub2(bj.position, r.rj);
 
         // Store result
         result.add(r);
@@ -1842,8 +1843,8 @@ class Narrowphase {
   bool convexConvex(
     ConvexPolyhedron si,
     ConvexPolyhedron sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -1873,21 +1874,21 @@ class Narrowphase {
         final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
         final ri = r.ri;
         final rj = r.rj;
-        sepAxis.negate(r.ni);
-        res[j].normal.negate(q);
-        q.scale(res[j].depth, q);
-        res[j].point.vadd(q, ri);
-        rj.copy(res[j].point);
+        r.ni..setFrom(sepAxis)..negate();
+        q..setFrom(res[j].normal)..negate();
+        q.scale2(res[j].depth, q);
+        res[j].point.add2(q, ri);
+        rj.setFrom(res[j].point);
 
         // Contact points are in world coordinates. Transform back to relative
-        ri.vsub(xi, ri);
-        rj.vsub(xj, rj);
+        ri.sub2(xi, ri);
+        rj.sub2(xj, rj);
 
         // Make relative to bodies
-        ri.vadd(xi, ri);
-        ri.vsub(bi.position, ri);
-        rj.vadd(xj, rj);
-        rj.vsub(bj.position, rj);
+        ri.add2(xi, ri);
+        ri.sub2(bi.position, ri);
+        rj.add2(xj, rj);
+        rj.sub2(bj.position, rj);
 
         result.add(r);
         numContacts++;
@@ -1905,8 +1906,8 @@ class Narrowphase {
   bool convexHeightfield(
     ConvexPolyhedron si,
     Heightfield sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2040,8 +2041,8 @@ class Narrowphase {
   bool convexParticle(
     ConvexPolyhedron sj,
     Particle si,
-    Vec3 xj,
-    Vec3 xi,
+    Vector3 xj,
+    Vector3 xi,
     Quaternion qj,
     Quaternion qi,
     Body bj,
@@ -2059,10 +2060,10 @@ class Narrowphase {
 
     // Convert particle position xi to local coords in the convex
     final local = _convexParticleLocal;
-    final cqj = Quaternion();
-    local.copy(xi);
-    local.vsub(xj, local); // Convert position to relative the convex origin
-    qj.conjugate(cqj);
+    final cqj = Quaternion(0,0,0,1);
+    local.setFrom(xi);
+    local.sub2(xj, local); // Convert position to relative the convex origin
+    cqj..setFrom(qj)..conjugate();
     cqj.vmult(local, local);
     if (sj.pointIsInside(local)) {
       //if (sj.worldVerticesNeedsUpdate) {
@@ -2077,9 +2078,9 @@ class Narrowphase {
         // Construct world face vertices
         final verts = sj.worldVertices[sj.faces[i][0]];
         final normal = sj.worldFaceNormals[i];
-        final convexParticleVertexToParticle = Vec3();
+        final convexParticleVertexToParticle = Vector3.zero();
         // Check how much the particle penetrates the polygon plane.
-        xi.vsub(verts, convexParticleVertexToParticle);
+        xi.sub2(verts, convexParticleVertexToParticle);
         final penetration = -normal.dot(convexParticleVertexToParticle);
         if (minPenetration == null || penetration.abs() < minPenetration.abs()) {
           if (justTest) {
@@ -2088,7 +2089,7 @@ class Narrowphase {
 
           minPenetration = penetration;
           penetratedFaceIndex = i;
-          penetratedFaceNormal.copy(normal);
+          penetratedFaceNormal.setFrom(normal);
           //numDetectedFaces++;
         }
       }
@@ -2096,23 +2097,23 @@ class Narrowphase {
       if (penetratedFaceIndex != -1) {
         // Setup contact
         var r = createContactEquation(bi, bj, si, sj, rsi, rsj);
-        penetratedFaceNormal.scale(minPenetration!, worldPenetrationVec);
+        penetratedFaceNormal.scale2(minPenetration!, worldPenetrationVec);
         // rj is the particle position projected to the face
-        worldPenetrationVec.vadd(xi, worldPenetrationVec);
-        worldPenetrationVec.vsub(xj, worldPenetrationVec);
-        r.rj.copy(worldPenetrationVec);
-        //final projectedToFace = xi.vsub(xj).vadd(worldPenetrationVec);
-        //projectedToFace.copy(r.rj);
+        worldPenetrationVec.add2(xi, worldPenetrationVec);
+        worldPenetrationVec.sub2(xj, worldPenetrationVec);
+        r.rj.setFrom(worldPenetrationVec);
+        //final projectedToFace = xi.sub2(xj).add2(worldPenetrationVec);
+        //projectedToFace.setFrom(r.rj);
 
         //qj.vmult(r.rj,r.rj);
         //penetratedFaceNormal.negate(r.ni); // Contact normal
-        r.ri.set(0, 0, 0); // Center of particle
+        r.ri.setValues(0, 0, 0); // Center of particle
 
         // Make relative to bodies
-        r.ri.vadd(xi, r.ri);
-        r.ri.vsub(bi.position, r.ri);
-        r.rj.vadd(xj, r.rj);
-        r.rj.vsub(bj.position, r.rj);
+        r.ri.add2(xi, r.ri);
+        r.ri.sub2(bi.position, r.ri);
+        r.rj.add2(xj, r.rj);
+        r.rj.sub2(bj.position, r.rj);
 
         result.add(r);
         createFrictionEquationsFromContact(r, frictionResult);
@@ -2126,8 +2127,8 @@ class Narrowphase {
   bool convexTrimesh(
     ConvexPolyhedron si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2140,7 +2141,7 @@ class Narrowphase {
       List<int>? faceListB
     ]
   ){
-    final local = Vec3();
+    final local = Vector3.zero();
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
     final triangles = _sphereTrimeshTriangles;
     final worldPillarOffset = _convexHeightfieldTmp2;
@@ -2148,12 +2149,12 @@ class Narrowphase {
     Transform.pointToLocalFrame(xj, qj, xi, local);
 
     final sphereRadius = si.boundingSphereRadius;
-    localSphereAABB.lowerBound.set(
+    localSphereAABB.lowerBound.setValues(
       local.x - sphereRadius,
       local.y - sphereRadius,
       local.z - sphereRadius
     );
-    localSphereAABB.upperBound.set(
+    localSphereAABB.upperBound.setValues(
       local.x + sphereRadius,
       local.y + sphereRadius,
       local.z + sphereRadius
@@ -2161,10 +2162,10 @@ class Narrowphase {
 
     sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix 
 
-    final va = Vec3();
-    final vb = Vec3();
-    final vc = Vec3();
-    final triangleNormal = Vec3();
+    final va = Vector3.zero();
+    final vb = Vector3.zero();
+    final vc = Vector3.zero();
+    final triangleNormal = Vector3.zero();
     final cp = ConvexPolyhedron(
       vertices:[va,vb,vc],
       faces: [[0, 1, 2]],
@@ -2176,7 +2177,7 @@ class Narrowphase {
       sj.getTriangleVertices(sj.indices[i], va, vb, vc);
       sj.getIndicesNormal(i, triangleNormal);
 
-      Vec3 offsetResult = Vec3(
+      Vector3 offsetResult = Vector3(
         (va.x+vb.x+vc.x)/3,
         (va.y+vb.y+vc.y)/3,
         (va.z+vb.z+vc.z)/3
@@ -2204,8 +2205,8 @@ class Narrowphase {
   bool cylinderHeightfield(
     Heightfield sj,
     Cylinder si,
-    Vec3 xj,
-    Vec3 xi,
+    Vector3 xj,
+    Vector3 xi,
     Quaternion qj,
     Quaternion qi,
     Body bj,
@@ -2232,8 +2233,8 @@ class Narrowphase {
   bool cylinderParticle(
     Particle si,
     Cylinder sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2248,8 +2249,8 @@ class Narrowphase {
   bool cylinderTrimesh(
     Cylinder si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2265,8 +2266,8 @@ class Narrowphase {
   bool heightfieldParticle(
     Heightfield si,
     Particle sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2367,8 +2368,8 @@ class Narrowphase {
   bool particleTrimesh(
     Particle si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2378,7 +2379,7 @@ class Narrowphase {
       Shape? rsj,
       bool justTest = false
   ]){
-    final local = Vec3();
+    final local = Vector3.zero();
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
     final triangles = _sphereTrimeshTriangles;
     final worldPillarOffset = _convexHeightfieldTmp2;
@@ -2386,12 +2387,12 @@ class Narrowphase {
     Transform.pointToLocalFrame(xj, qj, xi, local);
 
     final sphereRadius = si.boundingSphereRadius;
-    localSphereAABB.lowerBound.set(
+    localSphereAABB.lowerBound.setValues(
       local.x - sphereRadius,
       local.y - sphereRadius,
       local.z - sphereRadius
     );
-    localSphereAABB.upperBound.set(
+    localSphereAABB.upperBound.setValues(
       local.x + sphereRadius,
       local.y + sphereRadius,
       local.z + sphereRadius
@@ -2399,9 +2400,9 @@ class Narrowphase {
 
     sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix 
 
-    final va = Vec3();
-    final vb = Vec3();
-    final vc = Vec3();
+    final va = Vector3.zero();
+    final vb = Vector3.zero();
+    final vc = Vector3.zero();
     final hullB = ConvexPolyhedron(
       vertices:[va,vb,vc],
       faces: [[0, 1, 2]],
@@ -2430,8 +2431,8 @@ class Narrowphase {
   bool trimeshTrimesh(
     Trimesh si,
     Trimesh sj,
-    Vec3 xi,
-    Vec3 xj,
+    Vector3 xi,
+    Vector3 xj,
     Quaternion qi,
     Quaternion qj,
     Body bi,
@@ -2442,7 +2443,7 @@ class Narrowphase {
       bool justTest = false,
     ]
   ){
-    final local = Vec3();
+    final local = Vector3.zero();
     final localSphereAABB = _sphereTrimeshLocalSphereAABB;
     final triangles = _sphereTrimeshTriangles;
     final worldPillarOffset = _convexHeightfieldTmp2;
@@ -2450,12 +2451,12 @@ class Narrowphase {
     Transform.pointToLocalFrame(xj, qj, xi, local);
 
     final sphereRadius = si.boundingSphereRadius;
-    localSphereAABB.lowerBound.set(
+    localSphereAABB.lowerBound.setValues(
       local.x - sphereRadius,
       local.y - sphereRadius,
       local.z - sphereRadius
     );
-    localSphereAABB.upperBound.set(
+    localSphereAABB.upperBound.setValues(
       local.x + sphereRadius,
       local.y + sphereRadius,
       local.z + sphereRadius
@@ -2464,14 +2465,14 @@ class Narrowphase {
     sj.getTrianglesInAABB(localSphereAABB, triangles); //TODO fix 
 
     // Construct a temp hull for each triangle
-    final va = Vec3();
-    final vb = Vec3();
-    final vc = Vec3();
+    final va = Vector3.zero();
+    final vb = Vector3.zero();
+    final vc = Vector3.zero();
     final hullB = ConvexPolyhedron(
       vertices:[va,vb,vc],
       faces: [[0, 1, 2]],
     );
-    final triangleNormal = Vec3();
+    final triangleNormal = Vector3.zero();
 
     for (int i = 0; i < si.indices.length / 3; i++) {
       bool intersecting = false;
@@ -2484,7 +2485,7 @@ class Narrowphase {
 
       
       sj.getTriangleVertices(sj.indices[triangles[i]], va, vb, vc);
-      // Vec3 offsetResult = Vec3(
+      // Vector3 offsetResult = Vector3(
       //   (va.x+vb.x+vc.x)/3,
       //   (va.y+vb.y+vc.y)/3,
       //   (va.z+vb.z+vc.z)/3
@@ -2503,7 +2504,7 @@ class Narrowphase {
     return false;
   }
 
-  bool _pointInPolygon(List<Vec3> verts, Vec3 normal, Vec3 p) {
+  bool _pointInPolygon(List<Vector3> verts, Vector3 normal, Vector3 p) {
     bool? positiveResult;
     final N = verts.length;
     for (int i = 0; i != N; i++) {
@@ -2511,16 +2512,16 @@ class Narrowphase {
 
       // Get edge to the next vertex
       final edge = _pointInPolygonEdge;
-      verts[(i + 1) % N].vsub(v, edge);
+      verts[(i + 1) % N].sub2(v, edge);
 
       // Get cross product between polygon normal and the edge
       final edgeXNormal = _pointInPolygonEdgeXNormal;
-      //final edge_x_normal = Vec3();
-      edge.cross(normal, edgeXNormal);
+      //final edge_x_normal = Vector3.zero();
+      edge.cross2(normal, edgeXNormal);
 
       // Get vector between point and current vertex
       final vertexToP = _pointInPolygonVtp;
-      p.vsub(v, vertexToP);
+      p.sub2(v, vertexToP);
 
       // This dot product determines which side of the edge the point is
       final r = edgeXNormal.dot(vertexToP);

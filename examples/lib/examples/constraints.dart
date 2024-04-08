@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Constraints extends StatefulWidget {
   const Constraints({
@@ -44,7 +45,7 @@ class _ConstraintsState extends State<Constraints> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.position.set(0, 1, 0);
+    groundBody.position.setValues(0, 1, 0);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
@@ -54,14 +55,14 @@ class _ConstraintsState extends State<Constraints> {
     setScene();
     final world = demo.world;
 
-    world.gravity.set(0, -10, 0);
+    world.gravity.setValues(0, -10, 0);
     world.solver.iterations = 20;
 
     const size = 0.5;
     const mass = 1.0;
     const space = size * 0.1;
 
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
 
     const N = 10;
     cannon.Body? previous;
@@ -70,7 +71,7 @@ class _ConstraintsState extends State<Constraints> {
       final boxBody = cannon.Body(
         mass: mass,
         shape: boxShape,
-        position: cannon.Vec3(-(N - i - N / 2) * (size * 2 + 2 * space), size * 6 + space, 0),
+        position: vmath.Vector3(-(N - i - N / 2) * (size * 2 + 2 * space), size * 6 + space, 0),
       );
       world.addBody(boxBody);
       demo.addVisual(boxBody);
@@ -92,7 +93,7 @@ class _ConstraintsState extends State<Constraints> {
     final body1 = cannon.Body(
       mass: 0,
       shape: boxShape,
-      position: cannon.Vec3(-(-N / 2 + 1) * (size * 2 + 2 * space), size * 3, 0),
+      position: vmath.Vector3(-(-N / 2 + 1) * (size * 2 + 2 * space), size * 3, 0),
     );
     world.addBody(body1);
     demo.addVisual(body1);
@@ -100,7 +101,7 @@ class _ConstraintsState extends State<Constraints> {
     final body2 = cannon.Body(
       mass: 0,
       shape: boxShape,
-      position: cannon.Vec3(-(N / 2) * (size * 2 + space * 2), size * 3, 0),
+      position: vmath.Vector3(-(N / 2) * (size * 2 + space * 2), size * 3, 0),
     );
     world.addBody(body2);
     demo.addVisual(body2);
@@ -108,13 +109,13 @@ class _ConstraintsState extends State<Constraints> {
   void linkScene(){
     setScene();
     final world = demo.world;
-    world.gravity.set(0, -20, -1);
+    world.gravity.setValues(0, -20, -1);
 
     const size = 1.0;
     double mass = 0;
     const space = size * 0.1;
 
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size * 0.1));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size * 0.1));
 
     const N = 10;
     cannon.Body? previous;
@@ -122,7 +123,7 @@ class _ConstraintsState extends State<Constraints> {
       // Create a box
       final boxBody = cannon.Body( mass:mass );
       boxBody.addShape(boxShape);
-      boxBody.position.set(0, (N - i) * (size * 2 + space * 2) + size * 2 + space, 0);
+      boxBody.position.setValues(0, (N - i) * (size * 2 + space * 2) + size * 2 + space, 0);
       boxBody.linearDamping = 0.01; // Damping makes the movement slow down with time
       boxBody.angularDamping = 0.01;
       world.addBody(boxBody);
@@ -134,14 +135,14 @@ class _ConstraintsState extends State<Constraints> {
         final pointConstraint1 = cannon.PointToPointConstraint(
           boxBody,
           previous!,
-          cannon.Vec3(size, size + space, 0),
-          cannon.Vec3(size, -size - space, 0)
+          vmath.Vector3(size, size + space, 0),
+          vmath.Vector3(size, -size - space, 0)
         );
         final pointConstraint2 = cannon.PointToPointConstraint(
           boxBody,
           previous,
-          cannon.Vec3(-size, size + space, 0),
-          cannon.Vec3(-size, -size - space, 0)
+          vmath.Vector3(-size, size + space, 0),
+          vmath.Vector3(-size, -size - space, 0)
         );
 
         world.addConstraint(pointConstraint1);
@@ -171,7 +172,7 @@ class _ConstraintsState extends State<Constraints> {
         // Create a new body
         final body = cannon.Body(mass: mass);
         body.addShape(cannon.Particle());
-        body.position.set(-(i - cols * 0.5) * dist, 5, (j - rows * 0.5) * dist);
+        body.position.setValues(-(i - cols * 0.5) * dist, 5, (j - rows * 0.5) * dist);
         bodies['$i $j'] = body;
         world.addBody(body);
         demo.addVisual(body);
@@ -200,7 +201,7 @@ class _ConstraintsState extends State<Constraints> {
     final sphere = cannon.Sphere(1.5);
     final body = cannon.Body(mass: 0 );
     body.addShape(sphere);
-    body.position.set(0, 3.5, 0);
+    body.position.setValues(0, 3.5, 0);
     world.addBody(body);
     demo.addVisual(body);
   }
@@ -215,8 +216,8 @@ class _ConstraintsState extends State<Constraints> {
 
     final spherebody = cannon.Body(mass:mass );
     spherebody.addShape(sphereShape);
-    spherebody.position.set(0, size * 3, 0);
-    spherebody.velocity.set(-5, 0, 0);
+    spherebody.position.setValues(0, size * 3, 0);
+    spherebody.velocity.setValues(-5, 0, 0);
     spherebody.linearDamping = 0;
     spherebody.angularDamping = 0;
     world.addBody(spherebody);
@@ -224,7 +225,7 @@ class _ConstraintsState extends State<Constraints> {
 
     final spherebody2 = cannon.Body(mass: 0 );
     spherebody2.addShape(sphereShape);
-    spherebody2.position.set(0, size * 7, 0);
+    spherebody2.position.setValues(0, size * 7, 0);
     world.addBody(spherebody2);
     demo.addVisual(spherebody2);
 
@@ -233,8 +234,8 @@ class _ConstraintsState extends State<Constraints> {
       spherebody,
       
       spherebody2,
-      cannon.Vec3(0, size * 2, 0),
-      cannon.Vec3(0, -size * 2, 0)
+      vmath.Vector3(0, size * 2, 0),
+      vmath.Vector3(0, -size * 2, 0)
     );
     world.addConstraint(pointConstraint);
   }
@@ -257,7 +258,7 @@ class _ConstraintsState extends State<Constraints> {
       // Create a new body
       final sphereBody = cannon.Body(mass: i == 0 ? 0 : mass);
       sphereBody.addShape(sphereShape);
-      sphereBody.position.set(0, dist * (N - i), 0);
+      sphereBody.position.setValues(0, dist * (N - i), 0);
       sphereBody.velocity.x = -i*1.0;
       world.addBody(sphereBody);
       demo.addVisual(sphereBody);
@@ -289,8 +290,8 @@ class _ConstraintsState extends State<Constraints> {
         // Create a new body
         final body = cannon.Body(mass: j == rows - 1 ? 0 : mass);
         body.addShape(cannon.Particle());
-        body.position.set(-dist * i, dist * j + 5, 0);
-        body.velocity.set(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 3);
+        body.position.setValues(-dist * i, dist * j + 5, 0);
+        body.velocity.setValues(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 3);
         bodies['$i $j'] = body;
         world.addBody(body);
         demo.addVisual(body);
@@ -333,8 +334,8 @@ class _ConstraintsState extends State<Constraints> {
           // Create a new body
           final body = cannon.Body( mass:mass );
           body.addShape(cannon.Particle());
-          body.position.set(-dist * i, dist * k + dist * Nz * 0.3 + 1, dist * j);
-          body.velocity.set(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 30);
+          body.position.setValues(-dist * i, dist * k + dist * Nz * 0.3 + 1, dist * j);
+          body.velocity.setValues(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 30);
           bodies['$i $j $k'] = body;
           world.addBody(body);
           demo.addVisual(body);

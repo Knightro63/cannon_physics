@@ -9,17 +9,9 @@ import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
+import 'package:vector_math/vector_math.dart' as vmath;
+import '../src/conversion_utils.dart';
 
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
 class Cloth extends StatefulWidget {
   const Cloth({
     Key? key,
@@ -165,7 +157,7 @@ class _ClothPageState extends State<Cloth> {
     world = cannon.World(
       allowSleep: false
     );
-    world.gravity.set(0, -9.81, 0);
+    world.gravity.setValues(0, -9.81, 0);
 
     // Max solver iterations: Use more for better force propagation, but keep in mind that it's not very computationally cheap!
     world.solver.iterations = 20;
@@ -215,8 +207,8 @@ class _ClothPageState extends State<Cloth> {
         );
         particle.addShape(cannon.Particle());
         particle.linearDamping = 0.5;
-        particle.position.set(point.x, point.y - rows * 0.9 * restDistance, point.z);
-        particle.velocity.set(0, 0, -0.1 * (rows - j));
+        particle.position.setValues(point.x, point.y - rows * 0.9 * restDistance, point.z);
+        particle.velocity.setValues(0, 0, -0.1 * (rows - j));
 
         particles[i].add(particle);
         world.addBody(particle);
@@ -251,7 +243,7 @@ class _ClothPageState extends State<Cloth> {
     for (int i = 0; i < cols + 1; i++) {
       for (int j = 0; j < rows + 1; j++) {
         int index = j * (cols + 1) + i;
-        cannon.Vec3 v = particles[i][j].position;
+        vmath.Vector3 v = particles[i][j].position;
         clothGeometry.attributes["position"].setXYZ(index, v.x, v.y, v.z);
       }
     }
@@ -263,7 +255,7 @@ class _ClothPageState extends State<Cloth> {
 
     // Move the ball in a circular motion
     double time = world.time;
-    sphereBody.position.set(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
+    sphereBody.position.setValues(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
 
     // Make the three.js ball follow the cannon.js one
     // Copying quaternion is not needed since it's a sphere

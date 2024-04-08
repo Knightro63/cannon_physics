@@ -1,11 +1,12 @@
 import 'package:cannon_physics/cannon_physics.dart';
 import 'package:cannon_physics/rigid_body_shapes/shape.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Simple vehicle helper class with spherical rigid body wheels.
 class SoftBody {
   /// The bodies of the wheels.
   Map<String,Body> particleBodies = {};
-  late Vec3 coordinateSystem;
+  late Vector3 coordinateSystem;
   /// The constraints.
   List<Constraint> constraints = [];
   /// shape of the body

@@ -2,14 +2,15 @@ import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../collision/raycast_result.dart';
 import 'rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
-final chassisVelocityAtContactPoint = Vec3();
+final chassisVelocityAtContactPoint = Vector3.zero();
 
 class WheelRaycastResult extends RaycastResult{
   WheelRaycastResult():super();
 
   double suspensionLength = 0;
-  Vec3? directionWorld;
+  Vector3? directionWorld;
   double groundObject = 0;
 }
 
@@ -24,13 +25,13 @@ class WheelInfo {
   bool sliding = false;
 
   /// Connection point, defined locally in the chassis body frame.
-  late Vec3 chassisConnectionPointLocal;
+  late Vector3 chassisConnectionPointLocal;
 
-  late Vec3 chassisConnectionPointWorld; 
-  late Vec3 directionLocal;
-  late Vec3 directionWorld;
-  late Vec3 axleLocal;
-  late Vec3 axleWorld;
+  late Vector3 chassisConnectionPointWorld; 
+  late Vector3 directionLocal;
+  late Vector3 directionWorld;
+  late Vector3 axleLocal;
+  late Vector3 axleWorld;
 
   double suspensionRestLength;
   double suspensionMaxLength;
@@ -66,12 +67,12 @@ class WheelInfo {
   bool isInContact = false;
 
   WheelInfo({
-      Vec3? chassisConnectionPointLocal,
-      Vec3? chassisConnectionPointWorld,
-      Vec3? directionLocal,
-      Vec3? directionWorld,
-      Vec3? axleLocal,
-      Vec3? axleWorld,
+      Vector3? chassisConnectionPointLocal,
+      Vector3? chassisConnectionPointWorld,
+      Vector3? directionLocal,
+      Vector3? directionWorld,
+      Vector3? axleLocal,
+      Vector3? axleWorld,
       this.suspensionRestLength = 1,
       this.suspensionMaxLength = 2,
       this.radius = 1,
@@ -97,14 +98,14 @@ class WheelInfo {
       this.useCustomSlidingRotationalSpeed = false,
       this.customSlidingRotationalSpeed = -0.1
     }){
-    this.chassisConnectionPointLocal = chassisConnectionPointLocal?.clone() ?? Vec3();
-    this.chassisConnectionPointWorld = chassisConnectionPointWorld?.clone() ?? Vec3();
-    this.directionLocal = directionLocal?.clone() ?? Vec3();
-    this.directionWorld = directionWorld?.clone() ?? Vec3();
-    this.axleLocal = axleLocal?.clone() ?? Vec3();
-    this.axleWorld = axleWorld?.clone() ?? Vec3();
+    this.chassisConnectionPointLocal = chassisConnectionPointLocal?.clone() ?? Vector3.zero();
+    this.chassisConnectionPointWorld = chassisConnectionPointWorld?.clone() ?? Vector3.zero();
+    this.directionLocal = directionLocal?.clone() ?? Vector3.zero();
+    this.directionWorld = directionWorld?.clone() ?? Vector3.zero();
+    this.axleLocal = axleLocal?.clone() ?? Vector3.zero();
+    this.axleWorld = axleWorld?.clone() ?? Vector3.zero();
   }
-  final _relpos = Vec3();
+  final _relpos = Vector3.zero();
   
   WheelInfo copy(){
     return WheelInfo(
@@ -145,7 +146,7 @@ class WheelInfo {
 
     if (isInContact) {
       final project = raycastResult.hitNormalWorld.dot(raycastResult.directionWorld!);
-      raycastResult.hitPointWorld.vsub(chassis.position, _relpos);
+      raycastResult.hitPointWorld.sub2(chassis.position, _relpos);
       chassis.getVelocityAtWorldPoint(_relpos, chassisVelocityAtContactPoint);
       final projVel = raycastResult.hitNormalWorld.dot(chassisVelocityAtContactPoint);
       if (project >= -0.1) {
@@ -160,7 +161,7 @@ class WheelInfo {
       // Not in contact : position wheel in a nice (rest length) position
       raycastResult.suspensionLength = suspensionRestLength;
       suspensionRelativeVelocity = 0.0;
-      raycastResult.directionWorld!.scale(-1, raycastResult.hitNormalWorld);
+      raycastResult.directionWorld!.scale2(-1, raycastResult.hitNormalWorld);
       clippedInvContactDotSuspension = 1.0;
     }
   }

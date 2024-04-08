@@ -47,7 +47,7 @@ class _SPHState extends State<SoftBody> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.position.set(0, 1, 0);
+    groundBody.position.setValues(0, 1, 0);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     // world.addBody(groundBody);
     // demo.addVisual(groundBody);

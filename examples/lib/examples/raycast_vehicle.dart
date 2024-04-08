@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class RaycastVehicle extends StatefulWidget {
   const RaycastVehicle({
@@ -41,11 +42,11 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
   void setScene(){
     final world = demo.world;
 
-    final chassisShape = cannon.Box(cannon.Vec3(2, 0.5, 1));
+    final chassisShape = cannon.Box(vmath.Vector3(2, 0.5, 1));
     final chassisBody = cannon.Body(mass: 150 );
     chassisBody.addShape(chassisShape);
-    chassisBody.position.set(0, 4, 0);
-    chassisBody.angularVelocity.set(0, 0.5, 0);
+    chassisBody.position.setValues(0, 4, 0);
+    chassisBody.angularVelocity.setValues(0, 0.5, 0);
     demo.addVisual(chassisBody);
 
     // Create the vehicle
@@ -55,7 +56,7 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
 
     final wheelOptions = cannon.WheelInfo(
       radius: 0.5,
-      directionLocal: cannon.Vec3(0, -1, 0),
+      directionLocal: vmath.Vector3(0, -1, 0),
       suspensionStiffness: 30,
       suspensionRestLength: 0.3,
       frictionSlip: 1.4,
@@ -63,16 +64,16 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
       dampingCompression: 4.4,
       maxSuspensionForce: 100000,
       rollInfluence: 0.01,
-      axleLocal: cannon.Vec3(0, 0, 1),
+      axleLocal: vmath.Vector3(0, 0, 1),
       maxSuspensionTravel: 0.3,
       customSlidingRotationalSpeed: -30,
       useCustomSlidingRotationalSpeed: true,
     );
 
-    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(-1, 0, 1));
-    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(-1, 0, -1));
-    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(1, 0, 1));
-    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.set(1, 0, -1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.setValues(-1, 0, 1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.setValues(-1, 0, -1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.setValues(1, 0, 1));
+    vehicle.addWheel(wheelOptions.copy()..chassisConnectionPointLocal.setValues(1, 0, -1));
 
     vehicle.addToWorld(world);
 
@@ -92,8 +93,8 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
       );
       wheelBody.type = cannon.BodyTypes.kinematic;
       wheelBody.collisionFilterGroup = 0; // turn off collisions
-      final quaternion = cannon.Quaternion().setFromEuler(-Math.PI / 2, 0, 0);
-      wheelBody.addShape(cylinderShape, cannon.Vec3(), quaternion);
+      final quaternion = vmath.Quaternion(0,0,0,1).setFromEuler(-Math.PI / 2, 0, 0);
+      wheelBody.addShape(cylinderShape, vmath.Vector3.zero(), quaternion);
       wheelBodies.add(wheelBody);
       demo.addVisual(wheelBody);
       world.addBody(wheelBody);
@@ -105,8 +106,8 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
         vehicle.updateWheelTransform(i);
         final transform = vehicle.wheelInfos[i].worldTransform;
         final wheelBody = wheelBodies[i];
-        wheelBody.position.copy(transform.position);
-        wheelBody.quaternion.copy(transform.quaternion);
+        wheelBody.position.setFrom(transform.position);
+        wheelBody.quaternion.setFrom(transform.quaternion);
       }
     });
 
@@ -135,7 +136,7 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
     );
     final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
     heightfieldBody.addShape(heightfieldShape);
-    heightfieldBody.position.set(
+    heightfieldBody.position.setValues(
       // -((sizeX - 1) * heightfieldShape.elementSize) / 2,
       -(sizeX * heightfieldShape.elementSize) / 2,
       -1,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class CollisionFilter extends StatefulWidget {
   const CollisionFilter({
@@ -50,8 +51,8 @@ class _CollisionFilterState extends State<CollisionFilter> {
     final sphereShape = cannon.Sphere(size);
     final sphereBody = cannon.Body(
       mass: mass,
-      position: cannon.Vec3(-5, 0, 0),
-      velocity: cannon.Vec3(5, 0, 0),
+      position: vmath.Vector3(-5, 0, 0),
+      velocity: vmath.Vector3(5, 0, 0),
       collisionFilterGroup: g1, // Put the sphere in group 1
       collisionFilterMask: g2 | g3, // It can only collide with group 2 and 3
       shape: sphereShape,
@@ -60,7 +61,7 @@ class _CollisionFilterState extends State<CollisionFilter> {
     // Box
     final boxBody = cannon.Body(
       mass: mass,
-      shape: cannon.Box(cannon.Vec3(size, size, size)),
+      shape: cannon.Box(vmath.Vector3(size, size, size)),
       collisionFilterGroup: g2, // Put the box in group 2
       collisionFilterMask: g1, // It can only collide with group 1 (the sphere)
     );
@@ -75,7 +76,7 @@ class _CollisionFilterState extends State<CollisionFilter> {
     final cylinderBody = cannon.Body(
       mass: mass,
       shape: cylinderShape,
-      position: cannon.Vec3(5, 0, 0),
+      position: vmath.Vector3(5, 0, 0),
       collisionFilterGroup: g3, // Put the cylinder in group 3
       collisionFilterMask: g1, // It can only collide with group 1 (the sphere)
     );

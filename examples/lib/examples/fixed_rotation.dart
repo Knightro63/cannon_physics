@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class FixedRotation extends StatefulWidget {
   const FixedRotation({
@@ -51,20 +52,20 @@ class _FixedRotationState extends State<FixedRotation> {
     const size = 1.0;
 
     // Create a box with fixed rotation
-    final shape1 = cannon.Box(cannon.Vec3(size, size, size));
+    final shape1 = cannon.Box(vmath.Vector3(size, size, size));
     final boxBody1 = cannon.Body(mass: 1);
     boxBody1.addShape(shape1);
-    boxBody1.position.set(0, size, 0);
+    boxBody1.position.setValues(0, size, 0);
     boxBody1.fixedRotation = true;
     boxBody1.updateMassProperties();
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     // Another one
-    final shape2 = cannon.Box(cannon.Vec3(size, size, size));
+    final shape2 = cannon.Box(vmath.Vector3(size, size, size));
     final boxBody2 = cannon.Body(mass: 1);
     boxBody2.addShape(shape2);
-    boxBody2.position.set(-(size * 3) / 2, size * 4, 0);
+    boxBody2.position.setValues(-(size * 3) / 2, size * 4, 0);
     boxBody2.fixedRotation = true;
     boxBody2.updateMassProperties();
     world.addBody(boxBody2);

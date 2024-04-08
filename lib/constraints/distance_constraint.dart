@@ -1,6 +1,7 @@
 import '../constraints/constraint_class.dart';
 import '../equations/contact_equation.dart';
 import '../objects/rigid_body.dart';
+import '../math/vec3.dart';
 
 /// Constrains two bodies to be at a constant distance from each others center of mass.
 class DistanceConstraint extends Constraint {
@@ -30,9 +31,9 @@ class DistanceConstraint extends Constraint {
     final halfDist = distance * 0.5;
     final normal = eq.ni;
 
-    bodyB.position.vsub(bodyA.position, normal);
+    bodyB.position.sub2(bodyA.position, normal);
     normal.normalize();
-    normal.scale(halfDist, eq.ri);
-    normal.scale(-halfDist, eq.rj);
+    normal.scale2(halfDist, eq.ri);
+    normal.scale2(-halfDist, eq.rj);
   }
 }

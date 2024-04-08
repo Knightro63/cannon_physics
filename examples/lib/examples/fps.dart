@@ -11,17 +11,9 @@ import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
 
 import 'package:flutter/services.dart';
+import 'package:vector_math/vector_math.dart' as vmath;
+import '../src/conversion_utils.dart';
 
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
 class FPSGame extends StatefulWidget {
   const FPSGame({
     Key? key,
@@ -149,15 +141,7 @@ class _FPSGamePageState extends State<FPSGame> {
     solver.tolerance = 0.1;
     world.solver = cannon.SplitSolver(solver);
 
-    bool split = false;
-    if(split){
-      world.solver = cannon.SplitSolver(solver);
-    }
-    else{
-        world.solver = solver;
-    }
-
-    world.gravity.set(0, -20, 0);
+    world.gravity.setValues(0, -20, 0);
     world.broadphase = cannon.NaiveBroadphase();
 
     // Create a slippery material (friction coefficient = 0.0)
@@ -178,7 +162,7 @@ class _FPSGamePageState extends State<FPSGame> {
     sphereShape = cannon.Sphere(radius);
     sphereBody = cannon.Body(mass: mass, material: physicsMaterial);
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(0, 5, 0);
+    sphereBody.position.setValues(0, 5, 0);
     sphereBody.linearDamping = 0.9;
     world.addBody(sphereBody);
 
@@ -186,11 +170,11 @@ class _FPSGamePageState extends State<FPSGame> {
     cannon.Plane groundShape = cannon.Plane();
     cannon.Body groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromAxisAngle(cannon.Vec3(1,0,0),(-Math.PI / 2));
+    groundBody.quaternion.setFromAxisAngle(vmath.Vector3(1,0,0),(-Math.PI / 2));
     world.addBody(groundBody);
 
     // Add boxes both in cannon.js and three.js
-    cannon.Vec3 halfExtents = cannon.Vec3(1, 1, 1);
+    vmath.Vector3 halfExtents = vmath.Vector3(1, 1, 1);
     cannon.Box boxShape = cannon.Box(halfExtents);
     three.BoxGeometry boxGeometry = three.BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
 
@@ -203,7 +187,7 @@ class _FPSGamePageState extends State<FPSGame> {
       double y = (Math.random() - 0.5) * 1 + 1;
       double z = (Math.random() - 0.5) * 20;
 
-      boxBody.position.set(x, y, z);
+      boxBody.position.setValues(x, y, z);
       boxMesh.position.copy(boxBody.position);
 
       boxMesh.castShadow = true;
@@ -219,7 +203,7 @@ class _FPSGamePageState extends State<FPSGame> {
   }
   void addBoxes(){
     // Add linked boxes
-    var halfExtents = cannon.Vec3(1,1,1);
+    var halfExtents = vmath.Vector3(1,1,1);
     var boxShape = cannon.Box(halfExtents);
     var boxGeometry = three.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
     for(var i=0; i<7; i++){
@@ -231,7 +215,7 @@ class _FPSGamePageState extends State<FPSGame> {
       final boxMesh = three.Mesh( boxGeometry, material );
       world.addBody(boxBody);
       scene.add(boxMesh);
-      boxBody.position.set(x,y,z);
+      boxBody.position.setValues(x,y,z);
       boxMesh.position.set(x,y,z);
       boxMesh.castShadow = true;
       boxMesh.receiveShadow = true;
@@ -242,7 +226,7 @@ class _FPSGamePageState extends State<FPSGame> {
 
     // Add linked boxes
     const size = 0.5;
-    cannon.Vec3 he = cannon.Vec3(size,size,size*0.1);
+    vmath.Vector3 he = vmath.Vector3(size,size,size*0.1);
     cannon.Box boxShape2 = cannon.Box(he);
     double mass = 0;
     const double space = 0.1 * size;
@@ -253,7 +237,7 @@ class _FPSGamePageState extends State<FPSGame> {
       var boxbody = cannon.Body( mass: mass );
       boxbody.addShape(boxShape2);
       var boxMesh = three.Mesh(boxGeometry2, material);
-      boxbody.position.set(5,(N-i)*(size*2+2*space) + size*2+space,0);
+      boxbody.position.setValues(5,(N-i)*(size*2+2*space) + size*2+space,0);
       boxbody.linearDamping = 0.01;
       boxbody.angularDamping = 0.01;
       // boxMesh.castShadow = true;
@@ -268,14 +252,14 @@ class _FPSGamePageState extends State<FPSGame> {
         cannon.PointToPointConstraint c1 = cannon.PointToPointConstraint(
           boxbody,
           last,
-          cannon.Vec3(-size,size+space,0),
-          cannon.Vec3(-size,-size-space,0)
+          vmath.Vector3(-size,size+space,0),
+          vmath.Vector3(-size,-size-space,0)
         );
         cannon.PointToPointConstraint c2 = cannon.PointToPointConstraint(
           boxbody,
           last,
-          cannon.Vec3(size,size+space,0),
-          cannon.Vec3(size,-size-space,0)
+          vmath.Vector3(size,size+space,0),
+          vmath.Vector3(size,-size-space,0)
         );
         world.addConstraint(c1);
         world.addConstraint(c2);
@@ -310,7 +294,7 @@ class _FPSGamePageState extends State<FPSGame> {
     ballMeshes.add(ballMesh);
 
     three.Vector3 shootDirection = getShootDirection();
-    ballBody.velocity.set(
+    ballBody.velocity.setValues(
       shootDirection.x * shootVelocity,
       shootDirection.y * shootVelocity,
       shootDirection.z * shootVelocity
@@ -320,7 +304,7 @@ class _FPSGamePageState extends State<FPSGame> {
     double x = sphereBody.position.x + shootDirection.x * (radius * 1.02 + ballShape.radius);
     double y = sphereBody.position.y + shootDirection.y * (radius * 1.02 + ballShape.radius);
     double z = sphereBody.position.z + shootDirection.z * (radius * 1.02 + ballShape.radius);
-    ballBody.position.set(x, y, z);
+    ballBody.position.setValues(x, y, z);
     ballMesh.position.copy(ballBody.position.toVector3());
   }
 

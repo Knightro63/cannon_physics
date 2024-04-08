@@ -1,13 +1,13 @@
 import 'equation_class.dart';
-import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Rotational motor constraint. Tries to keep the relative angular velocity of the bodies to a given value.
 class RotationalMotorEquation extends Equation {
   /// World oriented rotational axis.
-  Vec3 axisA = Vec3();
+  Vector3 axisA = Vector3.zero();
   /// World oriented rotational axis.
-  Vec3 axisB = Vec3();
+  Vector3 axisB = Vector3.zero();
   /// Motor velocity.
   double targetVelocity = 0;
 
@@ -21,8 +21,8 @@ class RotationalMotorEquation extends Equation {
     final ga = jacobianElementA;
     final gb = jacobianElementB;
 
-    ga.rotational.copy(axisA);
-    axisB.negate(gb.rotational);
+    ga.rotational.setFrom(axisA);
+    gb.rotational..setFrom(axisB)..negate();
 
     final gw = computeGW() - targetVelocity;
     final giMf = computeGiMf();

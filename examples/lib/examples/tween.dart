@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Tween extends StatefulWidget {
   const Tween({
@@ -42,11 +43,11 @@ class _TweenState extends State<Tween> {
   void setScene(){
     final world = demo.world;
 
-    cannon.Vec3 startPosition = cannon.Vec3(-5, 2, 0);
-    cannon.Vec3 endPosition = cannon.Vec3(5, 2, 0);
+    vmath.Vector3 startPosition = vmath.Vector3(-5, 2, 0);
+    vmath.Vector3 endPosition = vmath.Vector3(5, 2, 0);
     const tweenTime = 3; // seconds
 
-    cannon.Box boxShape = cannon.Box(cannon.Vec3(1, 1, 1));
+    cannon.Box boxShape = cannon.Box(vmath.Vector3(1, 1, 1));
     cannon.Body body = cannon.Body(
       mass: 0,
       type: cannon.BodyTypes.kinematic,
@@ -57,29 +58,29 @@ class _TweenState extends State<Tween> {
     demo.addVisual(body);
 
     // Compute direction vector and get total length of the path
-    cannon.Vec3 direction = cannon.Vec3();
-    endPosition.vsub(startPosition, direction);
-    double totalLength = direction.length();
+    vmath.Vector3 direction = vmath.Vector3.zero();
+    endPosition.sub2(startPosition, direction);
+    double totalLength = direction.length;
     direction.normalize();
 
     double speed = totalLength / tweenTime;
-    direction.scale(speed, body.velocity);
+    direction.scale2(speed, body.velocity);
 
     // Save the start time
     double startTime = world.time;
 
-    cannon.Vec3 offset = cannon.Vec3();
+    vmath.Vector3 offset = vmath.Vector3.zero();
 
     void postStepListener() {
       // Progress is a number where 0 is at start position and 1 is at end position
       double progress = (world.time - startTime) / tweenTime;
 
       if (progress < 1) {
-        direction.scale(progress * totalLength, offset);
-        startPosition.vadd(offset, body.position);
+        direction.scale2(progress * totalLength, offset);
+        startPosition.add2(offset, body.position);
       } else {
-        body.velocity.set(0, 0, 0);
-        body.position.copy(endPosition);
+        body.velocity.setValues(0, 0, 0);
+        body.position.setFrom(endPosition);
         world.removeEventListener('postStep', postStepListener);
       }
     }

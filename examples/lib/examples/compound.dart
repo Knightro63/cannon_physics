@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Compound extends StatefulWidget {
   const Compound({
@@ -49,21 +50,21 @@ class _CompoundState extends State<Compound> {
     // Now create a Body for our Compound
     const mass = 10.0;
     final body = cannon.Body(mass:mass);
-    body.position.set(0, 6, 0);
+    body.position.setValues(0, 6, 0);
     body.quaternion.setFromEuler(0, 0, Math.PI * 0.03);
 
     // Use a box shape as child shape
-    final shape = cannon.Box(cannon.Vec3(size * 0.5, size * 0.5, size * 0.5));
+    final shape = cannon.Box(vmath.Vector3(size * 0.5, size * 0.5, size * 0.5));
 
     // We can add the same shape several times to position child shapes within the Compound.
-    body.addShape(shape, cannon.Vec3(-size, -size, 0));
-    body.addShape(shape, cannon.Vec3(-size, size, 0));
-    body.addShape(shape, cannon.Vec3(size, -size, 0));
-    body.addShape(shape, cannon.Vec3(size, size, 0));
+    body.addShape(shape, vmath.Vector3(-size, -size, 0));
+    body.addShape(shape, vmath.Vector3(-size, size, 0));
+    body.addShape(shape, vmath.Vector3(size, -size, 0));
+    body.addShape(shape, vmath.Vector3(size, size, 0));
     // Note: we only use translational offsets. The third argument could be a CANNON.Quaternion to rotate the child shape.
-    body.addShape(shape, cannon.Vec3(size, 0, 0));
-    body.addShape(shape, cannon.Vec3(0, -size, 0));
-    body.addShape(shape, cannon.Vec3(0, size, 0));
+    body.addShape(shape, vmath.Vector3(size, 0, 0));
+    body.addShape(shape, vmath.Vector3(0, -size, 0));
+    body.addShape(shape, vmath.Vector3(0, size, 0));
 
     world.addBody(body);
     demo.addVisual(body);
@@ -79,12 +80,12 @@ class _CompoundState extends State<Compound> {
 
     // Compound shape
     final sphereShape = cannon.Sphere(1);
-    body.addShape(sphereShape, cannon.Vec3(-1, -1, 0));
-    body.addShape(sphereShape, cannon.Vec3(-1, 1, 0));
-    body.addShape(sphereShape, cannon.Vec3(1, -1, 0));
-    body.addShape(sphereShape, cannon.Vec3(1, 1, 0));
+    body.addShape(sphereShape, vmath.Vector3(-1, -1, 0));
+    body.addShape(sphereShape, vmath.Vector3(-1, 1, 0));
+    body.addShape(sphereShape, vmath.Vector3(1, -1, 0));
+    body.addShape(sphereShape, vmath.Vector3(1, 1, 0));
 
-    body.position.set(0, 6, 0);
+    body.position.setValues(0, 6, 0);
     body.quaternion.setFromEuler(0, 0, -Math.PI * 0.03);
     world.addBody(body);
     demo.addVisual(body);

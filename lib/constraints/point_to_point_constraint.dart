@@ -1,9 +1,8 @@
 import '../constraints/constraint_class.dart';
 import '../equations/contact_equation.dart';
-import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
-
-
+import 'package:vector_math/vector_math.dart';
+import '../math/quaternion.dart';
 /// Connects two bodies at given offset points.
 /// @example
 ///     const bodyA = Body({ mass: 1 })
@@ -14,15 +13,15 @@ import '../objects/rigid_body.dart';
 ///     bodyB.addShape(shapeB)
 ///     world.addBody(bodyA)
 ///     world.addBody(bodyB)
-///     const localPivotA = Vec3(1, 0, 0)
-///     const localPivotB = Vec3(-1, 0, 0)
+///     const localPivotA = Vector3(1, 0, 0)
+///     const localPivotB = Vector3(-1, 0, 0)
 ///     const constraint = PointToPointConstraint(bodyA, localPivotA, bodyB, localPivotB)
 ///     world.addConstraint(constraint)
 class PointToPointConstraint extends Constraint {
   /// Pivot, defined locally in bodyA.
-  late Vec3 pivotA;
+  late Vector3 pivotA;
   /// Pivot, defined locally in bodyB.
-  late Vec3 pivotB;
+  late Vector3 pivotB;
 
   late ContactEquation equationX;
   late ContactEquation equationY;
@@ -36,13 +35,13 @@ class PointToPointConstraint extends Constraint {
     Body bodyA,
     Body bodyB,
     [
-      Vec3? pivotA,
-      Vec3? pivotB,
+      Vector3? pivotA,
+      Vector3? pivotB,
       double maxForce = 1e6
     ]
   ):super(bodyA, bodyB) {
-    this.pivotA = pivotA?.clone() ?? Vec3();
-    this.pivotB = pivotB?.clone() ?? Vec3();
+    this.pivotA = pivotA?.clone() ?? Vector3.zero();
+    this.pivotB = pivotB?.clone() ?? Vector3.zero();
     equationX = ContactEquation(bodyA, bodyB);
     final x = equationX;
     equationY = ContactEquation(bodyA, bodyB);
@@ -61,9 +60,9 @@ class PointToPointConstraint extends Constraint {
     y.maxForce = maxForce;
     z.maxForce = maxForce;
 
-    x.ni.set(1, 0, 0);
-    y.ni.set(0, 1, 0);
-    z.ni.set(0, 0, 1);
+    x.ni.setValues(1, 0, 0);
+    y.ni.setValues(0, 1, 0);
+    z.ni.setValues(0, 0, 1);
   }
   @override
   void update() {
@@ -77,9 +76,9 @@ class PointToPointConstraint extends Constraint {
     bodyA.quaternion.vmult(pivotA, x.ri);
     bodyB.quaternion.vmult(pivotB, x.rj);
 
-    y.ri.copy(x.ri);
-    y.rj.copy(x.rj);
-    z.ri.copy(x.ri);
-    z.rj.copy(x.rj);
+    y.ri.setFrom(x.ri);
+    y.rj.setFrom(x.rj);
+    z.ri.setFrom(x.ri);
+    z.rj.setFrom(x.rj);
   }
 }

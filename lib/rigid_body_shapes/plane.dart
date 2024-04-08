@@ -1,6 +1,6 @@
 import 'shape.dart';
-import '../math/vec3.dart';
 import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A plane, facing in the Z direction. The plane has its surface at z=0 and everything below z=0 is assumed to be solid plane. To make the plane face in some other direction than z, you must put it inside a Body and rotate that body. See the demos.
 /// @example
@@ -9,7 +9,7 @@ import '../math/quaternion.dart';
 ///     planeBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0) // make it face up
 ///     world.addBody(planeBody)
 class Plane extends Shape {
-  late Vec3 worldNormal; 
+  late Vector3 worldNormal; 
   late bool worldNormalNeedsUpdate;
   //late double boundingSphereRadius;
 
@@ -18,23 +18,23 @@ class Plane extends Shape {
 
   Plane([this.width = double.infinity,this.height= double.infinity]):super(type: ShapeType.plane ){
     // World oriented normal
-    worldNormal = Vec3();
+    worldNormal = Vector3.zero();
     worldNormalNeedsUpdate = true;
     boundingSphereRadius = double.infinity;
   }
 
-  final _tempNormal = Vec3();
+  final _tempNormal = Vector3.zero();
 
   void computeWorldNormal(Quaternion quat){
     final n = worldNormal;
-    n.set(0, 0, 1);
+    n.setValues(0, 0, 1);
     quat.vmult(n, n);
     worldNormalNeedsUpdate = false;
   }
 
   @override
-  Vec3 calculateLocalInertia(double mass, [Vec3? target]) {
-    target ??= Vec3();
+  Vector3 calculateLocalInertia(double mass, [Vector3? target]) {
+    target ??= Vector3.zero();
     return target;
   }
 
@@ -44,13 +44,13 @@ class Plane extends Shape {
   }
 
   @override
-  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
+  void calculateWorldAABB(Vector3 pos, Quaternion quat, Vector3 min, Vector3 max) {
     // The plane AABB is infinite, except if the normal is pointing along any axis
-    _tempNormal.set(0, 0, 1); // Default plane normal is z
+    _tempNormal.setValues(0, 0, 1); // Default plane normal is z
     quat.vmult(_tempNormal, _tempNormal);
     const maxVal = double.infinity;
-    min.set(-maxVal, -maxVal, -maxVal);
-    max.set(maxVal, maxVal, maxVal);
+    min.setValues(-maxVal, -maxVal, -maxVal);
+    max.setValues(maxVal, maxVal, maxVal);
 
     if (_tempNormal.x == 1) {
       max.x = pos.x;

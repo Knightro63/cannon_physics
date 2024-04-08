@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class RagdollData{
   RagdollData({
@@ -53,7 +54,7 @@ class _RagDollState extends State<RagDoll> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.position.set(0, -1, 0);
+    groundBody.position.setValues(0, -1, 0);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
@@ -78,8 +79,8 @@ class _RagDollState extends State<RagDoll> {
 
     data.bodies.forEach((body){
       // Move the ragdoll up
-      final position = cannon.Vec3(0, 10, 0);
-      body.position.vadd(position, body.position);
+      final position = vmath.Vector3(0, 10, 0);
+      body.position.add2(position, body.position);
 
       world.addBody(body);
       demo.addVisual(body);
@@ -109,8 +110,8 @@ class _RagDollState extends State<RagDoll> {
 
     data.bodies.forEach((body){
       // Move the ragdoll up
-      final position = cannon.Vec3(0, 10, 0);
-      body.position.vadd(position, body.position);
+      final position = vmath.Vector3(0, 10, 0);
+      body.position.add2(position, body.position);
 
       world.addBody(body);
       demo.addVisual(body);
@@ -140,8 +141,8 @@ class _RagDollState extends State<RagDoll> {
 
     data.bodies.forEach((body){
       // Move the ragdoll up
-      final position = cannon.Vec3(0, 10, 0);
-      body.position.vadd(position, body.position);
+      final position = vmath.Vector3(0, 10, 0);
+      body.position.add2(position, body.position);
 
       world.addBody(body);
       demo.addVisual(body);
@@ -155,7 +156,7 @@ class _RagDollState extends State<RagDoll> {
     final sphereShape = cannon.Sphere(4);
     final sphereBody = cannon.Body(mass: 0);
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(0, -1, 0);
+    sphereBody.position.setValues(0, -1, 0);
     return sphereBody;
   }
   RagdollData createRagdoll({
@@ -183,32 +184,32 @@ class _RagDollState extends State<RagDoll> {
 
     final headShape = cannon.Sphere(headRadius);
     final upperArmShape = cannon.Box(
-      cannon.Vec3(upperArmLength * 0.5, upperArmSize * 0.5, upperArmSize * 0.5)
+      vmath.Vector3(upperArmLength * 0.5, upperArmSize * 0.5, upperArmSize * 0.5)
     );
     final lowerArmShape = cannon.Box(
-      cannon.Vec3(lowerArmLength * 0.5, lowerArmSize * 0.5, lowerArmSize * 0.5)
+      vmath.Vector3(lowerArmLength * 0.5, lowerArmSize * 0.5, lowerArmSize * 0.5)
     );
     final upperBodyShape = cannon.Box(
-      cannon.Vec3(shouldersDistance * 0.5, lowerArmSize * 0.5, upperBodyLength * 0.5)
+      vmath.Vector3(shouldersDistance * 0.5, lowerArmSize * 0.5, upperBodyLength * 0.5)
     );
     final pelvisShape = cannon.Box(
-      cannon.Vec3(shouldersDistance * 0.5, lowerArmSize * 0.5, pelvisLength * 0.5)
+      vmath.Vector3(shouldersDistance * 0.5, lowerArmSize * 0.5, pelvisLength * 0.5)
     );
     final upperLegShape = cannon.Box(
-      cannon.Vec3(upperLegSize * 0.5, lowerArmSize * 0.5, upperLegLength * 0.5)
+      vmath.Vector3(upperLegSize * 0.5, lowerArmSize * 0.5, upperLegLength * 0.5)
     );
     final lowerLegShape = cannon.Box(
-      cannon.Vec3(lowerLegSize * 0.5, lowerArmSize * 0.5, lowerLegLength * 0.5)
+      vmath.Vector3(lowerLegSize * 0.5, lowerArmSize * 0.5, lowerLegLength * 0.5)
     );
 
     // Lower legs
     final lowerLeftLeg = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(shouldersDistance / 2, 0, lowerLegLength / 2),
+      position: vmath.Vector3(shouldersDistance / 2, 0, lowerLegLength / 2),
     );
     final lowerRightLeg = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(-shouldersDistance / 2, 0, lowerLegLength / 2),
+      position: vmath.Vector3(-shouldersDistance / 2, 0, lowerLegLength / 2),
     );
     lowerLeftLeg.addShape(lowerLegShape);
     lowerRightLeg.addShape(lowerLegShape);
@@ -218,7 +219,7 @@ class _RagDollState extends State<RagDoll> {
     // Upper legs
     final upperLeftLeg = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         shouldersDistance / 2,
         0,
         lowerLeftLeg.position.z + lowerLegLength / 2 + upperLegLength / 2
@@ -226,7 +227,7 @@ class _RagDollState extends State<RagDoll> {
     );
     final upperRightLeg = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         -shouldersDistance / 2,
         0,
         lowerRightLeg.position.z + lowerLegLength / 2 + upperLegLength / 2
@@ -240,7 +241,7 @@ class _RagDollState extends State<RagDoll> {
     // Pelvis
     final pelvis = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(0, 0, upperLeftLeg.position.z + upperLegLength / 2 + pelvisLength / 2),
+      position: vmath.Vector3(0, 0, upperLeftLeg.position.z + upperLegLength / 2 + pelvisLength / 2),
     );
     pelvis.addShape(pelvisShape);
     bodies.add(pelvis);
@@ -248,7 +249,7 @@ class _RagDollState extends State<RagDoll> {
     // Upper body
     final upperBody = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(0, 0, pelvis.position.z + pelvisLength / 2 + upperBodyLength / 2),
+      position: vmath.Vector3(0, 0, pelvis.position.z + pelvisLength / 2 + upperBodyLength / 2),
     );
     upperBody.addShape(upperBodyShape);
     bodies.add(upperBody);
@@ -256,7 +257,7 @@ class _RagDollState extends State<RagDoll> {
     // Head
     final head = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(0, 0, upperBody.position.z + upperBodyLength / 2 + headRadius + neckLength),
+      position: vmath.Vector3(0, 0, upperBody.position.z + upperBodyLength / 2 + headRadius + neckLength),
     );
     head.addShape(headShape);
     bodies.add(head);
@@ -264,7 +265,7 @@ class _RagDollState extends State<RagDoll> {
     // Upper arms
     final upperLeftArm = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         shouldersDistance / 2 + upperArmLength / 2,
         0,
         upperBody.position.z + upperBodyLength / 2
@@ -272,7 +273,7 @@ class _RagDollState extends State<RagDoll> {
     );
     final upperRightArm = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         -shouldersDistance / 2 - upperArmLength / 2,
         0,
         upperBody.position.z + upperBodyLength / 2
@@ -286,7 +287,7 @@ class _RagDollState extends State<RagDoll> {
     // Lower arms
     final lowerLeftArm = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         upperLeftArm.position.x + lowerArmLength / 2 + upperArmLength / 2,
         0,
         upperLeftArm.position.z
@@ -294,7 +295,7 @@ class _RagDollState extends State<RagDoll> {
     );
     final lowerRightArm = cannon.Body(
       mass: 1,
-      position: cannon.Vec3(
+      position: vmath.Vector3(
         upperRightArm.position.x - lowerArmLength / 2 - upperArmLength / 2,
         0,
         upperRightArm.position.z
@@ -307,10 +308,10 @@ class _RagDollState extends State<RagDoll> {
 
     // Neck joint
     final neckJoint = cannon.ConeTwistConstraint(head, upperBody,
-      pivotA: cannon.Vec3(0, 0, -headRadius - neckLength / 2),
-      pivotB: cannon.Vec3(0, 0, upperBodyLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, -headRadius - neckLength / 2),
+      pivotB: vmath.Vector3(0, 0, upperBodyLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
@@ -318,18 +319,18 @@ class _RagDollState extends State<RagDoll> {
 
     // Knee joints
     final leftKneeJoint = cannon.ConeTwistConstraint(lowerLeftLeg, upperLeftLeg,
-      pivotA: cannon.Vec3(0, 0, lowerLegLength / 2),
-      pivotB: cannon.Vec3(0, 0, -upperLegLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, lowerLegLength / 2),
+      pivotB: vmath.Vector3(0, 0, -upperLegLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
     final rightKneeJoint = cannon.ConeTwistConstraint(lowerRightLeg, upperRightLeg, 
-      pivotA: cannon.Vec3(0, 0, lowerLegLength / 2),
-      pivotB: cannon.Vec3(0, 0, -upperLegLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, lowerLegLength / 2),
+      pivotB: vmath.Vector3(0, 0, -upperLegLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
@@ -338,18 +339,18 @@ class _RagDollState extends State<RagDoll> {
 
     // Hip joints
     final leftHipJoint = cannon.ConeTwistConstraint(upperLeftLeg, pelvis,
-      pivotA: cannon.Vec3(0, 0, upperLegLength / 2),
-      pivotB: cannon.Vec3(shouldersDistance / 2, 0, -pelvisLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, upperLegLength / 2),
+      pivotB: vmath.Vector3(shouldersDistance / 2, 0, -pelvisLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
     final rightHipJoint = cannon.ConeTwistConstraint(upperRightLeg, pelvis,
-      pivotA: cannon.Vec3(0, 0, upperLegLength / 2),
-      pivotB: cannon.Vec3(-shouldersDistance / 2, 0, -pelvisLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, upperLegLength / 2),
+      pivotB: vmath.Vector3(-shouldersDistance / 2, 0, -pelvisLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
@@ -358,10 +359,10 @@ class _RagDollState extends State<RagDoll> {
 
     // Spine
     final spineJoint = cannon.ConeTwistConstraint(pelvis, upperBody,
-      pivotA: cannon.Vec3(0, 0, pelvisLength / 2),
-      pivotB: cannon.Vec3(0, 0, -upperBodyLength / 2),
-      axisA: cannon.Vec3.unitZ,
-      axisB: cannon.Vec3.unitZ,
+      pivotA: vmath.Vector3(0, 0, pelvisLength / 2),
+      pivotB: vmath.Vector3(0, 0, -upperBodyLength / 2),
+      axisA: vmath.Vector3(0, 0, 1),
+      axisB: vmath.Vector3(0, 0, 1),
       angle: angle,
       twistAngle: twistAngle,
     );
@@ -369,17 +370,17 @@ class _RagDollState extends State<RagDoll> {
 
     // Shoulders
     final leftShoulder = cannon.ConeTwistConstraint(upperBody, upperLeftArm,
-      pivotA: cannon.Vec3(shouldersDistance / 2, 0, upperBodyLength / 2),
-      pivotB: cannon.Vec3(-upperArmLength / 2, 0, 0),
-      axisA: cannon.Vec3.unitX,
-      axisB: cannon.Vec3.unitX,
+      pivotA: vmath.Vector3(shouldersDistance / 2, 0, upperBodyLength / 2),
+      pivotB: vmath.Vector3(-upperArmLength / 2, 0, 0),
+      axisA: vmath.Vector3(1, 0, 0),
+      axisB: vmath.Vector3(1, 0, 0),
       angle: angleShoulders,
     );
     final rightShoulder = cannon.ConeTwistConstraint(upperBody, upperRightArm,
-      pivotA: cannon.Vec3(-shouldersDistance / 2, 0, upperBodyLength / 2),
-      pivotB: cannon.Vec3(upperArmLength / 2, 0, 0),
-      axisA: cannon.Vec3.unitX,
-      axisB: cannon.Vec3.unitX,
+      pivotA: vmath.Vector3(-shouldersDistance / 2, 0, upperBodyLength / 2),
+      pivotB: vmath.Vector3(upperArmLength / 2, 0, 0),
+      axisA: vmath.Vector3(1, 0, 0),
+      axisB: vmath.Vector3(1, 0, 0),
       angle: angleShoulders,
       twistAngle: twistAngle,
     );
@@ -388,18 +389,18 @@ class _RagDollState extends State<RagDoll> {
 
     // Elbow joint
     final leftElbowJoint = cannon.ConeTwistConstraint(lowerLeftArm, upperLeftArm,
-      pivotA: cannon.Vec3(-lowerArmLength / 2, 0, 0),
-      pivotB: cannon.Vec3(upperArmLength / 2, 0, 0),
-      axisA: cannon.Vec3.unitX,
-      axisB: cannon.Vec3.unitX,
+      pivotA: vmath.Vector3(-lowerArmLength / 2, 0, 0),
+      pivotB: vmath.Vector3(upperArmLength / 2, 0, 0),
+      axisA: vmath.Vector3(1, 0, 0),
+      axisB: vmath.Vector3(1, 0, 0),
       angle: angle,
       twistAngle: twistAngle,
     );
     final rightElbowJoint = cannon.ConeTwistConstraint(lowerRightArm, upperRightArm,
-      pivotA: cannon.Vec3(lowerArmLength / 2, 0, 0),
-      pivotB: cannon.Vec3(-upperArmLength / 2, 0, 0),
-      axisA: cannon.Vec3.unitX,
-      axisB: cannon.Vec3.unitX,
+      pivotA: vmath.Vector3(lowerArmLength / 2, 0, 0),
+      pivotB: vmath.Vector3(-upperArmLength / 2, 0, 0),
+      axisA: vmath.Vector3(1, 0, 0),
+      axisB: vmath.Vector3(1, 0, 0),
       angle: angle,
       twistAngle: twistAngle,
     );

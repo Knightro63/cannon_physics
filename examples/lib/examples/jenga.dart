@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Jenga extends StatefulWidget {
   const Jenga({
@@ -52,22 +53,22 @@ class _JengaState extends State<Jenga> {
       for (int j = 0; j < 3; j++) {
         cannon.Body body = cannon.Body(mass: mass );
 
-        cannon.Vec3 halfExtents;
+        vmath.Vector3 halfExtents;
         int dx;
         int dz;
         if (i % 2 == 0) {
-          halfExtents = cannon.Vec3(size, size, size * 3);
+          halfExtents = vmath.Vector3(size, size, size * 3);
           dx = 1;
           dz = 0;
         } else {
-          halfExtents = cannon.Vec3(size * 3, size, size);
+          halfExtents = vmath.Vector3(size * 3, size, size);
           dx = 0;
           dz = 1;
         }
 
         cannon.Box shape = cannon.Box(halfExtents);
         body.addShape(shape);
-        body.position.set(
+        body.position.setValues(
           2 * (size + gap) * (j - 1) * dx,
           2 * (size + gap) * (i + 1),
           2 * (size + gap) * (j - 1) * dz

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:three_dart/three_dart.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class BodyTypes extends StatefulWidget {
   const BodyTypes({
@@ -55,26 +56,26 @@ class _BodyTypesState extends State<BodyTypes> {
     // Kinematic Box
     // Does only collide with dynamic bodies, but does not respond to any force.
     // Its movement can be controlled by setting its velocity.
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
     final boxBody = cannon.Body(
       mass: 0,
       type: cannon.BodyTypes.kinematic,
-      position: cannon.Vec3(0, size * 0.5, 0),
+      position: vmath.Vector3(0, size * 0.5, 0),
     );
     boxBody.addShape(boxShape);
     world.addBody(boxBody);
     demo.addVisual(boxBody);
 
     // To control the box movement we must set its velocity
-    boxBody.velocity.set(0, 5, 0);
+    boxBody.velocity.setValues(0, 5, 0);
     double secs = 0;
     demo.addAnimationEvent((dt){
       secs += dt;
       if(secs > 1){
         if (boxBody.velocity.y < 0) {
-          boxBody.velocity.set(0, 5, 0);
+          boxBody.velocity.setValues(0, 5, 0);
         } else {
-          boxBody.velocity.set(0, -5, 0);
+          boxBody.velocity.setValues(0, -5, 0);
         }
         secs = 0;
       }
@@ -84,7 +85,7 @@ class _BodyTypesState extends State<BodyTypes> {
     final sphereShape = cannon.Sphere(size);
     final sphereBody = cannon.Body(
       mass: 5,
-      position: cannon.Vec3(0, size * 3, 0),
+      position: vmath.Vector3(0, size * 3, 0),
     );
     sphereBody.addShape(sphereShape);
     world.addBody(sphereBody);

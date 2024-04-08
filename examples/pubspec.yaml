@@ -11,6 +11,7 @@ dependencies:
 
   cannon_physics:
     path: ../
+  vector_math: ^2.1.4
   flutter_gl: ^0.0.21
   three_dart:
     git:

@@ -1,16 +1,18 @@
 import '../math/vec3.dart';
+import '../math/quaternion.dart';
 import '../objects/rigid_body.dart';
 import '../constraints/point_to_point_constraint.dart';
 import '../equations/rotational_equation.dart';
 import '../equations/rotational_motor_equation.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Hinge constraint. Think of it as a door hinge. It tries to keep the door in the correct place and with the correct orientation.
 class HingeConstraint extends PointToPointConstraint {
   /// Rotation axis, defined locally in bodyA.
-  late Vec3 axisA;
+  late Vector3 axisA;
 
   /// Rotation axis, defined locally in bodyB.
-  late Vec3 axisB;
+  late Vector3 axisB;
 
   late RotationalEquation rotationalEquation1;
   late RotationalEquation rotationalEquation2;
@@ -21,18 +23,18 @@ class HingeConstraint extends PointToPointConstraint {
     Body bodyA,
     Body bodyB,
     {
-      Vec3? pivotA,
-      Vec3? pivotB,
-      Vec3? axisA,
-      Vec3? axisB,
+      Vector3? pivotA,
+      Vector3? pivotB,
+      Vector3? axisA,
+      Vector3? axisB,
       bool? collideConnected,
       double maxForce = 1e6
     }
   ):super(bodyA, bodyB, pivotA, pivotB, maxForce) {
-    this.axisA = axisA ?? Vec3(1, 0, 0);
+    this.axisA = axisA ?? Vector3(1, 0, 0);
     this.axisA.normalize();
 
-    this.axisB = axisB ?? Vec3(1, 0, 0);
+    this.axisB = axisB ?? Vector3(1, 0, 0);
     this.axisB.normalize();
 
     this.collideConnected = collideConnected ?? true;
@@ -48,8 +50,8 @@ class HingeConstraint extends PointToPointConstraint {
     equations.addAll([rotational1,rotational2,motor]);
   }
 
-  final _hingeConstraintUpdateTmpVec1 = Vec3();
-  final _hingeConstraintUpdateTmpVec2 = Vec3();
+  final _hingeConstraintUpdateTmpVec1 = Vector3.zero();
+  final _hingeConstraintUpdateTmpVec2 = Vector3.zero();
 
   /// enableMotor
   void enableMotor() {
@@ -92,8 +94,8 @@ class HingeConstraint extends PointToPointConstraint {
     bodyA.quaternion.vmult(axisA, worldAxisA);
     bodyB.quaternion.vmult(axisB, worldAxisB);
     worldAxisA.tangents(r1.axisA, r2.axisA);
-    r1.axisB.copy(worldAxisB);
-    r2.axisB.copy(worldAxisB);
+    r1.axisB.setFrom(worldAxisB);
+    r2.axisB.setFrom(worldAxisB);
 
     if (motorEquation.enabled) {
       bodyA.quaternion.vmult(this.axisA, motor.axisA);

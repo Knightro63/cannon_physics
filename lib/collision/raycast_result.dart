@@ -1,20 +1,20 @@
-import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
 import  '../rigid_body_shapes/shape.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Storage for Ray casting data
 class RaycastResult {
   /// rayFromWorld
-  Vec3 rayFromWorld = Vec3();
+  Vector3 rayFromWorld = Vector3.zero();
 
   /// rayToWorld
-  Vec3 rayToWorld = Vec3();
+  Vector3 rayToWorld = Vector3.zero();
 
   /// hitNormalWorld
-  Vec3 hitNormalWorld = Vec3();
+  Vector3 hitNormalWorld = Vector3.zero();
 
   /// hitPointWorld
-  Vec3 hitPointWorld = Vec3();
+  Vector3 hitPointWorld = Vector3.zero();
 
   /// hasHit
   bool hasHit = false;
@@ -55,18 +55,18 @@ class RaycastResult {
 
   /// Set result data.
   void set(
-    Vec3 rayFromWorld,
-    Vec3 rayToWorld,
-    Vec3 hitNormalWorld,
-    Vec3 hitPointWorld,
+    Vector3 rayFromWorld,
+    Vector3 rayToWorld,
+    Vector3 hitNormalWorld,
+    Vector3 hitPointWorld,
     Shape shape,
     Body body,
     double distance
   ){
-    this.rayFromWorld.copy(rayFromWorld);
-    this.rayToWorld.copy(rayToWorld);
-    this.hitNormalWorld.copy(hitNormalWorld);
-    this.hitPointWorld.copy(hitPointWorld);
+    this.rayFromWorld.setFrom(rayFromWorld);
+    this.rayToWorld.setFrom(rayToWorld);
+    this.hitNormalWorld.setFrom(hitNormalWorld);
+    this.hitPointWorld.setFrom(hitPointWorld);
     this.shape = shape;
     this.body = body;
     this.distance = distance;

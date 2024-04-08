@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class TriMesh extends StatefulWidget {
   const TriMesh({
@@ -45,7 +46,7 @@ class _TriMeshState extends State<TriMesh> {
   void triMeshRay(){
     final world = demo.world;
 
-    world.gravity.set(0, 0, 0);
+    world.gravity.setValues(0, 0, 0);
 
     // Particle as marker for the raycast hit
     const N = 10;
@@ -73,25 +74,25 @@ class _TriMeshState extends State<TriMesh> {
     //final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(5, 3.5, 16,16));
     final torusBody = cannon.Body(mass: 1,angularDamping: 0 );
     torusBody.addShape(torusShape);
-    torusBody.position.set(0.01, 0.01, 0.01);
+    torusBody.position.setValues(0.01, 0.01, 0.01);
     torusBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-    torusBody.angularVelocity.set(0, 0, 1);
+    torusBody.angularVelocity.setValues(0, 0, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
 
     // Do the raycasting
-    final from = cannon.Vec3(-10, 0, 1);
-    final to = cannon.Vec3(10, 0, 1);
+    final from = vmath.Vector3(-10, 0, 1);
+    final to = vmath.Vector3(10, 0, 1);
     final result = cannon.RaycastResult();
     final raycastOptions = cannon.RayOptions();
     void postStepListener(event) {
       for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-          from.set(-10, i * 0.1, j * 0.1);
-          to.set(10, i * 0.1, j * 0.1);
+          from.setValues(-10, i * 0.1, j * 0.1);
+          to.setValues(10, i * 0.1, j * 0.1);
           result.reset();
           world.raycastClosest(from, to, raycastOptions, result);
-          particleBodies[i * N + j].position.copy(result.hitPointWorld);
+          particleBodies[i * N + j].position.setFrom(result.hitPointWorld);
         }
       }
     }
@@ -113,7 +114,7 @@ class _TriMeshState extends State<TriMesh> {
     final sphereBody = cannon.Body(
       mass: 1,
       shape: sphereShape,
-      position: cannon.Vec3(-3, 11, 3),
+      position: vmath.Vector3(-3, 11, 3),
     );
     world.addBody(sphereBody);
     demo.addVisual(sphereBody);
@@ -127,9 +128,9 @@ class _TriMeshState extends State<TriMesh> {
 
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
@@ -148,7 +149,7 @@ class _TriMeshState extends State<TriMesh> {
     final sphereBody = cannon.Body(
       mass: 1,
       shape: sphereShape,
-      position: cannon.Vec3(-3, 11, 3),
+      position: vmath.Vector3(-3, 11, 3),
     );
     world.addBody(sphereBody);
     demo.addVisual(sphereBody);
@@ -163,9 +164,9 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//cannon.Body(mass: 1 );
     torusBody.mass = 1;
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
@@ -183,7 +184,7 @@ class _TriMeshState extends State<TriMesh> {
     final body = cannon.Body(
       mass: 1,
       shape: shape,
-      position: cannon.Vec3(-3, 11, 4),
+      position: vmath.Vector3(-3, 11, 4),
     );
     world.addBody(body);
     demo.addVisual(body);
@@ -198,9 +199,9 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1000 ));//
     //final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
@@ -222,7 +223,7 @@ class _TriMeshState extends State<TriMesh> {
     final body = cannon.Body(
       mass: 1,
       shape: shape,
-      position: cannon.Vec3(-3, 11, 4),
+      position: vmath.Vector3(-3, 11, 4),
     );
     world.addBody(body);
     demo.addVisual(body, mesh: torusMesh1, material: torusMaterial1);
@@ -237,9 +238,9 @@ class _TriMeshState extends State<TriMesh> {
     //final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1000 ));//
     final torusBody = cannon.Body(mass: 1 );
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
@@ -253,11 +254,11 @@ class _TriMeshState extends State<TriMesh> {
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
-    final shape = cannon.Box(cannon.Vec3( 0.5,0.5,0.5));
+    final shape = cannon.Box(vmath.Vector3( 0.5,0.5,0.5));
     final body = cannon.Body(
       mass: 1,
       shape: shape,
-      position: cannon.Vec3(-3, 11, 0),
+      position: vmath.Vector3(-3, 11, 0),
     );
     world.addBody(body);
     demo.addVisual(body);
@@ -272,9 +273,9 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//
     torusBody.mass = 1;
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }
@@ -292,7 +293,7 @@ class _TriMeshState extends State<TriMesh> {
     final body = cannon.Body(
       mass: 1,
       shape: shape,
-      position: cannon.Vec3(0, 11, 3),
+      position: vmath.Vector3(0, 11, 3),
     );
     world.addBody(body);
     demo.addVisual(body);
@@ -307,9 +308,9 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.ConvexPolyhedron.trimeshToPolyhedron(torusShape as cannon.Trimesh,cannon.Body(mass: 1 ));//cannon.Body(mass: 1 );
     torusBody.mass = 1;
     torusBody.addShape(torusShape);
-    torusBody.position.set(0, 4, 0);
+    torusBody.position.setValues(0, 4, 0);
     torusBody.quaternion.setFromEuler(math.pi / 2, 0, 0);
-    torusBody.velocity.set(0, 1, 1);
+    torusBody.velocity.setValues(0, 1, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
   }

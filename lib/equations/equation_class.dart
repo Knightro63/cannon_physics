@@ -1,7 +1,9 @@
 import '../math/jacobian_element.dart';
-import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
 import '../rigid_body_shapes/shape.dart';
+import 'package:vector_math/vector_math.dart';
+import '../math/vec3.dart';
+import '../math/mat3.dart';
 
 /// Equation base class.
 ///
@@ -36,11 +38,11 @@ class Equation {
     setSpookParams(1e7, 4, 1 / 60); // Set typical spook params
   }
 
-  final _iMfi = Vec3();
-  final _iMfj = Vec3();
-  final _invIiVmultTaui = Vec3();
-  final _invIjVmultTauj = Vec3();
-  final _addToWlambdaTemp = Vec3();
+  final _iMfi = Vector3.zero();
+  final _iMfj = Vector3.zero();
+  final _invIiVmultTaui = Vector3.zero();
+  final _invIjVmultTauj = Vector3.zero();
+  final _addToWlambdaTemp = Vector3.zero();
 
   /// Recalculates a, b, and eps.
   ///
@@ -115,8 +117,8 @@ class Equation {
     final invMassi = bi.invMassSolve;
     final invMassj = bj.invMassSolve;
 
-    fi.scale(invMassi, _iMfi);
-    fj.scale(invMassj, _iMfj);
+    fi.scale2(invMassi, _iMfi);
+    fj.scale2(invMassj, _iMfj);
 
     bi.invInertiaWorldSolve.vmult(ti, _invIiVmultTaui);
     bj.invInertiaWorldSolve.vmult(tj, _invIjVmultTauj);
@@ -135,7 +137,7 @@ class Equation {
     final invIi = bi.invInertiaWorldSolve;
     final invIj = bj.invInertiaWorldSolve;
     double result = invMassi + invMassj;
-    final tmp = Vec3();
+    final tmp = Vector3.zero();
     invIi.vmult(ga.rotational, tmp);
     result += tmp.dot(ga.rotational);
 

@@ -75,7 +75,7 @@ class _SPHState extends State<SPH> {
     final planeXmin = cannon.Body(mass: 0, material:material);
     planeXmin.addShape(planeShapeXmin);
     planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
-    planeXmin.position.set(-width * 0.5, 0, 0);
+    planeXmin.position.setValues(-width * 0.5, 0, 0);
     world.addBody(planeXmin);
 
     // Plane +x
@@ -83,7 +83,7 @@ class _SPHState extends State<SPH> {
     final planeXmax = cannon.Body(mass: 0, material: material);
     planeXmax.addShape(planeShapeXmax);
     planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
-    planeXmax.position.set(width * 0.5, 0, 0);
+    planeXmax.position.setValues(width * 0.5, 0, 0);
     world.addBody(planeXmax);
 
     // Plane -z
@@ -91,7 +91,7 @@ class _SPHState extends State<SPH> {
     final planeZmin = cannon.Body(mass: 0, material:material);
     planeZmin.addShape(planeShapeZmin);
     planeZmin.quaternion.setFromEuler(0, 0, 0);
-    planeZmin.position.set(0, 0, -height * 0.5);
+    planeZmin.position.setValues(0, 0, -height * 0.5);
     world.addBody(planeZmin);
 
     // Plane +z
@@ -99,7 +99,7 @@ class _SPHState extends State<SPH> {
     final planeZmax = cannon.Body(mass: 0, material:material);
     planeZmax.addShape(planeShapeZmax);
     planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
-    planeZmax.position.set(0, 0, height * 0.5);
+    planeZmax.position.setValues(0, 0, height * 0.5);
     world.addBody(planeZmax);
 
     // Create particles
@@ -112,7 +112,7 @@ class _SPHState extends State<SPH> {
         for (int k = 0; k < ny; k++) {
           final particle = cannon.Body(mass:mass, material:material);
           particle.addShape(cannon.Particle());
-          particle.position.set(
+          particle.position.setValues(
             ((i + (Math.random() - 0.5) * randRange + 0.5) * width) / nx - width * 0.5,
             (k * height) / nz,
             ((j + (Math.random() - 0.5) * randRange + 0.5) * height) / nz - height * 0.5

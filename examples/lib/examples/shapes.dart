@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Shapes extends StatefulWidget {
   const Shapes({
@@ -43,10 +44,10 @@ class _ShapesState extends State<Shapes> {
   }
   cannon.ConvexPolyhedron createTetra() {
     final vertices = [
-      cannon.Vec3(0, 0, 0),
-      cannon.Vec3(2, 0, 0),
-      cannon.Vec3(0, 2, 0),
-      cannon.Vec3(0, 0, 2),
+      vmath.Vector3(0, 0, 0),
+      vmath.Vector3(2, 0, 0),
+      vmath.Vector3(0, 2, 0),
+      vmath.Vector3(0, 0, 2),
     ];
     const offset = -0.35;
     for (int i = 0; i < vertices.length; i++) {
@@ -82,7 +83,7 @@ class _ShapesState extends State<Shapes> {
     final sphereShape = cannon.Sphere(size);
     final sphereBody = cannon.Body(mass:mass);
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(-size * 2, size + 1, size * 2);
+    sphereBody.position.setValues(-size * 2, size + 1, size * 2);
     world.addBody(sphereBody);
     demo.addVisual(sphereBody);
 
@@ -95,7 +96,7 @@ class _ShapesState extends State<Shapes> {
     );
     final cylinderBody = cannon.Body(mass:mass);
     cylinderBody.addShape(cylinderShape);
-    cylinderBody.position.set(size * 2, size + 1, size * 2);
+    cylinderBody.position.setValues(size * 2, size + 1, size * 2);
     world.addBody(cylinderBody);
     demo.addVisual(cylinderBody);
 
@@ -108,39 +109,39 @@ class _ShapesState extends State<Shapes> {
     );
     final cylinderBody2 = cannon.Body(mass:mass);
     cylinderBody2.addShape(cylinderShape2);
-    cylinderBody2.position.set(size * 2, size * 4 + 1, size * 2);
+    cylinderBody2.position.setValues(size * 2, size * 4 + 1, size * 2);
     cylinderBody2.quaternion.setFromEuler(Math.PI / 2, Math.PI / 2, 0);
     world.addBody(cylinderBody2);
     demo.addVisual(cylinderBody2);
 
     // Box shape
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
     final boxBody = cannon.Body(mass:mass);
     boxBody.addShape(boxShape);
-    boxBody.position.set(size * 2, size + 1, -size * 2);
+    boxBody.position.setValues(size * 2, size + 1, -size * 2);
     world.addBody(boxBody);
     demo.addVisual(boxBody);
 
     // Particle - not a shape but still here to show how to use it.
     final particle = cannon.Body(mass:mass);
     particle.addShape(cannon.Particle());
-    particle.position.set(size * 2, size + 1, size * 4);
+    particle.position.setValues(size * 2, size + 1, size * 4);
     world.addBody(particle);
     demo.addVisual(particle);
 
     final particle2 = cannon.Body(mass:mass);
     particle2.addShape(cannon.Particle());
-    particle2.position.set(size *2 , size *12, -size-0.5);
+    particle2.position.setValues(size *2 , size *12, -size-0.5);
     world.addBody(particle2);
     demo.addVisual(particle2);
     // Compound
     final compoundBody = cannon.Body(mass:mass);
-    final shape = cannon.Box(cannon.Vec3(size * 0.5, size * 0.5, size * 0.5));
-    compoundBody.addShape(shape, cannon.Vec3(0, size, 0));
-    compoundBody.addShape(shape, cannon.Vec3(0, 0, 0));
-    compoundBody.addShape(shape, cannon.Vec3(0, -size, 0));
-    compoundBody.addShape(shape, cannon.Vec3(size, -size, 0));
-    compoundBody.position.set(size * 4, size + 1, size * 4);
+    final shape = cannon.Box(vmath.Vector3(size * 0.5, size * 0.5, size * 0.5));
+    compoundBody.addShape(shape, vmath.Vector3(0, size, 0));
+    compoundBody.addShape(shape, vmath.Vector3(0, 0, 0));
+    compoundBody.addShape(shape, vmath.Vector3(0, -size, 0));
+    compoundBody.addShape(shape, vmath.Vector3(size, -size, 0));
+    compoundBody.position.setValues(size * 4, size + 1, size * 4);
     world.addBody(compoundBody);
     demo.addVisual(compoundBody);
 
@@ -148,7 +149,7 @@ class _ShapesState extends State<Shapes> {
     final polyhedronShape = createTetra();
     final polyhedronBody = cannon.Body(mass:mass);
     polyhedronBody.addShape(polyhedronShape);
-    polyhedronBody.position.set(-size * 2, size + 1, -size * 2);
+    polyhedronBody.position.setValues(-size * 2, size + 1, -size * 2);
     world.addBody(polyhedronBody);
     demo.addVisual(polyhedronBody);
   }

@@ -1,5 +1,6 @@
 import '../solver/solver.dart';
 import '../world/world_class.dart';
+import '../math/vec3.dart';
 
 /// Constraint equation Gauss-Seidel solver.
 /// @todo The spook parameters should be specified for each constraint, not globally.
@@ -67,8 +68,8 @@ class GSSolver extends Solver {
         final b = bodies[i];
         final vlambda = b.vlambda;
         final wlambda = b.wlambda;
-        vlambda.set(0, 0, 0);
-        wlambda.set(0, 0, 0);
+        vlambda.setValues(0, 0, 0);
+        wlambda.setValues(0, 0, 0);
       }
 
       // Iterate over equations
@@ -112,11 +113,11 @@ class GSSolver extends Solver {
         final v = b.velocity;
         final w = b.angularVelocity;
 
-        b.vlambda.vmul(b.linearFactor, b.vlambda);
-        v.vadd(b.vlambda, v);
+        b.vlambda.multiply2(b.linearFactor, b.vlambda);
+        v.add2(b.vlambda, v);
 
-        b.wlambda.vmul(b.angularFactor, b.wlambda);
-        w.vadd(b.wlambda, w);
+        b.wlambda.multiply2(b.angularFactor, b.wlambda);
+        w.add2(b.wlambda, w);
       }
 
       // Set the `.multiplier` property of each equation

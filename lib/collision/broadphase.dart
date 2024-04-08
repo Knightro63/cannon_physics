@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 import 'package:cannon_physics/utils/logger.dart';
-
 import  '../objects/rigid_body.dart';
-import  '../math/vec3.dart';
 import  '../collision/aabb.dart';
 import  '../world/world_class.dart';
+import 'package:vector_math/vector_math.dart';
+import '../math/vec3.dart';
 
 /// Base class for broadphase implementations
 /// @author schteppe
@@ -23,14 +23,14 @@ class Broadphase {
   });
 
   // Temp objects
-  final Vec3 _broadphaseCollisionPairsR = Vec3();
+  final Vector3 _broadphaseCollisionPairsR = Vector3.zero();
   //final Quaternion _broadphaseCollisionPairsQuat = Quaternion();
-  //final Vec3 _broadphaseCollisionPairsNormal = Vec3();
-  //final Vec3 _broadphaseCollisionPairsRelpos = Vec3();
+  //final Vector3 _broadphaseCollisionPairsNormal = Vector3.zero();
+  //final Vector3 _broadphaseCollisionPairsRelpos = Vector3.zero();
   final Map<String,dynamic> _broadphaseMakePairsUniqueTemp = {};
   final List<Body> _broadphaseMakePairsUniqueP1=[];
   final List<Body> _broadphaseMakePairsUniqueP2=[];
-  final Vec3 bscDist = Vec3();
+  final Vector3 bscDist = Vector3.zero();
 
   /// Get the collision pairs from the world
   /// [world] The world to search in
@@ -76,9 +76,9 @@ class Broadphase {
   /// [pairs2] bodyB is appended to this array if intersection
   void doBoundingSphereBroadphase(Body bodyA, Body bodyB, List<Body> pairs1, List<Body> pairs2) {
     final r = _broadphaseCollisionPairsR;
-    bodyB.position.vsub(bodyA.position, r);
+    bodyB.position.sub2(bodyA.position, r);
     final boundingRadiusSum2 = math.pow(bodyA.boundingRadius + bodyB.boundingRadius,2);
-    final norm2 = r.lengthSquared();
+    final norm2 = r.length2;
     if (norm2 < boundingRadiusSum2) {
       pairs1.add(bodyA);
       pairs2.add(bodyB);
@@ -140,11 +140,11 @@ class Broadphase {
 
   /// Check if the bounding spheres of two bodies overlap.
   bool boundingSphereCheck(Body bodyA, Body bodyB) {
-    final Vec3 dist = Vec3();//bscDist;
-    bodyA.position.vsub(bodyB.position, dist);
+    final Vector3 dist = Vector3.zero();//bscDist;
+    bodyA.position.sub2(bodyB.position, dist);
     final sa = bodyA.shapes[0];
     final sb = bodyB.shapes[0];
-    return math.pow(sa.boundingSphereRadius + sb.boundingSphereRadius, 2) > dist.lengthSquared();
+    return math.pow(sa.boundingSphereRadius + sb.boundingSphereRadius, 2) > dist.length2;
   }
 
   /// Returns all the bodies within the AABB.

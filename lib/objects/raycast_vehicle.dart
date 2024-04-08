@@ -1,5 +1,6 @@
 import 'rigid_body.dart';
 import '../math/vec3.dart';
+import '../math/mat3.dart';
 import '../math/quaternion.dart';
 import '../objects/wheel_info.dart';
 import '../math/transform.dart';
@@ -7,6 +8,7 @@ import '../constraints/constraint_class.dart';
 import '../world/world_class.dart';
 import 'dart:math' as math;
 import '../utils/utils.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Vehicle helper class that casts rays from the wheel positions towards the ground and applies forces.
 class RaycastVehicle {
@@ -40,38 +42,38 @@ class RaycastVehicle {
   int numWheelsOnGround = 0;
 
 
-  //final _tmpVec1 = Vec3();
-  //final _tmpVec2 = Vec3();
-  //final _tmpVec3 = Vec3();
-  final _tmpVec4 = Vec3();
-  final _tmpVec5 = Vec3();
-  final _tmpVec6 = Vec3();
+  //final _tmpVec1 = Vector3.zero();
+  //final _tmpVec2 = Vector3.zero();
+  //final _tmpVec3 = Vector3.zero();
+  final _tmpVec4 = Vector3.zero();
+  final _tmpVec5 = Vector3.zero();
+  final _tmpVec6 = Vector3.zero();
   //final _tmpRay = Ray();
 
-  final torque = Vec3();
+  final torque = Vector3.zero();
 
-  final _castRayRayvector = Vec3();
-  final _castRayTarget = Vec3();
+  final _castRayRayvector = Vector3.zero();
+  final _castRayTarget = Vector3.zero();
 
-  List<Vec3> directions = [Vec3(1, 0, 0), Vec3(0, 1, 0), Vec3(0, 0, 1)];
+  List<Vector3> directions = [Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)];
 
-  final _updateFrictionSurfNormalWSScaledProj = Vec3();
-  List<Vec3> updateFrictionAxle =  [];
-  List<Vec3> updateFrictionForwardWS = [];
+  final _updateFrictionSurfNormalWSScaledProj = Vector3.zero();
+  List<Vector3> updateFrictionAxle =  [];
+  List<Vector3> updateFrictionForwardWS = [];
   final _sideFrictionStiffness2 = 1;
 
-  final _calcRollingFrictionVel1 = Vec3();
-  final _calcRollingFrictionVel2 = Vec3();
-  final _calcRollingFrictionVel = Vec3();
+  final _calcRollingFrictionVel1 = Vector3.zero();
+  final _calcRollingFrictionVel2 = Vector3.zero();
+  final _calcRollingFrictionVel = Vector3.zero();
 
-  final _computeImpulseDenominatorR0 = Vec3();
-  final _computeImpulseDenominatorC0 = Vec3();
-  final _computeImpulseDenominatorVec = Vec3();
-  final _computeImpulseDenominatorM = Vec3();
+  final _computeImpulseDenominatorR0 = Vector3.zero();
+  final _computeImpulseDenominatorC0 = Vector3.zero();
+  final _computeImpulseDenominatorVec = Vector3.zero();
+  final _computeImpulseDenominatorM = Vector3.zero();
 
-  final _resolveSingleBilateralVel1 = Vec3();
-  final _resolveSingleBilateralVel2 = Vec3();
-  final _resolveSingleBilateralVel = Vec3();
+  final _resolveSingleBilateralVel1 = Vector3.zero();
+  final _resolveSingleBilateralVel2 = Vector3.zero();
+  final _resolveSingleBilateralVel = Vector3.zero();
 
   /// Add a wheel. For information about the options, see `WheelInfo`.
   int addWheel([WheelInfo? wheelInfo]){
@@ -110,8 +112,8 @@ class RaycastVehicle {
   }
 
   /// Get one of the wheel axles, world-oriented.
-  void getVehicleAxisWorld(AxisIndex axisIndex, Vec3 result){
-    result.set(axisIndex == AxisIndex.x ? 1 : 0, AxisIndex.y == axisIndex ? 1 : 0, axisIndex == AxisIndex.z ? 1 :0);
+  void getVehicleAxisWorld(AxisIndex axisIndex, Vector3 result){
+    result.setValues(axisIndex == AxisIndex.x ? 1 : 0, AxisIndex.y == axisIndex ? 1 : 0, axisIndex == AxisIndex.z ? 1 :0);
     chassisBody.vectorToWorldFrame(result, result);
   }
 
@@ -124,9 +126,9 @@ class RaycastVehicle {
       updateWheelTransform(i);
     }
 
-    currentVehicleSpeedKmHour = 3.6 * chassisBody.velocity.length();
+    currentVehicleSpeedKmHour = 3.6 * chassisBody.velocity.length;
 
-    final forwardWorld = Vec3();
+    final forwardWorld = Vector3.zero();
     getVehicleAxisWorld(indexForwardAxis, forwardWorld);
 
     if (forwardWorld.dot(chassisBody.velocity) < 0) {
@@ -140,8 +142,8 @@ class RaycastVehicle {
 
     updateSuspension(timeStep);
 
-    final impulse = Vec3();
-    final relpos = Vec3();
+    final impulse = Vector3.zero();
+    final relpos = Vector3.zero();
     for (int i = 0; i < numWheels; i++) {
       //apply suspension force
       final wheel = wheelInfos[i];
@@ -149,20 +151,20 @@ class RaycastVehicle {
       if (suspensionForce > wheel.maxSuspensionForce) {
         suspensionForce = wheel.maxSuspensionForce;
       }
-      wheel.raycastResult.hitNormalWorld.scale(suspensionForce * timeStep, impulse);
+      wheel.raycastResult.hitNormalWorld.scale2(suspensionForce * timeStep, impulse);
 
-      wheel.raycastResult.hitPointWorld.vsub(chassisBody.position, relpos);
+      wheel.raycastResult.hitPointWorld.sub2(chassisBody.position, relpos);
       chassisBody.applyImpulse(impulse, relpos);
     }
 
     updateFriction(timeStep);
 
-    final hitNormalWorldScaledWithProj = Vec3();
-    final fwd = Vec3();
-    final vel = Vec3();
+    final hitNormalWorldScaledWithProj = Vector3.zero();
+    final fwd = Vector3.zero();
+    final vel = Vector3.zero();
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
-      //final relpos = Vec3();
+      //final relpos = Vector3.zero();
       //wheel.chassisConnectionPointWorld.vsub(chassisBody.position, relpos);
       chassisBody.getVelocityAtWorldPoint(wheel.chassisConnectionPointWorld, vel);
 
@@ -177,9 +179,9 @@ class RaycastVehicle {
       if (wheel.isInContact) {
         getVehicleAxisWorld(indexForwardAxis, fwd);
         final proj = fwd.dot(wheel.raycastResult.hitNormalWorld);
-        wheel.raycastResult.hitNormalWorld.scale(proj, hitNormalWorldScaledWithProj);
+        wheel.raycastResult.hitNormalWorld.scale2(proj, hitNormalWorldScaledWithProj);
 
-        fwd.vsub(hitNormalWorldScaledWithProj, fwd);
+        fwd.sub2(hitNormalWorldScaledWithProj, fwd);
 
         final proj2 = fwd.dot(vel);
         wheel.deltaRotation = (m * proj2 * timeStep) / wheel.radius;
@@ -259,9 +261,9 @@ class RaycastVehicle {
 
     final raylen = wheel.suspensionRestLength + wheel.radius;
 
-    wheel.directionWorld.scale(raylen, rayvector);
+    wheel.directionWorld.scale2(raylen, rayvector);
     final source = wheel.chassisConnectionPointWorld;
-    source.vadd(rayvector, target);
+    source.add2(rayvector, target);
     final raycastResult = wheel.raycastResult;
 
     //final param = 0;
@@ -300,7 +302,7 @@ class RaycastVehicle {
 
       final denominator = wheel.raycastResult.hitNormalWorld.dot(wheel.directionWorld);
 
-      //final chassisVelocityAtContactPoint = Vec3();
+      //final chassisVelocityAtContactPoint = Vector3.zero();
       chassisBody.getVelocityAtWorldPoint(wheel.raycastResult.hitPointWorld, chassisVelocityAtContactPoint);
 
       final projVel = wheel.raycastResult.hitNormalWorld.dot(chassisVelocityAtContactPoint);
@@ -317,7 +319,7 @@ class RaycastVehicle {
       //put wheel info as in rest position
       wheel.suspensionLength = wheel.suspensionRestLength + 0 * wheel.maxSuspensionTravel;
       wheel.suspensionRelativeVelocity = 0.0;
-      wheel.directionWorld.scale(-1, wheel.raycastResult.hitNormalWorld);
+      wheel.directionWorld.scale2(-1, wheel.raycastResult.hitNormalWorld);
       wheel.clippedInvContactDotSuspension = 1.0;
     }
 
@@ -343,32 +345,32 @@ class RaycastVehicle {
     final wheel = wheelInfos[wheelIndex];
     updateWheelTransformWorld(wheel);
 
-    wheel.directionLocal.scale(-1, up);
-    right.copy(wheel.axleLocal);
-    up.cross(right, fwd);
+    wheel.directionLocal.scale2(-1, up);
+    right.setFrom(wheel.axleLocal);
+    up.cross2(right, fwd);
     fwd.normalize();
     right.normalize();
 
     // Rotate around steering over the wheelAxle
     final steering = wheel.steering;
-    final steeringOrn = Quaternion();
+    final steeringOrn = Quaternion(0,0,0,1);
     steeringOrn.setFromAxisAngle(up, steering);
 
-    final rotatingOrn = Quaternion();
+    final rotatingOrn = Quaternion(0,0,0,1);
     rotatingOrn.setFromAxisAngle(right, wheel.rotation);
 
     // World rotation of the wheel
     final q = wheel.worldTransform.quaternion;
-    chassisBody.quaternion.mult(steeringOrn, q);
-    q.mult(rotatingOrn, q);
+    chassisBody.quaternion.multiply2(steeringOrn, q);
+    q.multiply2(rotatingOrn, q);
 
     q.normalize();
 
     // world position of the wheel
     final p = wheel.worldTransform.position;
-    p.copy(wheel.directionWorld);
-    p.scale(wheel.suspensionLength, p);
-    p.vadd(wheel.chassisConnectionPointWorld, p);
+    p.setFrom(wheel.directionWorld);
+    p.scale2(wheel.suspensionLength, p);
+    p.add2(wheel.chassisConnectionPointWorld, p);
   }
 
   /// Get the world transform of one of the wheels
@@ -383,8 +385,8 @@ class RaycastVehicle {
     final wheelInfos = this.wheelInfos;
     final numWheels = wheelInfos.length;
     final chassisBody = this.chassisBody;
-    List<Vec3> forwardWS = updateFrictionForwardWS;
-    List<Vec3> axle = updateFrictionAxle;
+    List<Vector3> forwardWS = updateFrictionForwardWS;
+    List<Vector3> axle = updateFrictionAxle;
 
     numWheelsOnGround = 0;
 
@@ -399,10 +401,10 @@ class RaycastVehicle {
       wheel.sideImpulse = 0;
       wheel.forwardImpulse = 0;
       if (forwardWS.length-1 < i){//!forwardWS[i]) {
-        forwardWS.add(Vec3());
+        forwardWS.add(Vector3.zero());
       }
       if (axle.length-1 < i){//!axle[i]) {
-        axle.add(Vec3());
+        axle.add(Vector3.zero());
       }
     }
 
@@ -420,11 +422,11 @@ class RaycastVehicle {
 
         final surfNormalWS = wheel.raycastResult.hitNormalWorld;
         final proj = axlei.dot(surfNormalWS);
-        surfNormalWS.scale(proj, surfNormalWSScaledProj);
-        axlei.vsub(surfNormalWSScaledProj, axlei);
+        surfNormalWS.scale2(proj, surfNormalWSScaledProj);
+        axlei.sub2(surfNormalWSScaledProj, axlei);
         axlei.normalize();
 
-        surfNormalWS.cross(axlei, forwardWS[i]);
+        surfNormalWS.cross2(axlei, forwardWS[i]);
         forwardWS[i].normalize();
 
         wheel.sideImpulse = resolveSingleBilateral(
@@ -519,25 +521,25 @@ class RaycastVehicle {
     for (int i = 0; i < numWheels; i++) {
       final wheel = wheelInfos[i];
 
-      final relPos = Vec3();
-      wheel.raycastResult.hitPointWorld.vsub(chassisBody.position, relPos);
+      final relPos = Vector3.zero();
+      wheel.raycastResult.hitPointWorld.sub2(chassisBody.position, relPos);
       // cannons applyimpulse is using world coord for the position
       //rel_pos.copy(wheel.raycastResult.hitPointWorld);
 
       if (wheel.forwardImpulse != 0) {
-        final impulse = Vec3();
-        forwardWS[i].scale(wheel.forwardImpulse, impulse);
+        final impulse = Vector3.zero();
+        forwardWS[i].scale2(wheel.forwardImpulse, impulse);
         chassisBody.applyImpulse(impulse, relPos);
       }
 
       if (wheel.sideImpulse != 0) {
         final groundObject = wheel.raycastResult.body!;
 
-        final relPos2 = Vec3();
-        wheel.raycastResult.hitPointWorld.vsub(groundObject.position, relPos2);
+        final relPos2 = Vector3.zero();
+        wheel.raycastResult.hitPointWorld.sub2(groundObject.position, relPos2);
         //rel_pos2.copy(wheel.raycastResult.hitPointWorld);
-        final sideImp = Vec3();
-        axle[i].scale(wheel.sideImpulse, sideImp);
+        final sideImp = Vector3.zero();
+        axle[i].scale2(wheel.sideImpulse, sideImp);
 
         // Scale the relative position in the up direction with rollInfluence.
         // If rollInfluence is 1, the impulse will be applied on the hitPoint (easy to roll over), if it is zero it will be applied in the same plane as the center of mass (not easy to roll over).
@@ -547,7 +549,7 @@ class RaycastVehicle {
         chassisBody.applyImpulse(sideImp, relPos);
 
         //apply friction impulse on the ground
-        sideImp.scale(-1, sideImp);
+        sideImp.scale2(-1, sideImp);
         groundObject.applyImpulse(sideImp, relPos2);
       }
     }
@@ -557,15 +559,15 @@ class RaycastVehicle {
 double calcRollingFriction(
   Body body0,
   Body body1,
-  Vec3 frictionPosWorld,
-  Vec3 frictionDirectionWorld,
+  Vector3 frictionPosWorld,
+  Vector3 frictionDirectionWorld,
   double maxImpulse,
 ){
   double j1 = 0;
   final contactPosWorld = frictionPosWorld;
 
-  // final rel_pos1 = Vec3();
-  // final rel_pos2 = Vec3();
+  // final rel_pos1 = Vector3.zero();
+  // final rel_pos2 = Vector3.zero();
   final vel1 = _calcRollingFrictionVel1;
   final vel2 = _calcRollingFrictionVel2;
   final vel = _calcRollingFrictionVel;
@@ -574,7 +576,7 @@ double calcRollingFriction(
 
   body0.getVelocityAtWorldPoint(contactPosWorld, vel1);
   body1.getVelocityAtWorldPoint(contactPosWorld, vel2);
-  vel1.vsub(vel2, vel);
+  vel1.sub2(vel2, vel);
 
   final vrel = frictionDirectionWorld.dot(vel);
 
@@ -596,28 +598,28 @@ double calcRollingFriction(
   return j1;
 }
 
-  double computeImpulseDenominator(Body body,Vec3 pos,Vec3 normal){
+  double computeImpulseDenominator(Body body,Vector3 pos,Vector3 normal){
     final r0 = _computeImpulseDenominatorR0;
     final c0 = _computeImpulseDenominatorC0;
     final vec = _computeImpulseDenominatorVec;
     final m = _computeImpulseDenominatorM;
 
-    pos.vsub(body.position, r0);
-    r0.cross(normal, c0);
+    pos.sub2(body.position, r0);
+    r0.cross2(normal, c0);
     body.invInertiaWorld.vmult(c0, m);
-    m.cross(r0, vec);
+    m.cross2(r0, vec);
 
     return body.invMass + normal.dot(vec);
   }
 
   // bilateral finalraint between two dynamic objects
-  double resolveSingleBilateral(Body body1,Vec3 pos1,Body body2,Vec3 pos2,Vec3 normal){
-    final normalLenSqr = normal.lengthSquared();
+  double resolveSingleBilateral(Body body1,Vector3 pos1,Body body2,Vector3 pos2,Vector3 normal){
+    final normalLenSqr = normal.length2;
     if (normalLenSqr > 1.1) {
       return 0 ; // no impulse
     }
-    // final rel_pos1 = Vec3();
-    // final rel_pos2 = Vec3();
+    // final rel_pos1 = Vector3.zero();
+    // final rel_pos2 = Vector3.zero();
     // pos1.vsub(body1.position, rel_pos1);
     // pos2.vsub(body2.position, rel_pos2);
 
@@ -627,7 +629,7 @@ double calcRollingFriction(
     body1.getVelocityAtWorldPoint(pos1, vel1);
     body2.getVelocityAtWorldPoint(pos2, vel2);
 
-    vel1.vsub(vel2, vel);
+    vel1.sub2(vel2, vel);
 
     final relVel = normal.dot(vel);
 

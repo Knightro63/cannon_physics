@@ -1,7 +1,6 @@
-import '../math/vec3.dart';
-import '../math/quaternion.dart';
 import '../objects/rigid_body.dart';
 import '../material/material.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// The available shape types.
 enum ShapeType{
@@ -90,12 +89,12 @@ class Shape {
 
   /// Calculates the inertia in the local frame for this shape.
   /// @see http://en.wikipedia.org/wiki/List_of_moments_of_inertia
-  Vec3 calculateLocalInertia(double mass, Vec3 target) {
+  Vector3 calculateLocalInertia(double mass, Vector3 target) {
     throw 'calculateLocalInertia() not implemented for shape type $type';
   }
 
   /// @todo use abstract for these kind of methods
-  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
+  void calculateWorldAABB(Vector3 pos, Quaternion quat, Vector3 min, Vector3 max) {
     throw'calculateWorldAABB() not implemented for shape type $type';
   }
 }

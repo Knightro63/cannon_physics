@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class FrictionGravity extends StatefulWidget {
   const FrictionGravity({
@@ -56,17 +57,17 @@ class _FrictionGravityState extends State<FrictionGravity> {
     final slipperyMaterial = cannon.Material(name: 'slippery');
 
     // Create slippery box
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
     boxBody1 = cannon.Body(mass: 1, material: slipperyMaterial);
     boxBody1.addShape(boxShape);
-    boxBody1.position.set(0, 5, 0);
+    boxBody1.position.setValues(0, 5, 0);
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     // Create box made of groundMaterial
     boxBody2 = cannon.Body(mass: 10, material: groundMaterial);
     boxBody2.addShape(boxShape);
-    boxBody2.position.set(-size * 4, 5, 0);
+    boxBody2.position.setValues(-size * 4, 5, 0);
     world.addBody(boxBody2);
     demo.addVisual(boxBody2);
 
@@ -96,7 +97,7 @@ class _FrictionGravityState extends State<FrictionGravity> {
     // We must add the contact materials to the world
     world.addContactMaterial(slippery_ground);
 
-    final gravityForce = cannon.Vec3(3, -60, 0);
+    final gravityForce = vmath.Vector3(3, -60, 0);
 
     demo.addAnimationEvent((dt){
       boxBody1.applyForce(gravityForce);
@@ -106,8 +107,8 @@ class _FrictionGravityState extends State<FrictionGravity> {
 
   void setupWorld(){
     final world = demo.world;
-    world.gravity.set(0, 0, 0);
-    world.frictionGravity = cannon.Vec3(3, -60, 0);
+    world.gravity.setValues(0, 0, 0);
+    world.frictionGravity = vmath.Vector3(3, -60, 0);
 
     setScene(world);
   }

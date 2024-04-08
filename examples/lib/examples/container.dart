@@ -72,7 +72,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeXmin = cannon.Body(mass: 0, material: stone);
     planeXmin.addShape(planeShapeXmin);
     planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
-    planeXmin.position.set(-5, 0, 0);
+    planeXmin.position.setValues(-5, 0, 0);
     world.addBody(planeXmin);
 
     // Plane +x
@@ -80,7 +80,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeXmax = cannon.Body( mass: 0, material: stone);
     planeXmax.addShape(planeShapeXmax);
     planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
-    planeXmax.position.set(5, 0, 0);
+    planeXmax.position.setValues(5, 0, 0);
     world.addBody(planeXmax);
 
     // Plane -z
@@ -88,7 +88,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeZmin = cannon.Body(mass: 0, material: stone);
     planeZmin.addShape(planeShapeZmin);
     planeZmin.quaternion.setFromEuler(0, 0, 0);
-    planeZmin.position.set(0, 0, -5);
+    planeZmin.position.setValues(0, 0, -5);
     world.addBody(planeZmin);
 
     // Plane +z
@@ -96,7 +96,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeZmax = cannon.Body(mass: 0, material: stone );
     planeZmax.addShape(planeShapeZmax);
     planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
-    planeZmax.position.set(0, 0, 5);
+    planeZmax.position.setValues(0, 0, 5);
     world.addBody(planeZmax);
 
     // Create spheres
@@ -110,7 +110,7 @@ class _ContainerState extends State<ContainerCP> {
         for (int k = 0; k < nz; k++) {
           final sphereBody = cannon.Body(mass: 5, material: stone );
           sphereBody.addShape(sphereShape);
-          sphereBody.position.set(
+          sphereBody.position.setValues(
             -(i * 2 - nx * 0.5 + (Math.random() - 0.5) * randRange),
             1 + k * 2.1 + heightOffset,
             j * 2 - ny * 0.5 + (Math.random() - 0.5) * randRange

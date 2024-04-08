@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Impulses extends StatefulWidget {
   const Impulses({
@@ -49,7 +50,7 @@ class _ImpulsesState extends State<Impulses> {
     world.addBody(body);
     demo.addVisual(body);
 
-    final impulse = cannon.Vec3(-strength * dt, 0, 0);
+    final impulse = vmath.Vector3(-strength * dt, 0, 0);
     body.applyImpulse(impulse);
   }
   void topImpulse(){
@@ -64,8 +65,8 @@ class _ImpulsesState extends State<Impulses> {
     demo.addVisual(body);
 
     // The top of the sphere, relative to the sphere center
-    final topPoint = cannon.Vec3(0, radius, 0);
-    final impulse = cannon.Vec3(-strength * dt, 0, 0);
+    final topPoint = vmath.Vector3(0, radius, 0);
+    final impulse = vmath.Vector3(-strength * dt, 0, 0);
     body.applyImpulse(impulse, topPoint);
   }
   void centerForce(){
@@ -79,7 +80,7 @@ class _ImpulsesState extends State<Impulses> {
     world.addBody(body);
     demo.addVisual(body);
 
-    final force = cannon.Vec3(-strength, 0, 0);
+    final force = vmath.Vector3(-strength, 0, 0);
     body.applyForce(force);
   }
   void topForce(){
@@ -94,8 +95,8 @@ class _ImpulsesState extends State<Impulses> {
     demo.addVisual(body);
 
     // The top of the sphere, relative to the sphere center
-    final topPoint = cannon.Vec3(0, radius, 0);
-    final force = cannon.Vec3(-strength, 0, 0);
+    final topPoint = vmath.Vector3(0, radius, 0);
+    final force = vmath.Vector3(-strength, 0, 0);
     body.applyForce(force, topPoint);
   }
   void localForce(){
@@ -112,8 +113,8 @@ class _ImpulsesState extends State<Impulses> {
 
     // it's the top point, but since the sphere is rotated
     // by 180 degrees, it is the bottom point to the right
-    final topPoint = cannon.Vec3(0, radius, 0);
-    final force = cannon.Vec3(-strength, 0, 0);
+    final topPoint = vmath.Vector3(0, radius, 0);
+    final force = vmath.Vector3(-strength, 0, 0);
     body.applyLocalForce(force, topPoint);
   }
   void torque(){
@@ -128,7 +129,7 @@ class _ImpulsesState extends State<Impulses> {
     demo.addVisual(body);
 
     // add a positive rotation in the z-axis
-    final torque = cannon.Vec3(0, 0, strength);
+    final torque = vmath.Vector3(0, 0, strength);
     body.applyTorque(torque);
   }
   void setupWorld(){

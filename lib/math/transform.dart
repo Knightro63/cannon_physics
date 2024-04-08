@@ -1,68 +1,69 @@
 import 'vec3.dart';
 import 'quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Transformation utilities.
 class Transform {
-  late Vec3 position = Vec3(); 
-  late Quaternion quaternion = Quaternion();
+  late Vector3 position = Vector3.zero(); 
+  late Quaternion quaternion = Quaternion(0,0,0,1);
 
   Transform({
-    Vec3? position,
+    Vector3? position,
     Quaternion? quaternion
   }){
     if (position != null) {
-      this.position.copy(position);
+      this.position.setFrom(position);
     }
 
     if (quaternion != null) {
-      this.quaternion.copy(quaternion);
+      this.quaternion.setFrom(quaternion);
     }
   }
 
   /// Get a global point in local transform coordinates.
-  Vec3 pointToLocal(Vec3 worldPoint, [Vec3? result]) {
-    result ??= Vec3();
+  Vector3 pointToLocal(Vector3 worldPoint, [Vector3? result]) {
+    result ??= Vector3.zero();
     pointToLocalFrame(position, quaternion, worldPoint, result);
     return result;
   }
 
   /// Get a local point in global transform coordinates.
-  Vec3 pointToWorld(Vec3 localPoint, Vec3? result) {
-    result ??= Vec3();
+  Vector3 pointToWorld(Vector3 localPoint, Vector3? result) {
+    result ??= Vector3.zero();
     pointToWorldFrame(position, quaternion, localPoint, result);
     return result;
   }
 
-  Vec3 vectorToWorld(Vec3 localVector, [Vec3? result]) {
-    result ??= Vec3();
+  Vector3 vectorToWorld(Vector3 localVector, [Vector3? result]) {
+    result ??= Vector3.zero();
     quaternion.vmult(localVector, result);
     return result;
   }
 
-  static Vec3 pointToLocalFrame(Vec3 position,Quaternion quaternion,Vec3 worldPoint, [Vec3? result]) {
-    result ??= Vec3();
-    worldPoint.vsub(position, result);
-    final tmpQuat = Quaternion();
-    quaternion.conjugate(tmpQuat);
+  static Vector3 pointToLocalFrame(Vector3 position,Quaternion quaternion,Vector3 worldPoint, [Vector3? result]) {
+    result ??= Vector3.zero();
+    worldPoint.sub2(position, result);
+    final tmpQuat = Quaternion.copy(quaternion);
+    tmpQuat.conjugate();
     tmpQuat.vmult(result, result);
     return result;
   }
 
-  static Vec3 pointToWorldFrame(Vec3 position,Quaternion quaternion,Vec3 localPoint, [Vec3? result]) {
-    result ??= Vec3();
+  static Vector3 pointToWorldFrame(Vector3 position,Quaternion quaternion,Vector3 localPoint, [Vector3? result]) {
+    result ??= Vector3.zero();
     quaternion.vmult(localPoint, result);
-    result.vadd(position, result);
+    result.add2(position, result);
     return result;
   }
 
-  static Vec3 vectorToWorldFrame(Quaternion quaternion,Vec3 localVector, [Vec3? result]){
-    result ??= Vec3();
+  static Vector3 vectorToWorldFrame(Quaternion quaternion,Vector3 localVector, [Vector3? result]){
+    result ??= Vector3.zero();
     quaternion.vmult(localVector, result);
     return result;
   }
 
-  static Vec3 vectorToLocalFrame(Vec3 position,Quaternion quaternion,Vec3 worldVector, [Vec3? result]){
-    result ??= Vec3();
+  static Vector3 vectorToLocalFrame(Vector3 position,Quaternion quaternion,Vector3 worldVector, [Vector3? result]){
+    result ??= Vector3.zero();
     quaternion.w *= -1;
     quaternion.vmult(worldVector, result);
     quaternion.w *= -1;

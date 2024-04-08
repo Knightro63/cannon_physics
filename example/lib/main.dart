@@ -9,6 +9,7 @@ import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
+import 'package:vector_math/vector_math.dart' as vmath;
 
 void main() {
   runApp(const MyApp());
@@ -31,12 +32,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-extension on cannon.Quaternion{
+extension on vmath.Quaternion{
   Quaternion toQuaternion(){
     return Quaternion(x,y,z,w);
   }
 }
-extension on cannon.Vec3{
+extension on vmath.Vector3{
   Vector3 toVector3(){
     return Vector3(x,y,z);
   }
@@ -224,7 +225,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         world.solver = solver;
     }
 
-    world.gravity.set(0, -200, 0);
+    world.gravity.setValues(0, -200, 0);
     world.broadphase = cannon.NaiveBroadphase();
     populate(type);
   }
@@ -251,20 +252,20 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     //add ground
     world.addBody(
       cannon.Body(
-        shape: cannon.Box(cannon.Vec3(40.0/2, 40.0/2, 390.0/2)),
-        position:cannon.Vec3(-180.0,20.0,0.0), 
+        shape: cannon.Box(vmath.Vector3(40.0/2, 40.0/2, 390.0/2)),
+        position:vmath.Vector3(-180.0,20.0,0.0), 
       )
     );
     world.addBody(
       cannon.Body(
-        shape: cannon.Box(cannon.Vec3(40.0/2, 40.0/2, 390.0/2)),
-        position:cannon.Vec3(180.0,20.0,0.0), 
+        shape: cannon.Box(vmath.Vector3(40.0/2, 40.0/2, 390.0/2)),
+        position:vmath.Vector3(180.0,20.0,0.0), 
       )
     );
     world.addBody(
       cannon.Body(
-      shape: cannon.Box(cannon.Vec3(400.0/2, 80.0/2, 400.0/2)),
-      position:cannon.Vec3(0.0,-40.0,0.0), 
+      shape: cannon.Box(vmath.Vector3(400.0/2, 80.0/2, 400.0/2)),
+      position:vmath.Vector3(0.0,-40.0,0.0), 
     ));
 
     addStaticBox([40, 40, 390], [-180,20,0], [0,0,0]);
@@ -294,7 +295,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         mat.color = randColor;
         cannon.Body sbody = cannon.Body(
           shape: cannon.Sphere(w*0.5),
-          position:cannon.Vec3(x,y,z),
+          position: vmath.Vector3(x,y,z),
           mass: 1
         );
         bodys.add(sbody);
@@ -306,8 +307,8 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         three.Material mat = mats['box']!;
         mat.color = randColor;
         cannon.Body sbody = cannon.Body(
-          shape: cannon.Box(cannon.Vec3(w/2,h/2,d/2)),
-          position:cannon.Vec3(x,y,z),
+          shape: cannon.Box(vmath.Vector3(w/2,h/2,d/2)),
+          position:vmath.Vector3(x,y,z),
           mass: 1
         );
         bodys.add(sbody);
@@ -320,7 +321,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         mat.color = randColor;
         cannon.Body sbody = cannon.Body(
           shape: cannon.Cylinder(radiusTop:w*0.5,radiusBottom:w*0.5,height: h),
-          position:cannon.Vec3(x,y,z),
+          position:vmath.Vector3(x,y,z),
           mass: 1
         );
         bodys.add(sbody);
@@ -362,7 +363,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
           x = -100 + Math.random()*200;
           z = -100 + Math.random()*200;
           y = 100 + Math.random()*1000;
-          body.position = cannon.Vec3(x,y,z);
+          body.position = vmath.Vector3(x,y,z);
         }
       } 
       else {

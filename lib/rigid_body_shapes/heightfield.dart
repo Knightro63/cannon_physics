@@ -4,12 +4,12 @@ import 'shape.dart';
 import 'convex_polyhedron.dart';
 import '../math/vec3.dart';
 import '../collision/aabb.dart';
-import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 class HeightfieldPillar{
   HeightfieldPillar(this.convex,this.offset);
   ConvexPolyhedron convex;
-  Vec3 offset;
+  Vector3 offset;
 }
 
 /// Heightfield shape class. Height data is given as an array. These data points are spread out evenly with a given distance.
@@ -47,7 +47,7 @@ class Heightfield extends Shape {
 
   bool cacheEnabled = true;
   ConvexPolyhedron pillarConvex = ConvexPolyhedron(); 
-  Vec3 pillarOffset = Vec3();
+  Vector3 pillarOffset = Vector3.zero();
 
   final Map<String,HeightfieldPillar> _cachedPillars = {};
 
@@ -74,16 +74,16 @@ class Heightfield extends Shape {
   }
 
   List<int> getHeightAtIdx = [];
-  final _getHeightAtWeights = Vec3();
-  final _getHeightAtA = Vec3();
-  final _getHeightAtB = Vec3();
-  final _getHeightAtC = Vec3();
+  final _getHeightAtWeights = Vector3.zero();
+  final _getHeightAtA = Vector3.zero();
+  final _getHeightAtB = Vector3.zero();
+  final _getHeightAtC = Vector3.zero();
 
-  final _getNormalAtA = Vec3();
-  final _getNormalAtB = Vec3();
-  final _getNormalAtC = Vec3();
-  final _getNormalAtE0 = Vec3();
-  final _getNormalAtE1 = Vec3();
+  final _getNormalAtA = Vector3.zero();
+  final _getNormalAtB = Vector3.zero();
+  final _getNormalAtC = Vector3.zero();
+  final _getNormalAtE0 = Vector3.zero();
+  final _getNormalAtE1 = Vector3.zero();
 
   /// Call whenever you change the data array.
   void update() {
@@ -196,7 +196,7 @@ class Heightfield extends Shape {
     return true;
   }
 
-  bool getTriangleAt(double x, double y, bool edgeClamp,Vec3 a,Vec3 b, Vec3 c) {
+  bool getTriangleAt(double x, double y, bool edgeClamp,Vector3 a,Vector3 b, Vector3 c) {
     final idx = getHeightAtIdx;
     idx.clear();
     getIndexOfPosition(x, y, idx, edgeClamp);
@@ -217,16 +217,16 @@ class Heightfield extends Shape {
     return upper;
   }
 
-  void getNormalAt(double x, double y, bool edgeClamp, Vec3 result) {
+  void getNormalAt(double x, double y, bool edgeClamp, Vector3 result) {
     final a = _getNormalAtA;
     final b = _getNormalAtB;
     final c = _getNormalAtC;
     final e0 = _getNormalAtE0;
     final e1 = _getNormalAtE1;
     getTriangleAt(x, y, edgeClamp, a, b, c);
-    b.vsub(a, e0);
-    c.vsub(a, e1);
-    e0.cross(e1, result);
+    b.sub2(a, e0);
+    c.sub2(a, e1);
+    e0.cross2(e1, result);
     result.normalize();
   }
 
@@ -238,12 +238,12 @@ class Heightfield extends Shape {
     final data = this.data;
     final elementSize = this.elementSize.toDouble();
 
-    aabb.lowerBound.set(
+    aabb.lowerBound.setValues(
       xi * elementSize, 
       yi * elementSize, 
       data[xi][yi]
     );
-    aabb.upperBound.set(
+    aabb.upperBound.setValues(
       (xi + 1) * elementSize, 
       (yi + 1) * elementSize, 
       data[xi + 1][yi + 1]
@@ -292,7 +292,7 @@ class Heightfield extends Shape {
     int yi,
     bool getUpperTriangle,
     ConvexPolyhedron convex,
-    Vec3 offset
+    Vector3 offset
   ) {
     _cachedPillars[getCacheConvexTrianglePillarKey(xi, yi, getUpperTriangle)] = HeightfieldPillar(
       convex,
@@ -309,27 +309,27 @@ class Heightfield extends Shape {
   }
 
   /// Get a triangle from the heightfield
-  void getTriangle(int xi, int yi, bool upper, Vec3 a, Vec3 b, Vec3 c) {
+  void getTriangle(int xi, int yi, bool upper, Vector3 a, Vector3 b, Vector3 c) {
     final data = this.data;
     final elementSize = this.elementSize.toDouble();
 
     if (upper) {
       // Top triangle verts
-      a.set((xi + 1) * elementSize, (yi + 1) * elementSize, data[xi + 1][yi + 1]);
-      b.set(xi * elementSize, (yi + 1) * elementSize, data[xi][yi + 1]);
-      c.set((xi + 1) * elementSize, yi * elementSize, data[xi + 1][yi]);
+      a.setValues((xi + 1) * elementSize, (yi + 1) * elementSize, data[xi + 1][yi + 1]);
+      b.setValues(xi * elementSize, (yi + 1) * elementSize, data[xi][yi + 1]);
+      c.setValues((xi + 1) * elementSize, yi * elementSize, data[xi + 1][yi]);
     } else {
       // Top triangle verts
-      a.set(xi * elementSize, yi * elementSize, data[xi][yi]);
-      b.set((xi + 1) * elementSize, yi * elementSize, data[xi + 1][yi]);
-      c.set(xi * elementSize, (yi + 1) * elementSize, data[xi][yi + 1]);
+      a.setValues(xi * elementSize, yi * elementSize, data[xi][yi]);
+      b.setValues((xi + 1) * elementSize, yi * elementSize, data[xi + 1][yi]);
+      c.setValues(xi * elementSize, (yi + 1) * elementSize, data[xi][yi + 1]);
     }
   }
 
   /// Get a triangle in the terrain in the form of a triangular convex shape.
   void getConvexTrianglePillar(int xi, int yi, bool getUpperTriangle) {
     ConvexPolyhedron result = pillarConvex;
-    Vec3 offsetResult = pillarOffset;
+    Vector3 offsetResult = pillarOffset;
 
     if (cacheEnabled) {
       final data = getCachedConvexTrianglePillar(xi, yi, getUpperTriangle);
@@ -341,7 +341,7 @@ class Heightfield extends Shape {
       }
 
       result = ConvexPolyhedron();
-      offsetResult = Vec3();
+      offsetResult = Vector3.zero();
 
       pillarConvex = result;
       pillarOffset = offsetResult;
@@ -353,7 +353,7 @@ class Heightfield extends Shape {
     // Reuse verts if possible
     if(result.vertices.isEmpty){
       for (int i = 0; i < 6; i++) {
-        result.vertices.add(Vec3());
+        result.vertices.add(Vector3.zero());
       }
     }
 
@@ -390,21 +390,21 @@ class Heightfield extends Shape {
 
     if (!getUpperTriangle) {
       // Center of the triangle pillar - all polygons are given relative to this one
-      offsetResult.set(
+      offsetResult.setValues(
         (xi + 0.25) * elementSize, // sort of center of a triangle
         (yi + 0.25) * elementSize,
         h // vertical center
       );
 
       // Top triangle verts
-      verts[0].set(-0.25 * elementSize, -0.25 * elementSize, data[xi][yi] - h);
-      verts[1].set(0.75 * elementSize, -0.25 * elementSize, data[xi + 1][yi] - h);
-      verts[2].set(-0.25 * elementSize, 0.75 * elementSize, data[xi][yi + 1] - h);
+      verts[0].setValues(-0.25 * elementSize, -0.25 * elementSize, data[xi][yi] - h);
+      verts[1].setValues(0.75 * elementSize, -0.25 * elementSize, data[xi + 1][yi] - h);
+      verts[2].setValues(-0.25 * elementSize, 0.75 * elementSize, data[xi][yi + 1] - h);
 
       // bottom triangle verts
-      verts[3].set(-0.25 * elementSize, -0.25 * elementSize, -h - 1);
-      verts[4].set(0.75 * elementSize, -0.25 * elementSize, -h - 1);
-      verts[5].set(-0.25 * elementSize, 0.75 * elementSize, -h - 1);
+      verts[3].setValues(-0.25 * elementSize, -0.25 * elementSize, -h - 1);
+      verts[4].setValues(0.75 * elementSize, -0.25 * elementSize, -h - 1);
+      verts[5].setValues(-0.25 * elementSize, 0.75 * elementSize, -h - 1);
 
       // top triangle
       faces[0][0] = 0;
@@ -436,21 +436,21 @@ class Heightfield extends Shape {
     } 
     else {
       // Center of the triangle pillar - all polygons are given relative to this one
-      offsetResult.set(
+      offsetResult.setValues(
         (xi + 0.75) * elementSize, // sort of center of a triangle
         (yi + 0.75) * elementSize,
         h // vertical center
       );
 
       // Top triangle verts
-      verts[0].set(0.25 * elementSize, 0.25 * elementSize, data[xi + 1][yi + 1] - h);
-      verts[1].set(-0.75 * elementSize, 0.25 * elementSize, data[xi][yi + 1] - h);
-      verts[2].set(0.25 * elementSize, -0.75 * elementSize, data[xi + 1][yi] - h);
+      verts[0].setValues(0.25 * elementSize, 0.25 * elementSize, data[xi + 1][yi + 1] - h);
+      verts[1].setValues(-0.75 * elementSize, 0.25 * elementSize, data[xi][yi + 1] - h);
+      verts[2].setValues(0.25 * elementSize, -0.75 * elementSize, data[xi + 1][yi] - h);
 
       // bottom triangle verts
-      verts[3].set(0.25 * elementSize, 0.25 * elementSize, -h - 1);
-      verts[4].set(-0.75 * elementSize, 0.25 * elementSize, -h - 1);
-      verts[5].set(0.25 * elementSize, -0.75 * elementSize, -h - 1);
+      verts[3].setValues(0.25 * elementSize, 0.25 * elementSize, -h - 1);
+      verts[4].setValues(-0.75 * elementSize, 0.25 * elementSize, -h - 1);
+      verts[5].setValues(0.25 * elementSize, -0.75 * elementSize, -h - 1);
 
       // Top triangle
       faces[0][0] = 0;
@@ -486,9 +486,9 @@ class Heightfield extends Shape {
     setCachedConvexTrianglePillar(xi, yi, getUpperTriangle, result, offsetResult);
   }
   @override
-  Vec3 calculateLocalInertia(double mass, [Vec3? target]) {
-    target ??= Vec3();
-    target.set(0, 0, 0);
+  Vector3 calculateLocalInertia(double mass, [Vector3? target]) {
+    target ??= Vector3.zero();
+    target.setValues(0, 0, 0);
     return target;
   }
   @override
@@ -496,10 +496,10 @@ class Heightfield extends Shape {
     return double.infinity;
   }
   @override
-  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
+  void calculateWorldAABB(Vector3 pos, Quaternion quat, Vector3 min, Vector3 max) {
     /** @TODO do it properly */
-    min.set(-double.infinity, -double.infinity, -double.infinity);
-    max.set(double.infinity, double.infinity, double.infinity);
+    min.setValues(-double.infinity, -double.infinity, -double.infinity);
+    max.setValues(double.infinity, double.infinity, double.infinity);
   }
   @override
   void updateBoundingSphereRadius() {
@@ -507,15 +507,15 @@ class Heightfield extends Shape {
     final data = this.data;
 
     final s = elementSize.toDouble();
-    boundingSphereRadius = Vec3(
+    boundingSphereRadius = Vector3(
       data.length * s,
       data[0].length * s,
       math.max(maxValue!.abs(), minValue!.abs())
-    ).length();
+    ).length;
   }
 
   /// Sets the height values from an image. Currently only supported in browser.
-  void setHeightsFromImage(Image image, Vec3 scale) async{
+  void setHeightsFromImage(Image image, Vector3 scale) async{
     final x = scale.x;
     final y = scale.y;
     final z = scale.z;
@@ -564,7 +564,7 @@ class Heightfield extends Shape {
     double by,
     double cx,
     double cy,
-    Vec3 result
+    Vector3 result
   ) {
     result.x = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));
     result.y = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / ((by - cy) * (ax - cx) + (cx - bx) * (ay - cy));

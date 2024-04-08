@@ -60,7 +60,7 @@ class _TearState extends State<Tear> {
       // First body is static (mass = 0) to support the other bodies
       cannon.Body sphereBody = cannon.Body(mass: (i == 0 ? 0 : mass));
       sphereBody.addShape(sphereShape);
-      sphereBody.position.set(0, (N - i) * distance - 9, 0);
+      sphereBody.position.setValues(0, (N - i) * distance - 9, 0);
       world.addBody(sphereBody);
       demo.addVisual(sphereBody);
 
@@ -89,7 +89,7 @@ class _TearState extends State<Tear> {
     // Throw a body on the chain to break it!
     cannon.Body sphereBody = cannon.Body( mass: mass * 2 );
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(-20, 3, 0);
+    sphereBody.position.setValues(-20, 3, 0);
     sphereBody.velocity.x = 30;
     world.addBody(sphereBody);
     demo.addVisual(sphereBody);

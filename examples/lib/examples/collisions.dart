@@ -1,19 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'dart:math' as math;
-
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Collisions extends StatefulWidget {
   const Collisions({
@@ -63,8 +52,8 @@ class _CollisionsState extends State<Collisions> {
     // Sphere 1
     final body1 = cannon.Body(mass: 5 );
     body1.addShape(sphereShape);
-    body1.position.set(-5, 0, 0);
-    body1.velocity.set(5, 0, 0);
+    body1.position.setValues(-5, 0, 0);
+    body1.velocity.setValues(5, 0, 0);
     body1.linearDamping = 0;
     world.addBody(body1);
     demo.addVisual(body1);
@@ -73,21 +62,21 @@ class _CollisionsState extends State<Collisions> {
     final body2 = cannon.Body(mass: 5 );
     body2.addShape(sphereShape);
     body2.linearDamping = 0;
-    body2.position.set(5, 0, 0);
-    body2.velocity.set(-5, 0, 0);
+    body2.position.setValues(5, 0, 0);
+    body2.velocity.setValues(-5, 0, 0);
     world.addBody(body2);
     demo.addVisual(body2);
   }
   void setScene1(){
     final world = demo.world;
 
-    final boxShape = cannon.Box(cannon.Vec3(1, 1, 1));
+    final boxShape = cannon.Box(vmath.Vector3(1, 1, 1));
     final sphereShape = cannon.Sphere(1);
     // Box
     final body1 = cannon.Body(mass: 5 );
     body1.addShape(boxShape);
-    body1.position.set(-5, 0, 0);
-    body1.velocity.set(5, 0, 0);
+    body1.position.setValues(-5, 0, 0);
+    body1.velocity.setValues(5, 0, 0);
     body1.linearDamping = 0;
     world.addBody(body1);
     demo.addVisual(body1);
@@ -95,8 +84,8 @@ class _CollisionsState extends State<Collisions> {
     // Sphere
     final body2 = cannon.Body(mass: 5 );
     body2.addShape(sphereShape);
-    body2.position.set(5, 0, 0);
-    body2.velocity.set(-5, 0, 0);
+    body2.position.setValues(5, 0, 0);
+    body2.velocity.setValues(-5, 0, 0);
     body2.linearDamping = 0;
     world.addBody(body2);
     demo.addVisual(body2);
@@ -104,16 +93,16 @@ class _CollisionsState extends State<Collisions> {
   void setScene2(){
     final world = demo.world;
 
-    final boxShape = cannon.Box(cannon.Vec3(1, 1, 1));
+    final boxShape = cannon.Box(vmath.Vector3(1, 1, 1));
     final sphereShape = cannon.Sphere(1);
-    final quaternion = cannon.Quaternion();
+    final quaternion = vmath.Quaternion(0,0,0,1);
     quaternion.setFromEuler(0, math.pi * 0.25, 0);
 
     // Box
     final body1 = cannon.Body(
       mass: 5,
-      position: cannon.Vec3(-5,0,0),
-      velocity: cannon.Vec3(5,0,0),
+      position: vmath.Vector3(-5,0,0),
+      velocity: vmath.Vector3(5,0,0),
       linearDamping: 0,
       quaternion: quaternion,
       shape: boxShape
@@ -124,8 +113,8 @@ class _CollisionsState extends State<Collisions> {
     // Sphere
     final body2 = cannon.Body(
       mass: 5,
-      position: cannon.Vec3(5,0,0),
-      velocity: cannon.Vec3(-5,0,0),
+      position: vmath.Vector3(5,0,0),
+      velocity: vmath.Vector3(-5,0,0),
       linearDamping: 0,
       shape: sphereShape
     );
@@ -134,29 +123,29 @@ class _CollisionsState extends State<Collisions> {
   }
   void setScene3(){
     final world = demo.world;
-    final boxShape = cannon.Box(cannon.Vec3(1, 1, 1));
+    final boxShape = cannon.Box(vmath.Vector3(1, 1, 1));
     final sphereShape = cannon.Sphere(1);
 
     // Box
     final body1 = cannon.Body(mass: 5);
     body1.addShape(boxShape);
-    body1.position.set(-5, 0, 0);
-    body1.velocity.set(5, 0, 0);
+    body1.position.setValues(-5, 0, 0);
+    body1.velocity.setValues(5, 0, 0);
     body1.linearDamping = 0;
-    final quaternion1 = cannon.Quaternion();
+    final quaternion1 = vmath.Quaternion(0,0,0,1);
     quaternion1.setFromEuler(0, math.pi * 0.25, 0);
-    final quaternion2 = cannon.Quaternion();
+    final quaternion2 = vmath.Quaternion(0,0,0,1);
     quaternion2.setFromEuler(0, 0, math.pi * 0.25);
-    final quaternion = quaternion1.mult(quaternion2);
-    body1.quaternion.copy(quaternion);
+    final quaternion = quaternion1.multiply(quaternion2);
+    body1.quaternion.setFrom(quaternion);
     world.addBody(body1);
     demo.addVisual(body1);
 
     // Sphere
     final body2 = cannon.Body(mass: 5);
     body2.addShape(sphereShape);
-    body2.position.set(5, 0, 0);
-    body2.velocity.set(-5, 0, 0);
+    body2.position.setValues(5, 0, 0);
+    body2.velocity.setValues(-5, 0, 0);
     body2.linearDamping = 0;
     world.addBody(body2);
     demo.addVisual(body2);

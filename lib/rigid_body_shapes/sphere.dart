@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'shape.dart';
-import '../math/vec3.dart';
-import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Spherical shape
 /// @example
@@ -23,8 +22,8 @@ class Sphere extends Shape {
   }
 
   @override
-  Vec3 calculateLocalInertia(num mass, [Vec3? target]) {
-    target ??= Vec3();
+  Vector3 calculateLocalInertia(num mass, [Vector3? target]) {
+    target ??= Vector3.zero();
     double I = (2.0 * mass * radius * radius) / 5.0;
     target.x = I;
     target.y = I;
@@ -41,7 +40,7 @@ class Sphere extends Shape {
     boundingSphereRadius = radius;
   }
   @override
-  void calculateWorldAABB(Vec3 pos,Quaternion quat,Vec3 min,Vec3 max) {
+  void calculateWorldAABB(Vector3 pos,Quaternion quat,Vector3 min,Vector3 max) {
     double r = radius;
     min.x = pos.x - r;
     max.x = pos.x + r;

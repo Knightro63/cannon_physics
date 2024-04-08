@@ -3,16 +3,17 @@ import '../equations/cone_equation.dart';
 import '../equations/rotational_equation.dart';
 import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 //export type ConeTwistConstraintOptions = ConstructorParameters<typeof ConeTwistConstraint>[2]
 
 /// A Cone Twist constraint, useful for ragdolls.
 class ConeTwistConstraint extends PointToPointConstraint {
   /// The axis direction for the constraint of the body A.
-  late Vec3 axisA;
+  late Vector3 axisA;
 
   /// The axis direction for the constraint of the body B.
-  late Vec3 axisB;
+  late Vector3 axisB;
 
   /// The aperture angle of the cone.
   double angle;
@@ -26,10 +27,10 @@ class ConeTwistConstraint extends PointToPointConstraint {
     Body bodyA,
     Body bodyB,
     {
-      Vec3? pivotA,
-      Vec3? pivotB,
-      Vec3? axisA,
-      Vec3? axisB,
+      Vector3? pivotA,
+      Vector3? pivotB,
+      Vector3? axisA,
+      Vector3? axisB,
       this.angle = 0,
       this.twistAngle = 0,
       double maxForce = 1e6,
@@ -38,11 +39,11 @@ class ConeTwistConstraint extends PointToPointConstraint {
   ):super(bodyA, bodyB, pivotA, pivotB, maxForce){
 
     // Set pivot point in between
-    this.pivotA = pivotA?.clone() ?? Vec3();
-    this.pivotB = pivotB?.clone() ?? Vec3();
+    this.pivotA = pivotA?.clone() ?? Vector3.zero();
+    this.pivotB = pivotB?.clone() ?? Vector3.zero();
 
-    this.axisA = axisA?.clone() ?? Vec3();
-    this.axisB = axisB?.clone() ?? Vec3();
+    this.axisA = axisA?.clone() ?? Vector3.zero();
+    this.axisB = axisB?.clone() ?? Vector3.zero();
 
     coneEquation = ConeEquation(
       bodyA, 

@@ -66,7 +66,7 @@ class _HeightfieldState extends State<Heightfield> {
     );
     final heightfieldBody = cannon.Body(mass: 0);
     heightfieldBody.addShape(heightfieldShape);
-    heightfieldBody.position.set(
+    heightfieldBody.position.setValues(
       -((sizeX - 1) * heightfieldShape.elementSize) / 2,
       -4,
       ((sizeZ - 1) * heightfieldShape.elementSize) / 2
@@ -86,8 +86,8 @@ class _HeightfieldState extends State<Heightfield> {
         final sphereShape = cannon.Sphere(0.1);
         final sphereBody = cannon.Body(mass:mass );
         sphereBody.addShape(sphereShape);
-        sphereBody.position.set(i + 0.25, 3, -j + 0.25);
-        sphereBody.position.vadd(heightfieldBody.position, sphereBody.position);
+        sphereBody.position.setValues(i + 0.25, 3, -j + 0.25);
+        sphereBody.position.add2(heightfieldBody.position, sphereBody.position);
         world.addBody(sphereBody);
         demo.addVisual(sphereBody);
       }

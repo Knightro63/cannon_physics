@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Spring extends StatefulWidget {
   const Spring({
@@ -50,36 +51,36 @@ class _SpringState extends State<Spring> {
     demo.addVisual(sphereBody);
 
     // Create a box body
-    cannon.Box boxShape = cannon.Box(cannon.Vec3(size, size, size * 0.3));
+    cannon.Box boxShape = cannon.Box(vmath.Vector3(size, size, size * 0.3));
     cannon.Body boxBody = cannon.Body( mass: 5 );
     boxBody.addShape(boxShape);
-    boxBody.position.set(size, -size, 0);
+    boxBody.position.setValues(size, -size, 0);
     world.addBody(boxBody);
     demo.addVisual(boxBody);
 
     cannon.Spring spring = cannon.Spring(
       boxBody, 
       sphereBody, 
-      localAnchorA: cannon.Vec3(-size, size, 0),
-      localAnchorB: cannon.Vec3(0, 0, 0),
+      localAnchorA: vmath.Vector3(-size, size, 0),
+      localAnchorB: vmath.Vector3(0, 0, 0),
       restLength: 0,
       stiffness: 50,
       damping: 1,
     );
 
     // Create a box body
-    cannon.Box boxShape1 = cannon.Box(cannon.Vec3(size, size, size * 0.3));
+    cannon.Box boxShape1 = cannon.Box(vmath.Vector3(size, size, size * 0.3));
     cannon.Body boxBody1 = cannon.Body( mass: 5 );
     boxBody1.addShape(boxShape1);
-    boxBody1.position.set(size, -size*8, 0);
+    boxBody1.position.setValues(size, -size*8, 0);
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     cannon.Spring spring2 = cannon.Spring(
       boxBody1, 
       boxBody, 
-      localAnchorA: cannon.Vec3(-size, size, 0),
-      localAnchorB: cannon.Vec3(size, -size, 0),
+      localAnchorA: vmath.Vector3(-size, size, 0),
+      localAnchorB: vmath.Vector3(size, -size, 0),
       restLength: 0,
       stiffness: 50,
       damping: 1,
@@ -101,18 +102,18 @@ class _SpringState extends State<Spring> {
     demo.addVisual(sphereBody);
 
     // Create a box body
-    cannon.Box boxShape = cannon.Box(cannon.Vec3(size, size, size * 0.3));
+    cannon.Box boxShape = cannon.Box(vmath.Vector3(size, size, size * 0.3));
     cannon.Body boxBody = cannon.Body( mass: 5 );
     boxBody.addShape(boxShape);
-    boxBody.position.set(size, -size, 0);
+    boxBody.position.setValues(size, -size, 0);
     world.addBody(boxBody);
     demo.addVisual(boxBody);
 
     cannon.Spring spring = cannon.Spring(
       boxBody, 
       sphereBody, 
-      localAnchorA: cannon.Vec3(-size, size, 0),
-      localAnchorB: cannon.Vec3(0, 0, 0),
+      localAnchorA: vmath.Vector3(-size, size, 0),
+      localAnchorB: vmath.Vector3(0, 0, 0),
       restLength: 0,
       stiffness: 50,
       damping: 1,

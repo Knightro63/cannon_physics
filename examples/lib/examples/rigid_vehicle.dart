@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class RigidVehicle extends StatefulWidget {
   const RigidVehicle({
@@ -42,9 +43,9 @@ class _RigidVehicleState extends State<RigidVehicle> {
     final world = demo.world;
 
     // Build the car chassis
-    final chassisShape = cannon.Box(cannon.Vec3(5, 0.5, 2));
+    final chassisShape = cannon.Box(vmath.Vector3(5, 0.5, 2));
     final chassisBody = cannon.Body(mass: 1);
-    final centerOfMassAdjust = cannon.Vec3(0, -1, 0);
+    final centerOfMassAdjust = vmath.Vector3(0, -1, 0);
     chassisBody.addShape(chassisShape, centerOfMassAdjust);
     demo.addVisual(chassisBody);
 
@@ -57,14 +58,14 @@ class _RigidVehicleState extends State<RigidVehicle> {
     const axisWidth = 7;
     final wheelShape = cannon.Sphere(1.5);
     final wheelMaterial = cannon.Material(name:'wheel');
-    final down = cannon.Vec3(0, -1, 0);
+    final down = vmath.Vector3(0, -1, 0);
 
     final wheelBody1 = cannon.Body(mass:mass, material: wheelMaterial );
     wheelBody1.addShape(wheelShape);
     vehicle.addWheel(
       body: wheelBody1,
-      position: cannon.Vec3(-5, 0, axisWidth / 2).vadd(centerOfMassAdjust),
-      axis: cannon.Vec3(0, 0, 1),
+      position: vmath.Vector3(-5, 0, axisWidth / 2)..add(centerOfMassAdjust),
+      axis: vmath.Vector3(0, 0, 1),
       direction: down,
     );
 
@@ -72,8 +73,8 @@ class _RigidVehicleState extends State<RigidVehicle> {
     wheelBody2.addShape(wheelShape);
     vehicle.addWheel(
       body: wheelBody2,
-      position: cannon.Vec3(-5, 0, -axisWidth / 2).vadd(centerOfMassAdjust),
-      axis: cannon.Vec3(0, 0, -1),
+      position: vmath.Vector3(-5, 0, -axisWidth / 2)..add(centerOfMassAdjust),
+      axis: vmath.Vector3(0, 0, -1),
       direction: down,
     );
 
@@ -81,8 +82,8 @@ class _RigidVehicleState extends State<RigidVehicle> {
     wheelBody3.addShape(wheelShape);
     vehicle.addWheel(
       body: wheelBody3,
-      position: cannon.Vec3(5, 0, axisWidth / 2).vadd(centerOfMassAdjust),
-      axis: cannon.Vec3(0, 0, 1),
+      position: vmath.Vector3(5, 0, axisWidth / 2)..add(centerOfMassAdjust),
+      axis: vmath.Vector3(0, 0, 1),
       direction: down,
     );
 
@@ -90,8 +91,8 @@ class _RigidVehicleState extends State<RigidVehicle> {
     wheelBody4.addShape(wheelShape);
     vehicle.addWheel(
       body: wheelBody4,
-      position: cannon.Vec3(5, 0, -axisWidth / 2).vadd(centerOfMassAdjust),
-      axis: cannon.Vec3(0, 0, -1),
+      position: vmath.Vector3(5, 0, -axisWidth / 2)..add(centerOfMassAdjust),
+      axis: vmath.Vector3(0, 0, -1),
       direction: down,
     );
 
@@ -129,7 +130,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
     );
     final heightfieldBody = cannon.Body(mass: 0, material: groundMaterial);
     heightfieldBody.addShape(heightfieldShape);
-    heightfieldBody.position.set(
+    heightfieldBody.position.setValues(
       (-(sizeX - 1) * heightfieldShape.elementSize) / 2,
       -15,
       ((sizeZ - 1) * heightfieldShape.elementSize) / 2

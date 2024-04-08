@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'convex_polyhedron.dart';
-import '../math/vec3.dart';
 import 'shape.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Cylinder class.
 /// @example
@@ -43,16 +43,16 @@ class Cylinder extends ConvexPolyhedron {
     final int N = numSegments;
     List<int> bottomface = [];
     List<int> topface = [];
-    List<Vec3> axes =[];
+    List<Vector3> axes =[];
 
     vertices = [];
     faces = [];
     // First bottom point
-    vertices.add(Vec3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
+    vertices.add(Vector3(-radiusBottom * math.sin(0), -height * 0.5, radiusBottom * math.cos(0)));
     bottomface.add(0);
 
     // First top point
-    vertices.add(Vec3(-radiusTop * math.sin(0), height * 0.5, radiusTop * math.cos(0)));
+    vertices.add(Vector3(-radiusTop * math.sin(0), height * 0.5, radiusTop * math.cos(0)));
     topface.add(1);
 
     for (int i = 0; i < N; i++) {
@@ -60,10 +60,10 @@ class Cylinder extends ConvexPolyhedron {
       final thetaN = ((2 * math.pi) / N) * (i + 0.5);
       if (i < N - 1) {
         // Bottom
-        vertices.add(Vec3(-radiusBottom * math.sin(theta), -height * 0.5, radiusBottom * math.cos(theta)));
+        vertices.add(Vector3(-radiusBottom * math.sin(theta), -height * 0.5, radiusBottom * math.cos(theta)));
         bottomface.add(2 * i + 2);
         // Top
-        vertices.add(Vec3(-radiusTop * math.sin(theta), height * 0.5, radiusTop * math.cos(theta)));
+        vertices.add(Vector3(-radiusTop * math.sin(theta), height * 0.5, radiusTop * math.cos(theta)));
         topface.add(2 * i + 3);
 
         // Face
@@ -84,11 +84,11 @@ class Cylinder extends ConvexPolyhedron {
 
       // Axis: we can cut off half of them if we have even number of segments
       if (N % 2 == 1 || i < N / 2) {
-        axes.add(Vec3(-math.sin(thetaN), 0, math.cos(thetaN)));
+        axes.add(Vector3(-math.sin(thetaN), 0, math.cos(thetaN)));
       }
     }
     faces.add(bottomface);
-    axes.add(Vec3(0, 1, 0));
+    axes.add(Vector3(0, 1, 0));
 
     // Reorder top face
     List<int> temp = [];

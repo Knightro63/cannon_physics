@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:cannon_physics/utils/logger.dart';
-
+import '../math/quaternion.dart';
 import '../utils/event_target.dart';
 import '../utils/utils.dart';
 import '../solver/gs_solver.dart';
@@ -22,6 +22,7 @@ import '../equations/contact_equation.dart';
 import '../equations/friction_equation.dart';
 import '../constraints/constraint_class.dart';
 import '../rigid_body_shapes/shape.dart';
+import 'package:vector_math/vector_math.dart' hide Ray;
 
 class Profile{
   Profile({
@@ -71,12 +72,12 @@ class World extends EventTarget {
   int nextId = 0;
 
   /// The gravity of the world.
-  Vec3 gravity = Vec3();
+  Vector3 gravity = Vector3.zero();
 
   /// Gravity to use when approximating the friction max force (mu*mass*gravity).
   /// If undefined, global gravity will be used.
   /// Use to enable friction in a World with a null gravity vector (no gravity).
-  Vec3? frictionGravity;
+  Vector3? frictionGravity;
 
   /// The broadphase algorithm to use.
   late Broadphase broadphase;
@@ -132,8 +133,8 @@ class World extends EventTarget {
   bool verbose;
 
   World({
-    Vec3? gravity,
-    Vec3? frictionGravity,
+    Vector3? gravity,
+    Vector3? frictionGravity,
     this.allowSleep = false,
     Broadphase? broadphase,
     Solver? solver,
@@ -143,11 +144,11 @@ class World extends EventTarget {
   }):super(){
     logger = NRFLogger(verbose);
     if (gravity != null) {
-      this.gravity.copy(gravity);
+      this.gravity.setFrom(gravity);
     }
     if (frictionGravity != null) {
-      this.frictionGravity = Vec3();
-      this.frictionGravity!.copy(frictionGravity);
+      this.frictionGravity = Vector3.zero();
+      this.frictionGravity!.setFrom(frictionGravity);
     }
     this.broadphase = broadphase ?? NaiveBroadphase();
     this.solver = solver ?? GSSolver();
@@ -168,7 +169,7 @@ class World extends EventTarget {
   // performance.now() fallback on Date.now()
   final Performance performance = Performance();
 
-  // final Vec3 _stepTmp1 = Vec3();
+  // final Vector3 _stepTmp1 = Vector3.zero();
 
   // Dispatched after the world has stepped forward in time.
   // Reusable event objects to save memory.
@@ -231,7 +232,7 @@ class World extends EventTarget {
 
   /// Raycast test
   /// @deprecated Use .raycastAll, .raycastClosest or .raycastAny instead.
-  void rayTest(Vec3 from, Vec3 to, dynamic result) {
+  void rayTest(Vector3 from, Vector3 to, dynamic result) {
     if (result is RaycastResult) {
       // Do raycastClosest
       raycastClosest(from, to, RayOptions()..skipBackfaces = true , result);
@@ -244,7 +245,7 @@ class World extends EventTarget {
 
   /// Ray cast against all bodies. The provided callback will be executed for each hit with a RaycastResult as single argument.
   /// @return True if any body was hit.
-  bool raycastAll([Vec3? from,Vec3? to, RayOptions? options, RaycastCallback? callback]) {
+  bool raycastAll([Vector3? from,Vector3? to, RayOptions? options, RaycastCallback? callback]) {
     options ??= RayOptions();
     options.mode = RayMode.all;
     options.from = from;
@@ -255,7 +256,7 @@ class World extends EventTarget {
 
   /// Ray cast, and stop at the first result. Note that the order is random - but the method is fast.
   /// @return True if any body was hit.
-  bool raycastAny([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result]) {
+  bool raycastAny([Vector3? from, Vector3? to, RayOptions? options, RaycastResult? result]) {
     options ??= RayOptions();
     options.mode = RayMode.any;
     options.from = from;
@@ -266,7 +267,7 @@ class World extends EventTarget {
 
   /// Ray cast, and return information of the closest hit.
   /// @return True if any body was hit.
-  bool raycastClosest([Vec3? from, Vec3? to, RayOptions? options, RaycastResult? result]) {
+  bool raycastClosest([Vector3? from, Vector3? to, RayOptions? options, RaycastResult? result]) {
     options ??= RayOptions();
     options.mode = RayMode.closest;
     options.from = from;
@@ -285,12 +286,12 @@ class World extends EventTarget {
     body.index = bodies.length;
     bodies.add(body);
     body.world = this;
-    body.initPosition.copy(body.position);
-    body.initVelocity.copy(body.velocity);
+    body.initPosition.setFrom(body.position);
+    body.initVelocity.setFrom(body.velocity);
     body.timeLastSleepy = time;
     //if (body is Body) {
-      body.initAngularVelocity.copy(body.angularVelocity);
-      body.initQuaternion.copy(body.quaternion);
+      body.initAngularVelocity.setFrom(body.angularVelocity);
+      body.initQuaternion.setFrom(body.quaternion);
     //}
     collisionMatrix.setNumObjects(bodies.length);
     addBodyEvent.target = body;
@@ -567,7 +568,7 @@ class World extends EventTarget {
         bj.sleepState == BodySleepStates.awake &&
         bj.type != BodyTypes.static
       ) {
-        final speedSquaredB = bj.velocity.lengthSquared() + bj.angularVelocity.lengthSquared();
+        final speedSquaredB = bj.velocity.length2 + bj.angularVelocity.length2;
         final speedLimitSquaredB = math.pow(bj.sleepSpeedLimit,2);
         if (speedSquaredB >= speedLimitSquaredB * 2) {
           bi.wakeUpAfterNarrowphase = true;
@@ -581,7 +582,7 @@ class World extends EventTarget {
         bi.sleepState == BodySleepStates.awake &&
         bi.type != BodyTypes.static
       ) {
-        final speedSquaredA = bi.velocity.lengthSquared() + bi.angularVelocity.lengthSquared();
+        final speedSquaredA = bi.velocity.length2 + bi.angularVelocity.length2;
         final speedLimitSquaredA = math.pow(bi.sleepSpeedLimit,2);
         if (speedSquaredA >= speedLimitSquaredA * 2) {
           bj.wakeUpAfterNarrowphase = true;
@@ -650,10 +651,10 @@ class World extends EventTarget {
         // Only for dynamic bodies
         final ld = math.pow(1.0 - bi.linearDamping, dt).toDouble();
         final v = bi.velocity;
-        v.scale(ld, v);
+        v.scale2(ld, v);
         final av = bi.angularVelocity;
         final ad = math.pow(1.0 - bi.angularDamping, dt).toDouble();
-        av.scale(ad, av);
+        av.scale2(ad, av);
       }
     }
 
@@ -774,8 +775,8 @@ class World extends EventTarget {
     final N = bodies.length;
     for (int i = 0; i != N; i++) {
       final b = bodies[i];
-      b.force.set(0, 0, 0);
-      b.torque.set(0, 0, 0);
+      b.force.setValues(0, 0, 0);
+      b.torque.setValues(0, 0, 0);
     }
   }
 }

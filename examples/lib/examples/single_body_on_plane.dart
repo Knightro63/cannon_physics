@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class SBOP extends StatefulWidget {
   const SBOP({
@@ -56,11 +57,11 @@ class _SBOPState extends State<SBOP> {
 
     const size = 2.0;
 
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
 
     final body = cannon.Body(mass: 30);
     body.addShape(boxShape);
-    body.position.set(0, size * 2, size);
+    body.position.setValues(0, size * 2, size);
     world.addBody(body);
     demo.addVisual(body);
   }
@@ -74,7 +75,7 @@ class _SBOPState extends State<SBOP> {
 
     final body = cannon.Body(mass: 30);
     body.addShape(sphereShape);
-    body.position.set(0, size * 2, size);
+    body.position.setValues(0, size * 2, size);
     world.addBody(body);
     demo.addVisual(body);
   }

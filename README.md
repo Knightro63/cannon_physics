@@ -4,7 +4,7 @@
 [![analysis](https://github.com/Knightro63/cannon_physics/actions/workflows/flutter.yml/badge.svg)](https://github.com/Knightro63/cannon_physics/actions/)
 [![License: BSD](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/BSD)
 
-A 3D physics engine for dart (based on cannon.js) that allows users to add physics support to their 3d projects.
+A 3D physics engine for dart (based on cannon.js) that allows users to add physics support to their 3D projects.
 
 <picture>
   <img alt="Image of ball hitting a cloth." src="https://github.com/Knightro63/cannon_physics/blob/de7b2dad5cf7e94c13c8ca96dbc887e4b834d7f9/examples/assets/images/cloth.png">
@@ -14,7 +14,7 @@ This is a dart conversion of cannon.js and cannon-es, originally created by Stef
 
 ### Getting started
 
-To get started add cannon_physics, and you favorite 3D rendering engine to your pubspec.yaml file.
+To get started add cannon_physics, and your favorite 3D rendering engine to your pubspec.yaml file.
 
 The Cannon World is the main scene that has all of the objects that will be manipulated to the scene. To get started add the cannon world then all of the objects in it.
 

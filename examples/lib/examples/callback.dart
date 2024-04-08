@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Callback extends StatefulWidget {
   const Callback({
@@ -40,11 +41,11 @@ class _CallbackState extends State<Callback> {
     final moonShape = cannon.Sphere(0.5);
     final moon = cannon.Body(
       mass: 5,
-      position: cannon.Vec3(-5, 0, 0),
+      position: vmath.Vector3(-5, 0, 0),
     );
     moon.addShape(moonShape);
 
-    moon.velocity.set(0, 8, 0);
+    moon.velocity.setValues(0, 8, 0);
     moon.linearDamping = 0.0;
 
     final planetShape = cannon.Sphere(3.5);
@@ -52,13 +53,13 @@ class _CallbackState extends State<Callback> {
     planet.addShape(planetShape);
 
     world.addEventListener('preStep', (d){
-      final moon_to_planet = cannon.Vec3();
-      moon.position.negate(moon_to_planet);
+      final moon_to_planet = vmath.Vector3.zero();
+      moon_to_planet..setFrom(moon.position)..negate();
 
-      final distance = moon_to_planet.length();
+      final distance = moon_to_planet.length;
 
       moon_to_planet.normalize();
-      moon_to_planet.scale(1500 / Math.pow(distance, 2), moon.force);
+      moon_to_planet.scale2(1500 / Math.pow(distance, 2), moon.force);
     });
 
     world.addBody(moon);

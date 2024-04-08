@@ -2,15 +2,27 @@ import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
+import 'package:vector_math/vector_math.dart' as vmath;
 
-extension on cannon.Quaternion{
+extension CQ2Q on vmath.Quaternion{
   Quaternion toQuaternion(){
     return Quaternion(x,y,z,w);
   }
 }
-extension V2V on cannon.Vec3{
+extension CV2V on vmath.Vector3{
   Vector3 toVector3(){
     return Vector3(x,y,z);
+  }
+}
+
+extension TQ2Q on Quaternion{
+  vmath.Quaternion toQuaternion(){
+    return vmath.Quaternion(x.toDouble(),y.toDouble(),z.toDouble(),w.toDouble());
+  }
+}
+extension TV2V on Vector3{
+  vmath.Vector3 toVector3(){
+    return vmath.Vector3(x,y,z);
   }
 }
 
@@ -45,7 +57,7 @@ class GeometryCache {
 }
 
 class ConversionUtils{
-  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true, cannon.Vec3? position}) {
+  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true, vmath.Vector3? position}) {
     switch (shape.type) {
       case cannon.ShapeType.sphere: {
         shape as cannon.Sphere;
@@ -235,7 +247,7 @@ class ConversionUtils{
         final width = geometry.parameters!['width'];
         final height = geometry.parameters!['height'];
         final depth = geometry.parameters!['depth'];
-        final halfExtents = cannon.Vec3(width / 2, height / 2, depth / 2);
+        final halfExtents = vmath.Vector3(width / 2, height / 2, depth / 2);
         return cannon.Box(halfExtents);
       }
       case 'PlaneGeometry':
@@ -299,13 +311,13 @@ class ConversionUtils{
       case 'IcosahedronGeometry':
       case 'IcosahedronBufferGeometry': {
         Float32Array points = geometry.attributes['position'].array;
-        List<cannon.Vec3> verticies = [];
+        List<vmath.Vector3> verticies = [];
         List<List<int>>? faces = [];
         List<int> indicies = [];
 
         for(int i = 0; i < points.length; i+=3){
           verticies.add(
-            cannon.Vec3(
+            vmath.Vector3(
               points[i],
               points[i+1],
               points[i+2]
@@ -345,22 +357,22 @@ class ConversionUtils{
         Float32Array norms = geometry.attributes['normal'].array;
         final indexes = geometry.index;
 
-        List<cannon.Vec3> verticies = [];
+        List<vmath.Vector3> verticies = [];
         List<List<int>>? faces = [];
-        List<cannon.Vec3>? normals = [];
+        List<vmath.Vector3>? normals = [];
         List<int> indicies = [];
 
         for(int i = 0; i < points.length; i+=3){
           int i3 = i*3;
           verticies.add(
-            cannon.Vec3(
+            vmath.Vector3(
               points[i],
               points[i+1],
               points[i+2]
             )
           );
 
-          normals.add(cannon.Vec3(norms[i],norms[i+1],norms[i+2]));
+          normals.add(vmath.Vector3(norms[i],norms[i+1],norms[i+2]));
           if(indexes != null && i < indexes.length){
             faces.add([
               indexes.getX(i)!.toInt(),

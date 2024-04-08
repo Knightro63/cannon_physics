@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Trigger extends StatefulWidget {
   const Trigger({
@@ -41,9 +42,9 @@ class _TriggerState extends State<Trigger> {
     cannon.Sphere sphereShape = cannon.Sphere(radius);
     cannon.Body sphereBody = cannon.Body(mass: 1);
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(-5, 0, 0);
-    cannon.Vec3 impulse = cannon.Vec3(5.5, 0, 0);
-    cannon.Vec3 topPoint = cannon.Vec3(0, radius, 0);
+    sphereBody.position.setValues(-5, 0, 0);
+    vmath.Vector3 impulse = vmath.Vector3(5.5, 0, 0);
+    vmath.Vector3 topPoint = vmath.Vector3(0, radius, 0);
     sphereBody.applyImpulse(impulse, topPoint);
     sphereBody.linearDamping = 0.3;
     sphereBody.angularDamping = 0.3;
@@ -51,10 +52,10 @@ class _TriggerState extends State<Trigger> {
     demo.addVisual(sphereBody);
 
     // Trigger body
-    cannon.Box boxShape = cannon.Box(cannon.Vec3(2, 2, 5));
+    cannon.Box boxShape = cannon.Box(vmath.Vector3(2, 2, 5));
     cannon.Body triggerBody = cannon.Body(isTrigger: true );
     triggerBody.addShape(boxShape);
-    triggerBody.position.set(5, radius, 0);
+    triggerBody.position.setValues(5, radius, 0);
     world.addBody(triggerBody);
     demo.addVisual(triggerBody);
 

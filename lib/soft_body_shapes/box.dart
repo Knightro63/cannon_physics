@@ -1,14 +1,14 @@
 import 'package:cannon_physics/constraints/spring_constraint.dart';
-import 'package:cannon_physics/math/vec3.dart';
 import 'package:cannon_physics/objects/rigid_body.dart';
 import 'package:cannon_physics/rigid_body_shapes/particle.dart';
 import 'package:cannon_physics/rigid_body_shapes/shape.dart';
 import 'dart:math';
 import 'package:cannon_physics/objects/soft_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Simple vehicle helper class with spherical rigid body wheels.
 class BoxSoftBody extends SoftBody{
-  Vec3 halfExtents;
+  Vector3 halfExtents;
 
   BoxSoftBody({
     required this.halfExtents,
@@ -16,7 +16,7 @@ class BoxSoftBody extends SoftBody{
     super.stiffness = 100,
     int numOfParticles = 18,
   }):super(shape: ShapeType.box){
-    final Vec3 size = halfExtents;
+    final Vector3 size = halfExtents;
     final mass = this.mass/numOfParticles;
     double maxV = size.x+size.y+size.z;
     final Nx = ((size.x/maxV)*numOfParticles).floor();
@@ -30,8 +30,8 @@ class BoxSoftBody extends SoftBody{
           // Create a new body
           final body = Body( mass: mass );
           body.addShape(Particle());
-          body.position.set(-dist * i, dist * k + dist * Nz * 0.3 + 1, dist * j);
-          body.velocity.set(0, 0, (sin(i * 0.1) + sin(j * 0.1)) * 30);
+          body.position.setValues(-dist * i, dist * k + dist * Nz * 0.3 + 1, dist * j);
+          body.velocity.setValues(0, 0, (sin(i * 0.1) + sin(j * 0.1)) * 30);
           particleBodies['$i $j $k'] = body;
         }
       }

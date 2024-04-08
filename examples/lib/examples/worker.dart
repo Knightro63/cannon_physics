@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Worker extends StatefulWidget {
   const Worker({
@@ -66,12 +67,12 @@ class _WorkerState extends State<Worker> {
     );
     final cylinderBody = cannon.Body(mass:mass);
     cylinderBody.addShape(cylinderShape);
-    cylinderBody.position.set(size * 2, size + 1, size * 2);
+    cylinderBody.position.setValues(size * 2, size + 1, size * 2);
     world.addBody(cylinderBody);
     demo.addVisual(cylinderBody);
 
     for (int i = 0; i < N; i++) {
-      final position = cannon.Vec3(
+      final position = vmath.Vector3(
         (Math.random() * 2 - 1) * 2.5,
         Math.random() * 10,
         (Math.random() * 2 - 1) * 2.5

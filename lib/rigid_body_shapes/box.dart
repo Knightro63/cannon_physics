@@ -2,17 +2,18 @@ import 'shape.dart';
 import '../math/vec3.dart';
 import 'convex_polyhedron.dart';
 import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A 3d box shape.
 /// @example
 ///     const size = 1
-///     const halfExtents = CANNON.Vec3(size, size, size)
+///     const halfExtents = CANNON.Vector3(size, size, size)
 ///     const boxShape = CANNON.Box(halfExtents)
 ///     const boxBody = CANNON.Body({ mass: 1, shape: boxShape })
 ///     world.addBody(boxBody)
 class Box extends Shape {
   /// The half extents of the box.
-  Vec3 halfExtents;
+  Vector3 halfExtents;
 
   /// Used by the contact generator to make contacts with other convex polyhedra for example.
   late ConvexPolyhedron convexPolyhedronRepresentation;
@@ -23,17 +24,17 @@ class Box extends Shape {
     updateBoundingSphereRadius();
   }
 
-  final Vec3 _worldCornerTempPos = Vec3();
+  final Vector3 _worldCornerTempPos = Vector3.zero();
 
-  final List<Vec3> _worldCornersTemp = [
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
-    Vec3(),
+  final List<Vector3> _worldCornersTemp = [
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
+    Vector3.zero(),
   ];
 
   /// Updates the local convex polyhedron representation used for some collisions.
@@ -42,15 +43,15 @@ class Box extends Shape {
     final double sy = halfExtents.y;
     final double sz = halfExtents.z;
 
-    List<Vec3> vertices = [
-      Vec3(-sx, -sy, -sz),
-      Vec3(sx, -sy, -sz),
-      Vec3(sx, sy, -sz),
-      Vec3(-sx, sy, -sz),
-      Vec3(-sx, -sy, sz),
-      Vec3(sx, -sy, sz),
-      Vec3(sx, sy, sz),
-      Vec3(-sx, sy, sz),
+    List<Vector3> vertices = [
+      Vector3(-sx, -sy, -sz),
+      Vector3(sx, -sy, -sz),
+      Vector3(sx, sy, -sz),
+      Vector3(-sx, sy, -sz),
+      Vector3(-sx, -sy, sz),
+      Vector3(sx, -sy, sz),
+      Vector3(sx, sy, sz),
+      Vector3(-sx, sy, sz),
     ];
 
     const faces = [
@@ -62,10 +63,10 @@ class Box extends Shape {
       [1, 2, 6, 5], // +x
     ];
 
-    final List<Vec3> axes = [
-      Vec3(0, 0, 1), 
-      Vec3(0, 1, 0), 
-      Vec3(1, 0, 0)
+    final List<Vector3> axes = [
+      Vector3(0, 0, 1), 
+      Vector3(0, 1, 0), 
+      Vector3(1, 0, 0)
     ];
 
     convexPolyhedronRepresentation = ConvexPolyhedron(
@@ -78,14 +79,14 @@ class Box extends Shape {
 
   /// Calculate the inertia of the box.
   @override
-  Vec3 calculateLocalInertia(num mass,[ Vec3? target]){
-    target ??= Vec3();
+  Vector3 calculateLocalInertia(num mass,[ Vector3? target]){
+    target ??= Vector3.zero();
     Box.calculateInertia(halfExtents, mass, target);
     return target;
   }
 
-  static Vec3 calculateInertia(Vec3 halfExtents,num mass, Vec3 target){
-    final Vec3 e = halfExtents;
+  static Vector3 calculateInertia(Vector3 halfExtents,num mass, Vector3 target){
+    final Vector3 e = halfExtents;
     target.x = 1.0 / 12.0 * mass * (2 * e.y * 2 * e.y + 2 * e.z * 2 * e.z);
     target.y = 1.0 / 12.0 * mass * (2 * e.x * 2 * e.x + 2 * e.z * 2 * e.z);
     target.z = 1.0 / 12.0 * mass * (2 * e.y * 2 * e.y + 2 * e.x * 2 * e.x);
@@ -95,15 +96,15 @@ class Box extends Shape {
   /// Get the box 6 side normals
   /// @param sixTargetVectors An array of 6 vectors, to store the resulting side normals in.
   /// @param quat Orientation to apply to the normal vectors. If not provided, the vectors will be in respect to the local frame.
-  List<Vec3> getSideNormals(List<Vec3> sixTargetVectors, [Quaternion? quat ]){
-    final List<Vec3> sides = sixTargetVectors;
-    final Vec3 ex = halfExtents;
-    sides[0].set(ex.x, 0, 0);
-    sides[1].set(0, ex.y, 0);
-    sides[2].set(0, 0, ex.z);
-    sides[3].set(-ex.x, 0, 0);
-    sides[4].set(0, -ex.y, 0);
-    sides[5].set(0, 0, -ex.z);
+  List<Vector3> getSideNormals(List<Vector3> sixTargetVectors, [Quaternion? quat ]){
+    final List<Vector3> sides = sixTargetVectors;
+    final Vector3 ex = halfExtents;
+    sides[0].setValues(ex.x, 0, 0);
+    sides[1].setValues(0, ex.y, 0);
+    sides[2].setValues(0, 0, ex.z);
+    sides[3].setValues(-ex.x, 0, 0);
+    sides[4].setValues(0, -ex.y, 0);
+    sides[5].setValues(0, 0, -ex.z);
 
     if (quat != null) {
       for (int i = 0; i != sides.length; i++) {
@@ -121,11 +122,11 @@ class Box extends Shape {
 
   @override
   void updateBoundingSphereRadius() {
-    boundingSphereRadius = halfExtents.length();
+    boundingSphereRadius = halfExtents.length;
   }
 
-  void forEachWorldCorner(Vec3 pos, Quaternion quat, void Function(num x, num y, num z) callback) {
-    final Vec3 e = halfExtents;
+  void forEachWorldCorner(Vector3 pos, Quaternion quat, void Function(num x, num y, num z) callback) {
+    final Vector3 e = halfExtents;
     final List<List<double>> corners = [
       [e.x, e.y, e.z],
       [-e.x, e.y, e.z],
@@ -137,34 +138,34 @@ class Box extends Shape {
       [e.x, -e.y, e.z],
     ];
     for (int i = 0; i < corners.length; i++) {
-      _worldCornerTempPos.set(corners[i][0], corners[i][1], corners[i][2]);
+      _worldCornerTempPos.setValues(corners[i][0], corners[i][1], corners[i][2]);
       quat.vmult(_worldCornerTempPos, _worldCornerTempPos);
-      pos.vadd(_worldCornerTempPos, _worldCornerTempPos);
+      pos.add2(_worldCornerTempPos, _worldCornerTempPos);
       callback(_worldCornerTempPos.x, _worldCornerTempPos.y, _worldCornerTempPos.z);
     }
   }
 
   @override
-  void calculateWorldAABB(Vec3 pos, Quaternion quat,Vec3 min, Vec3 max) {
-    final Vec3 e = halfExtents;
-    _worldCornersTemp[0].set(e.x, e.y, e.z);
-    _worldCornersTemp[1].set(-e.x, e.y, e.z);
-    _worldCornersTemp[2].set(-e.x, -e.y, e.z);
-    _worldCornersTemp[3].set(-e.x, -e.y, -e.z);
-    _worldCornersTemp[4].set(e.x, -e.y, -e.z);
-    _worldCornersTemp[5].set(e.x, e.y, -e.z);
-    _worldCornersTemp[6].set(-e.x, e.y, -e.z);
-    _worldCornersTemp[7].set(e.x, -e.y, e.z);
+  void calculateWorldAABB(Vector3 pos, Quaternion quat,Vector3 min, Vector3 max) {
+    final Vector3 e = halfExtents;
+    _worldCornersTemp[0].setValues(e.x, e.y, e.z);
+    _worldCornersTemp[1].setValues(-e.x, e.y, e.z);
+    _worldCornersTemp[2].setValues(-e.x, -e.y, e.z);
+    _worldCornersTemp[3].setValues(-e.x, -e.y, -e.z);
+    _worldCornersTemp[4].setValues(e.x, -e.y, -e.z);
+    _worldCornersTemp[5].setValues(e.x, e.y, -e.z);
+    _worldCornersTemp[6].setValues(-e.x, e.y, -e.z);
+    _worldCornersTemp[7].setValues(e.x, -e.y, e.z);
 
-    final Vec3 wc = _worldCornersTemp[0];
+    final Vector3 wc = _worldCornersTemp[0];
     quat.vmult(wc, wc);
-    pos.vadd(wc, wc);
-    max.copy(wc);
-    min.copy(wc);
+    pos.add2(wc, wc);
+    max.setFrom(wc);
+    min.setFrom(wc);
     for (int i = 1; i < 8; i++) {
-      final Vec3 wc = _worldCornersTemp[i];
+      final Vector3 wc = _worldCornersTemp[i];
       quat.vmult(wc, wc);
-      pos.vadd(wc, wc);
+      pos.add2(wc, wc);
       double x = wc.x;
       double y = wc.y;
       double z = wc.z;

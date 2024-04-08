@@ -4,7 +4,7 @@ import '../math/vec3.dart';
 import '../math/transform.dart';
 import '../collision/aabb.dart';
 import '../utils/octree.dart';
-import '../math/quaternion.dart';
+import 'package:vector_math/vector_math.dart';
 
 class TorusGeometry{
   TorusGeometry([
@@ -51,7 +51,7 @@ class Trimesh extends Shape {
   List<int> edges = [];
 
   /// Local scaling of the mesh. Use .setScale() to set it.
-  final Vec3 scale = Vec3(1, 1, 1);
+  final Vector3 scale = Vector3(1, 1, 1);
 
   /// The indexed triangles. Use .updateTree() to update it.
   final Octree tree = Octree();
@@ -74,14 +74,14 @@ class Trimesh extends Shape {
     updateTree();
   }
 
-  final _computeNormalsN = Vec3();
+  final _computeNormalsN = Vector3.zero();
 
-  final _getEdgeVectorVa = Vec3();
-  final _getEdgeVectorVb = Vec3();
+  final _getEdgeVectorVa = Vector3.zero();
+  final _getEdgeVectorVb = Vector3.zero();
 
   final _cliAabb = AABB();
 
-  final _computeLocalAABBWorldVert = Vec3();
+  final _computeLocalAABBWorldVert = Vector3.zero();
 
   final _calculateWorldAABBFrame = Transform();
   final _calculateWorldAABBAabb = AABB();
@@ -101,9 +101,9 @@ class Trimesh extends Shape {
 
     // Insert all triangles
     final triangleAABB = AABB();
-    final a = Vec3();
-    final b = Vec3();
-    final c = Vec3();
+    final a = Vector3.zero();
+    final b = Vector3.zero();
+    final c = Vector3.zero();
     final points = [a, b, c];
     for (int i = 0; i < indices.length / 3; i++) {
       // Get unscaled triangle verts
@@ -140,7 +140,7 @@ class Trimesh extends Shape {
     return tree.aabbQuery(unscaledAABB, result);
   }
 
-  void setScale(Vec3 scale) {
+  void setScale(Vector3 scale) {
     final wasUniform = this.scale.x == this.scale.y && this.scale.y == this.scale.z;
     final isUniform = scale.x == scale.y && scale.y == scale.z;
 
@@ -148,14 +148,14 @@ class Trimesh extends Shape {
       // Non-uniform scaling. Need to update normals.
       updateNormals();
     }
-    this.scale.copy(scale);
+    this.scale.setFrom(scale);
     updateAABB();
     updateBoundingSphereRadius();
   }
 
-  final _va = Vec3();
-  final _vb = Vec3();
-  final _vc = Vec3();
+  final _va = Vector3.zero();
+  final _vb = Vector3.zero();
+  final _vc = Vector3.zero();
   /// Compute the normals of the faces. Will save in the `.normals` array.
   void updateNormals() {
     // Generate normals
@@ -207,28 +207,28 @@ class Trimesh extends Shape {
   /// Get an edge vertex
   /// @param firstOrSecond 0 or 1, depending on which one of the vertices you need.
   /// @param vertexStore Where to store the result
-  void getEdgeVertex(int edgeIndex, int firstOrSecond, Vec3 vertexStore) {
+  void getEdgeVertex(int edgeIndex, int firstOrSecond, Vector3 vertexStore) {
     final vertexIndex = edges[edgeIndex * 2 + firstOrSecond];
     getVertex(vertexIndex, vertexStore);
   }
 
   /// Get a vector along an edge.
-  void getEdgeVector(int edgeIndex, Vec3 vectorStore) {
+  void getEdgeVector(int edgeIndex, Vector3 vectorStore) {
     final va = _getEdgeVectorVa;
     final vb = _getEdgeVectorVb;
     getEdgeVertex(edgeIndex, 0, va);
     getEdgeVertex(edgeIndex, 1, vb);
-    vb.vsub(va, vectorStore);
+    vb.sub2(va, vectorStore);
   }
 
   /// Get face normal given 3 vertices
-  static void computeNormal(Vec3 va, Vec3 vb, Vec3 vc, Vec3 target) {
-    final cb = Vec3();
-    final ab = Vec3();
+  static void computeNormal(Vector3 va, Vector3 vb, Vector3 vc, Vector3 target) {
+    final cb = Vector3.zero();
+    final ab = Vector3.zero();
 
-    vb.vsub(va, ab);
-    vc.vsub(vb, cb);
-    cb.cross(ab, target);
+    vb.sub2(va, ab);
+    vc.sub2(vb, cb);
+    cb.cross2(ab, target);
     if (!target.isZero()) {
       target.normalize();
     }
@@ -236,8 +236,8 @@ class Trimesh extends Shape {
 
   /// Get vertex i.
   /// @return The "out" vector object
-  Vec3 getVertex(int i, [Vec3? out]) {
-    out ??= Vec3();
+  Vector3 getVertex(int i, [Vector3? out]) {
+    out ??= Vector3.zero();
     final scale = this.scale;
     _getUnscaledVertex(i, out);
     out.x *= scale.x;
@@ -248,43 +248,43 @@ class Trimesh extends Shape {
 
   /// Get raw vertex i
   /// @return The "out" vector object
-  Vec3 _getUnscaledVertex(int i, Vec3 out) {
+  Vector3 _getUnscaledVertex(int i, Vector3 out) {
     final i3 = i * 3;
     final vertices = this.vertices;
-    return out.set(vertices[i3], vertices[i3 + 1], vertices[i3 + 2]);
+    return out..setValues(vertices[i3], vertices[i3 + 1], vertices[i3 + 2]);
   }
 
   /// Get a vertex from the trimesh,transformed by the given position and quaternion.
   /// @return The "out" vector object
-  Vec3 getWorldVertex(int i, Vec3 pos, Quaternion quat, Vec3 out) {
+  Vector3 getWorldVertex(int i, Vector3 pos, Quaternion quat, Vector3 out) {
     getVertex(i, out);
     Transform.pointToWorldFrame(pos, quat, out, out);
     return out;
   }
 
   /// Get the three vertices for triangle i.
-  void getTriangleVertices(int i, Vec3 a, Vec3 b, Vec3 c) {
+  void getTriangleVertices(int i, Vector3 a, Vector3 b, Vector3 c) {
     final i3 = i * 3;
     getVertex(indices[i3], a);
     getVertex(indices[i3 + 1], b);
     getVertex(indices[i3 + 2], c);
   }
   /// Get the three vertices for triangle i.
-  void getTriangleNormals(int i, Vec3 a, Vec3 b, Vec3 c) {
+  void getTriangleNormals(int i, Vector3 a, Vector3 b, Vector3 c) {
     final i3 = i * 3;
     getIndicesNormal(indices[i3], a);
     getIndicesNormal(indices[i3 + 1], b);
     getIndicesNormal(indices[i3 + 2], c);
   }
-  Vec3 getFaceNormal(int i, Vec3 target) {
+  Vector3 getFaceNormal(int i, Vector3 target) {
     final i3 = i * 3;
-    final Vec3 a = Vec3();
-    final Vec3 b = Vec3();
-    final Vec3 c = Vec3();
+    final Vector3 a = Vector3.zero();
+    final Vector3 b = Vector3.zero();
+    final Vector3 c = Vector3.zero();
     getIndicesNormal(indices[i3], a);
     getIndicesNormal(indices[i3 + 1], b);
     getIndicesNormal(indices[i3 + 2], c);
-    return target.set(
+    return target..setValues(
       (a.x+b.x+c.x)/3,
       (a.y+b.y+c.y)/3,
       (a.z+b.z+c.z)/3
@@ -292,26 +292,26 @@ class Trimesh extends Shape {
   }
   /// Compute the normal of triangle i.
   /// @return The "target" vector object
-  // Vec3 getNormal(int i, Vec3 target) {
+  // Vector3 getNormal(int i, Vector3 target) {
   //   final i3 = i * 3;
   //   return target.set(normals![i3], normals![i3 + 1], normals![i3 + 2]);
   // }
   /// Compute the normal of triangle i.
   /// @return The "target" vector object
-  Vec3 getIndicesNormal(int i, Vec3 target) {
+  Vector3 getIndicesNormal(int i, Vector3 target) {
     final i3 = i * 3;
-    return target.set(faceNormals[i3], faceNormals[i3 + 1], faceNormals[i3 + 2]);
+    return target..setValues(faceNormals[i3], faceNormals[i3 + 1], faceNormals[i3 + 2]);
   }
   /// @return The "target" vector object
   @override
-  Vec3 calculateLocalInertia(double mass, Vec3 target) {
+  Vector3 calculateLocalInertia(double mass, Vector3 target) {
     // Approximate with box inertia
     // Exact inertia calculation is overkill, but see http://geometrictools.com/Documentation/PolyhedralMassProperties.pdf for the correct way to do it
     computeLocalAABB(_cliAabb);
     final x = _cliAabb.upperBound.x - _cliAabb.lowerBound.x;
     final y = _cliAabb.upperBound.y - _cliAabb.lowerBound.y;
     final z = _cliAabb.upperBound.z - _cliAabb.lowerBound.z;
-    return target.set(
+    return target..setValues(
       (1.0 / 12.0) * mass * (2*y*2*y + 2*z*2*z),
       (1.0 / 12.0) * mass * (2*x*2*x + 2*z*2*z),
       (1.0 / 12.0) * mass * (2*y*2*y + 2*x*2*x)
@@ -324,8 +324,8 @@ class Trimesh extends Shape {
     final u = aabb.upperBound;
     final v = _computeLocalAABBWorldVert;
     getVertex(0, v);
-    l.copy(v);
-    u.copy(v);
+    l.setFrom(v);
+    u.setFrom(v);
     for (int  i = 0; i < vertices.length/3; i++) {//!= n
       getVertex(i, v);
 
@@ -360,10 +360,10 @@ class Trimesh extends Shape {
     // Assume points are distributed with local (0,0,0) as center
     double max2 = 0;
     final vertices = this.vertices;
-    final v = Vec3();
+    final v = Vector3.zero();
     for (int i = 0; i < vertices.length/ 3; i++) {
       getVertex(i, v);
-      double norm2 = v.lengthSquared();
+      double norm2 = v.length2;
       if (norm2 > max2) {
         max2 = norm2;
       }
@@ -373,15 +373,15 @@ class Trimesh extends Shape {
 
   /// calculateWorldAABB
   @override
-  void calculateWorldAABB(Vec3 pos, Quaternion quat, Vec3 min, Vec3 max) {
+  void calculateWorldAABB(Vector3 pos, Quaternion quat, Vector3 min, Vector3 max) {
     // Faster approximation using local AABB
     final frame = _calculateWorldAABBFrame;
     final result = _calculateWorldAABBAabb;
     frame.position = pos;
     frame.quaternion = quat;
     aabb.toWorldFrame(frame, result);
-    min.copy(result.lowerBound);
-    max.copy(result.upperBound);
+    min.setFrom(result.lowerBound);
+    max.setFrom(result.upperBound);
   }
 
   /// Get approximate volume
@@ -399,14 +399,14 @@ class Trimesh extends Shape {
 
     for (int j = 0; j <= torus.radialSegments; j++) {
       for (int i = 0; i <= torus.tubularSegments; i++) {
-          final center = Vec3();
-          final vertex = Vec3();
-          final normal = Vec3();
+          final center = Vector3.zero();
+          final vertex = Vector3.zero();
+          final normal = Vector3.zero();
           
           final u = i / torus.tubularSegments * torus.arc;
           final v = j / torus.radialSegments * math.pi * 2;
 
-          vertex.set(
+          vertex.setValues(
             (torus.radius + torus.tube * math.cos(v)) * math.cos(u),
             (torus.radius + torus.tube * math.cos(v)) * math.sin(u),
             torus.tube * math.sin(v)
@@ -414,8 +414,8 @@ class Trimesh extends Shape {
 
           vertices.addAll([vertex.x, vertex.y, vertex.z]);
 
-          center.set(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
-          normal.subVectors(vertex, center).normalize();
+          center.setValues(torus.radius * math.cos(u),torus.radius * math.sin(u),0);
+          normal..setFrom(vertex)..sub(center)..normalize();
           normals.addAll([normal.x, normal.y, normal.z]);
 
           uvs.add(i / torus.tubularSegments);

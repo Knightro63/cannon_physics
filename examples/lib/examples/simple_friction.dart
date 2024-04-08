@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class SimpleFriction extends StatefulWidget {
   const SimpleFriction({
@@ -58,17 +59,17 @@ class _SimpleFrictionState extends State<SimpleFriction> {
     slipperyMaterial.friction = 0;
 
     // Create slippery box
-    final shape = cannon.Box(cannon.Vec3(size, size, size));
+    final shape = cannon.Box(vmath.Vector3(size, size, size));
     final boxBody1 = cannon.Body(mass: 1, material: slipperyMaterial);
     boxBody1.addShape(shape);
-    boxBody1.position.set(0, 5, 0);
+    boxBody1.position.setValues(0, 5, 0);
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     // Create box made of groundMaterial
     final boxBody2 = cannon.Body(mass: 10, material: groundMaterial);
     boxBody2.addShape(shape);
-    boxBody2.position.set(-size * 4, 5, 0);
+    boxBody2.position.setValues(-size * 4, 5, 0);
     world.addBody(boxBody2);
     demo.addVisual(boxBody2);
   }
@@ -93,20 +94,20 @@ class _SimpleFrictionState extends State<SimpleFriction> {
     slipperyMaterial.friction = 0;
 
     // Create slippery box - will slide on the plane
-    final shape1 = cannon.Box(cannon.Vec3(size, size, size));
+    final shape1 = cannon.Box(vmath.Vector3(size, size, size));
     shape1.material = slipperyMaterial;
     final boxBody1 = cannon.Body(mass: 1);
     boxBody1.addShape(shape1);
-    boxBody1.position.set(0, 5, 0);
+    boxBody1.position.setValues(0, 5, 0);
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     // Create box made of groundMaterial - will not slide on the plane
-    final shape2 = cannon.Box(cannon.Vec3(size, size, size));
+    final shape2 = cannon.Box(vmath.Vector3(size, size, size));
     shape2.material = groundMaterial;
     final boxBody2 = cannon.Body(mass: 10);
     boxBody2.addShape(shape2);
-    boxBody2.position.set(-size * 4, 5, 0);
+    boxBody2.position.setValues(-size * 4, 5, 0);
     world.addBody(boxBody2);
     demo.addVisual(boxBody2);
   }

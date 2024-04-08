@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import '../math/vec3.dart';
 import 'rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Smoothed-particle hydrodynamics system
 /// @todo Make parameters customizable in the constructor
@@ -29,16 +30,16 @@ class SPHSystem {
 
   SPHSystem();
 
-  final _sphSystemGetNeighborsDist = Vec3();
+  final _sphSystemGetNeighborsDist = Vector3.zero();
 
   // Temp vectors for calculation
-  final _sphSystemUpdateDist = Vec3(); // Relative velocity
+  final _sphSystemUpdateDist = Vector3.zero(); // Relative velocity
 
-  final _sphSystemUpdateAPressure = Vec3();
-  final _sphSystemUpdateAVisc = Vec3();
-  final _sphSystemUpdateGradW = Vec3();
-  final _sphSystemUpdateRVec = Vec3();
-  final _sphSystemUpdateU = Vec3();
+  final _sphSystemUpdateAPressure = Vector3.zero();
+  final _sphSystemUpdateAVisc = Vector3.zero();
+  final _sphSystemUpdateGradW = Vector3.zero();
+  final _sphSystemUpdateRVec = Vector3.zero();
+  final _sphSystemUpdateU = Vector3.zero();
 
   /// Add a particle to the system.
   void add(Body particle) {
@@ -67,8 +68,8 @@ class SPHSystem {
     final dist = _sphSystemGetNeighborsDist;
     for (int i = 0; i != N; i++) {
       final p = particles[i];
-      p.position.vsub(particle.position, dist);
-      if (id != p.id && dist.lengthSquared() < r2) {
+      p.position.sub2(particle.position, dist);
+      if (id != p.id && dist.length2 < r2) {
         neighbors.add(p);
       }
     }
@@ -94,8 +95,8 @@ class SPHSystem {
       double sum = 0.0;
       for (int j = 0; j != numNeighbors; j++) {
         //printf("Current particle has position %f %f %f\n",objects[id].pos.x(),objects[id].pos.y(),objects[id].pos.z());
-        p.position.vsub(neighbors[j].position, dist);
-        final len = dist.length();
+        p.position.sub2(neighbors[j].position, dist);
+        final len = dist.length;
 
         final weight = w(len);
         sum += neighbors[j].mass * weight;
@@ -118,8 +119,8 @@ class SPHSystem {
     for (int i = 0; i != N; i++) {
       final particle = particles[i];
 
-      aPressure.set(0, 0, 0);
-      aVisc.set(0, 0, 0);
+      aPressure.setValues(0, 0, 0);
+      aVisc.setValues(0, 0, 0);
 
       // Init vars
       double pij;
@@ -135,8 +136,8 @@ class SPHSystem {
         //printf("%d ",nj);
 
         // Get r once for all..
-        particle.position.vsub(neighbor.position, rVec);
-        final r = rVec.length();
+        particle.position.sub2(neighbor.position, rVec);
+        final r = rVec.length;
 
         // Pressure contribution
         pij =
@@ -145,25 +146,25 @@ class SPHSystem {
             pressures[j]! / (densities[j]! * densities[j]! + eps));
         gradw(rVec, gradW);
         // Add to pressure acceleration
-        gradW.scale(pij, gradW);
-        aPressure.vadd(gradW, aPressure);
+        gradW.scale2(pij, gradW);
+        aPressure.add2(gradW, aPressure);
 
         // Viscosity contribution
-        neighbor.velocity.vsub(particle.velocity, u);
-        u.scale((1.0 / (0.0001 + densities[i]! * densities[j]!)) * viscosity * neighbor.mass, u);
+        neighbor.velocity.sub2(particle.velocity, u);
+        u.scale2((1.0 / (0.0001 + densities[i]! * densities[j]!)) * viscosity * neighbor.mass, u);
         nabla = nablaw(r);
-        u.scale(nabla, u);
+        u.scale2(nabla, u);
         // Add to viscosity acceleration
-        aVisc.vadd(u, aVisc);
+        aVisc.add2(u, aVisc);
       }
 
       // Calculate force
-      aVisc.scale(particle.mass, aVisc);
-      aPressure.scale(particle.mass, aPressure);
+      aVisc.scale2(particle.mass, aVisc);
+      aPressure.scale2(particle.mass, aPressure);
 
       // Add force to particles
-      particle.force.vadd(aVisc, particle.force);
-      particle.force.vadd(aPressure, particle.force);
+      particle.force.add2(aVisc, particle.force);
+      particle.force.add2(aPressure, particle.force);
     }
   }
 
@@ -175,10 +176,10 @@ class SPHSystem {
   }
 
   // calculate gradient of the weight function
-  void gradw(Vec3 rVec,Vec3 resultVec) {
-    final r = rVec.length();
+  void gradw(Vector3 rVec,Vector3 resultVec) {
+    final r = rVec.length;
     final h = smoothingRadius;
-    rVec.scale(945.0 / (32.0 * math.pi * math.pow(h, 9)) * math.pow((h * h - r * r), 2).toDouble(), resultVec);
+    rVec.scale2(945.0 / (32.0 * math.pi * math.pow(h, 9)) * math.pow((h * h - r * r), 2).toDouble(), resultVec);
   }
 
   // Calculate nabla(W)

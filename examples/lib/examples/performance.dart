@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Performance extends StatefulWidget {
   const Performance({
@@ -51,11 +52,11 @@ class _PerformanceState extends State<Performance> {
     const size = 0.25;
     const mass = 1.0;
 
-    final boxShape = cannon.Box(cannon.Vec3(size, size, size));
+    final boxShape = cannon.Box(vmath.Vector3(size, size, size));
 
     for (int i = 0; i < N; i++) {
       // start with random positions
-      final position = cannon.Vec3(
+      final position = vmath.Vector3(
         (Math.random() * 2 - 1) * 2.5,
         Math.random() * 10,
         (Math.random() * 2 - 1) * 2.5

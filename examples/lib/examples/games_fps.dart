@@ -11,12 +11,8 @@ import 'package:three_dart/three_dart.dart' as three;
 import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
 class SphereData{
   SphereData({
     required this.mesh,
@@ -114,7 +110,6 @@ class _TestGamePageState extends State<TestGame> {
     world.allowSleep = true;
 
     cannon.GSSolver solver = cannon.GSSolver();
-
     lastCallTime = world.performance.now().toDouble();
     world.defaultContactMaterial.contactEquationStiffness = 1e7;
     world.defaultContactMaterial.contactEquationRelaxation = 4;
@@ -122,14 +117,14 @@ class _TestGamePageState extends State<TestGame> {
     solver.iterations = 1;
     solver.tolerance = 0.1;
     
-    if(!split){
+    if(split){
       world.solver = cannon.SplitSolver(solver);
     }
     else{
       world.solver = solver;
     }
 
-    world.gravity.set(0, -gravity, 0);
+    world.gravity.setValues(0, -gravity, 0);
     world.broadphase = cannon.NaiveBroadphase();
   }
   void initSize(BuildContext context) {
@@ -212,10 +207,10 @@ class _TestGamePageState extends State<TestGame> {
       triBody.addShape(triShape);
       world.addBody(triBody);
 
-      final va = cannon.Vec3();
-      final vb = cannon.Vec3();
-      final vc = cannon.Vec3();
-      final normal = cannon.Vec3();
+      final va = vmath.Vector3.zero();
+      final vb = vmath.Vector3.zero();
+      final vc = vmath.Vector3.zero();
+      //final normal = vmath.Vector3.zero();
 
       for (int i = 0; i < triShape.indices.length/3; i+=3) {//N = triangles.length; i != N
         triShape.getTriangleVertices( triShape.indices[i], va, vb, vc);
@@ -264,7 +259,7 @@ class _TestGamePageState extends State<TestGame> {
     late cannon.Shape sphereShape = cannon.Sphere(radius);
     sphereBody = cannon.Body(mass: mass, material: physicsMaterial);
     sphereBody.addShape(sphereShape);
-    sphereBody.position.set(0, 5, 0);
+    sphereBody.position.setValues(0, 5, 0);
     sphereBody.linearDamping = 0.9;
 
     //Create Player
@@ -388,7 +383,7 @@ class _TestGamePageState extends State<TestGame> {
     ));
 
     three.Vector3 shootDirection = getShootDirection();
-    ballBody.velocity.set(
+    ballBody.velocity.setValues(
       shootDirection.x * shootVelocity,
       shootDirection.y * shootVelocity,
       shootDirection.z * shootVelocity
@@ -398,7 +393,7 @@ class _TestGamePageState extends State<TestGame> {
     double x = sphereBody.position.x + shootDirection.x * (radius * 1.02 + ballShape.radius);
     double y = sphereBody.position.y + shootDirection.y * (radius * 1.02 + ballShape.radius);
     double z = sphereBody.position.z + shootDirection.z * (radius * 1.02 + ballShape.radius);
-    ballBody.position.set(x, y, z);
+    ballBody.position.setValues(x, y, z);
     ballMesh.position.copy(ballBody.position.toVector3());
 
     world.addBody(ballBody);
@@ -407,7 +402,7 @@ class _TestGamePageState extends State<TestGame> {
   void updatePlayer(){
     final body = playerBody;
     // Interpolated or not?
-    cannon.Vec3 position = body.interpolatedPosition;
+    vmath.Vector3 position = body.interpolatedPosition;
     //cannon.Quaternion quaternion = body.interpolatedQuaternion;
 
     if(paused) {
@@ -425,8 +420,8 @@ class _TestGamePageState extends State<TestGame> {
       Object3D dummy = Object3D();
 
       // Interpolated or not?
-      cannon.Vec3 position = body.interpolatedPosition;
-      cannon.Quaternion quaternion = body.interpolatedQuaternion;
+      vmath.Vector3 position = body.interpolatedPosition;
+      vmath.Quaternion quaternion = body.interpolatedQuaternion;
       if(paused) {
         position = body.position;
         quaternion = body.quaternion;

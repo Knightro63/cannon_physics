@@ -1,5 +1,6 @@
 import '../math/vec3.dart';
 import 'rigid_body.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// A spring, connecting two bodies.
 /// @example
@@ -31,11 +32,11 @@ class Spring {
 
   /// Anchor for bodyA in local bodyA coordinates.
   /// Where to hook the spring to body A, in local body coordinates.
-  late Vec3 localAnchorA;
+  late Vector3 localAnchorA;
 
   /// Anchor for bodyB in local bodyB coordinates.
   /// Where to hook the spring to body B, in local body coordinates.
-  late Vec3 localAnchorB;
+  late Vector3 localAnchorB;
 
   Spring(
     this.bodyA,
@@ -44,19 +45,19 @@ class Spring {
       this.restLength = 1,
       this.stiffness = 100,
       this.damping = 1,
-      Vec3? localAnchorA,
-      Vec3? localAnchorB,
-      Vec3? worldAnchorA,
-      Vec3? worldAnchorB,
+      Vector3? localAnchorA,
+      Vector3? localAnchorB,
+      Vector3? worldAnchorA,
+      Vector3? worldAnchorB,
   }) {
-    this.localAnchorA = Vec3();
-    this.localAnchorB = Vec3();
+    this.localAnchorA = Vector3.zero();
+    this.localAnchorB = Vector3.zero();
 
     if (localAnchorA != null) {
-      this.localAnchorA.copy(localAnchorA);
+      this.localAnchorA.setFrom(localAnchorA);
     }
     if (localAnchorB != null) {
-      this.localAnchorB.copy(localAnchorB);
+      this.localAnchorB.setFrom(localAnchorB);
     }
     if (worldAnchorA != null) {
       setWorldAnchorA(worldAnchorA);
@@ -66,37 +67,37 @@ class Spring {
     }
   }
 
-  final _applyForceR = Vec3();
-  final _applyForceRUnit = Vec3();
-  final _applyForceU = Vec3();
-  final _applyForceF = Vec3();
-  final _applyForceWorldAnchorA = Vec3();
-  final _applyForceWorldAnchorB = Vec3();
-  final _applyForceRi = Vec3();
-  final _applyForceRj = Vec3();
-  final _applyForceRixf = Vec3();
-  final _applyForceRjxf = Vec3();
-  final _applyForceTmp = Vec3();
+  final _applyForceR = Vector3.zero();
+  final _applyForceRUnit = Vector3.zero();
+  final _applyForceU = Vector3.zero();
+  final _applyForceF = Vector3.zero();
+  final _applyForceWorldAnchorA = Vector3.zero();
+  final _applyForceWorldAnchorB = Vector3.zero();
+  final _applyForceRi = Vector3.zero();
+  final _applyForceRj = Vector3.zero();
+  final _applyForceRixf = Vector3.zero();
+  final _applyForceRjxf = Vector3.zero();
+  final _applyForceTmp = Vector3.zero();
 
   /// et the anchor point on body A, using world coordinates.
-  void setWorldAnchorA(Vec3 worldAnchorA) {
+  void setWorldAnchorA(Vector3 worldAnchorA) {
     bodyA.pointToLocalFrame(worldAnchorA, localAnchorA);
   }
 
   /// Set the anchor point on body B, using world coordinates.
-  void setWorldAnchorB(Vec3 worldAnchorB) {
+  void setWorldAnchorB(Vector3 worldAnchorB) {
     bodyB.pointToLocalFrame(worldAnchorB, localAnchorB);
   }
 
   /// Get the anchor point on body A, in world coordinates.
   /// @param result The vector to store the result in.
-  void getWorldAnchorA(Vec3 result) {
+  void getWorldAnchorA(Vector3 result) {
     bodyA.pointToWorldFrame(localAnchorA, result);
   }
 
   /// Get the anchor point on body B, in world coordinates.
   /// @param result The vector to store the result in.
-  void getWorldAnchorB(Vec3 result) {
+  void getWorldAnchorB(Vector3 result) {
     bodyB.pointToWorldFrame(localAnchorB, result);
   }
 
@@ -124,35 +125,35 @@ class Spring {
     getWorldAnchorB(worldAnchorB);
 
     // Get offset points
-    worldAnchorA.vsub(bodyA.position, ri);
-    worldAnchorB.vsub(bodyB.position, rj);
+    worldAnchorA.sub2(bodyA.position, ri);
+    worldAnchorB.sub2(bodyB.position, rj);
 
     // Compute distance vector between world anchor points
-    worldAnchorB.vsub(worldAnchorA, r);
-    final rlen = r.length();
-    rUnit.copy(r);
+    worldAnchorB.sub2(worldAnchorA, r);
+    final rlen = r.length;
+    rUnit.setFrom(r);
     rUnit.normalize();
 
     // Compute relative velocity of the anchor points, u
-    bodyB.velocity.vsub(bodyA.velocity, u);
+    bodyB.velocity.sub2(bodyA.velocity, u);
     // Add rotational velocity
 
-    bodyB.angularVelocity.cross(rj, tmp);
-    u.vadd(tmp, u);
-    bodyA.angularVelocity.cross(ri, tmp);
-    u.vsub(tmp, u);
+    bodyB.angularVelocity.cross2(rj, tmp);
+    u.add2(tmp, u);
+    bodyA.angularVelocity.cross2(ri, tmp);
+    u.sub2(tmp, u);
 
     // F = - k * ( x - L ) - D * ( u )
-    rUnit.scale(-k * (rlen - l) - d * u.dot(rUnit), f);
+    rUnit.scale2(-k * (rlen - l) - d * u.dot(rUnit), f);
 
     // Add forces to bodies
-    bodyA.force.vsub(f, bodyA.force);
-    bodyB.force.vadd(f, bodyB.force);
+    bodyA.force.sub2(f, bodyA.force);
+    bodyB.force.add2(f, bodyB.force);
 
     // Angular force
-    ri.cross(f, rixf);
-    rj.cross(f, rjxf);
-    bodyA.torque.vsub(rixf, bodyA.torque);
-    bodyB.torque.vadd(rjxf, bodyB.torque);
+    ri.cross2(f, rixf);
+    rj.cross2(f, rjxf);
+    bodyA.torque.sub2(rixf, bodyA.torque);
+    bodyB.torque.add2(rjxf, bodyB.torque);
   }
 }

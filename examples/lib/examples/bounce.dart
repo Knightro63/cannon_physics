@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Bounce extends StatefulWidget {
   const Bounce({
@@ -62,7 +63,7 @@ class _BounceState extends State<Bounce> {
     final shapeBody1 = cannon.Body(
       mass: mass,
       material: mat1,
-      position: cannon.Vec3(-size * 3, height, size),
+      position: vmath.Vector3(-size * 3, height, size),
     );
     shapeBody1.addShape(sphereShape);
     shapeBody1.linearDamping = damping;
@@ -73,7 +74,7 @@ class _BounceState extends State<Bounce> {
     final shapeBody2 = cannon.Body(
       mass: mass,
       material: mat2,
-      position: cannon.Vec3(0, height, size),
+      position: vmath.Vector3(0, height, size),
     );
     shapeBody2.addShape(sphereShape);
     shapeBody2.linearDamping = damping;
@@ -84,7 +85,7 @@ class _BounceState extends State<Bounce> {
     final shapeBody3 = cannon.Body(
       mass: mass,
       material: mat3,
-      position: cannon.Vec3(size * 3, height, size),
+      position: vmath.Vector3(size * 3, height, size),
     );
     shapeBody3.addShape(sphereShape);
     shapeBody3.linearDamping = damping;

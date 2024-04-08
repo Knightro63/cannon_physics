@@ -1,4 +1,4 @@
-import '../math/vec3.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// For pooling objects that can be reused.
 class Pool {
@@ -18,7 +18,7 @@ class Pool {
   }
 
   /// Get an object
-  dynamic get() {
+  Vector3 get() {
     if (objects.isEmpty) {
       return constructObject();
     } else {
@@ -27,7 +27,7 @@ class Pool {
   }
 
   /// Construct an object. Should be implemented in each subclass.
-  Vec3 constructObject(){
+  Vector3 constructObject(){
     throw ('constructObject() not implemented in this Pool subclass yet!');
   }
 

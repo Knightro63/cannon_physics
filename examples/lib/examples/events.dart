@@ -56,7 +56,7 @@ class _EventsState extends State<Events> {
     final sphere = cannon.Sphere(size);
     final sphereBody = cannon.Body(mass: 30);
     sphereBody.addShape(sphere);
-    sphereBody.position.set(0, size * 6, 0);
+    sphereBody.position.setValues(0, size * 6, 0);
     world.addBody(sphereBody);
     demo.addVisual(sphereBody);
 

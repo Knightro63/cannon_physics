@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Hinge extends StatefulWidget {
   const Hinge({
@@ -65,7 +66,7 @@ class _HingeState extends State<Hinge> {
     final rightRearWheel = cannon.Body(mass: mass, material: wheelMaterial);
     rightRearWheel.addShape(wheelShape);
 
-    final chassisShape = cannon.Box(cannon.Vec3(5, 0.5, 2));
+    final chassisShape = cannon.Box(vmath.Vector3(5, 0.5, 2));
     final chassis = cannon.Body(mass: mass);
     chassis.addShape(chassisShape);
 
@@ -77,48 +78,48 @@ class _HingeState extends State<Hinge> {
     world.addContactMaterial(wheelGroundContactMaterial);
 
     // Position finalrain wheels
-    leftFrontWheel.position.set(-5, 0, 5);
-    rightFrontWheel.position.set(-5, 0, -5);
-    leftRearWheel.position.set(5, 0, 5);
-    rightRearWheel.position.set(5, 0, -5);
+    leftFrontWheel.position.setValues(-5, 0, 5);
+    rightFrontWheel.position.setValues(-5, 0, -5);
+    leftRearWheel.position.setValues(5, 0, 5);
+    rightRearWheel.position.setValues(5, 0, -5);
 
     // finalrain wheels
     List constraints = [];
 
     // Hinge the wheels
-    final leftAxis = cannon.Vec3(0, 0, 1);
-    final rightAxis = cannon.Vec3(0, 0, -1);
-    // final leftFrontAxis = cannon.Vec3(0, 0, 1);
-    // final rightFrontAxis = cannon.Vec3(0, 0, -1);
-    final leftFrontAxis = cannon.Vec3(-0.3, 0, 0.7);
-    final rightFrontAxis = cannon.Vec3(0.3, 0, -0.7);
+    final leftAxis = vmath.Vector3(0, 0, 1);
+    final rightAxis = vmath.Vector3(0, 0, -1);
+    // final leftFrontAxis = vmath.Vector3(0, 0, 1);
+    // final rightFrontAxis = vmath.Vector3(0, 0, -1);
+    final leftFrontAxis = vmath.Vector3(-0.3, 0, 0.7);
+    final rightFrontAxis = vmath.Vector3(0.3, 0, -0.7);
     leftFrontAxis.normalize();
     rightFrontAxis.normalize();
 
     constraints.add(
       cannon.HingeConstraint(chassis, leftFrontWheel,
-        pivotA: cannon.Vec3(-5, 0, 5),
+        pivotA: vmath.Vector3(-5, 0, 5),
         axisA: leftFrontAxis,
         axisB: leftAxis,
       )
     );
     constraints.add(
       cannon.HingeConstraint(chassis, rightFrontWheel,
-        pivotA: cannon.Vec3(-5, 0, -5),
+        pivotA: vmath.Vector3(-5, 0, -5),
         axisA: rightFrontAxis,
         axisB: rightAxis,
       )
     );
     constraints.add(
       cannon.HingeConstraint(chassis, leftRearWheel,
-        pivotA: cannon.Vec3(5, 0, 5),
+        pivotA: vmath.Vector3(5, 0, 5),
         axisA: leftAxis,
         axisB: leftAxis,
       )
     );
     constraints.add(
       cannon.HingeConstraint(chassis, rightRearWheel,
-        pivotA: cannon.Vec3(5, 0, -5),
+        pivotA: vmath.Vector3(5, 0, -5),
         axisA: rightAxis,
         axisB: rightAxis,
       )
@@ -146,12 +147,12 @@ class _HingeState extends State<Hinge> {
 
   void setScene2(){
     final world = demo.world;
-     world.gravity.set(0, -20, 5);
+     world.gravity.setValues(0, -20, 5);
 
     const size = 5.0;
     const distance = size * 0.1;
 
-    final shape = cannon.Box(cannon.Vec3(size * 0.5, size * 0.5, size * 0.1));
+    final shape = cannon.Box(vmath.Vector3(size * 0.5, size * 0.5, size * 0.1));
     final hingedBody = cannon.Body(mass:1);
     hingedBody.addShape(shape);
     world.addBody(hingedBody);
@@ -165,10 +166,10 @@ class _HingeState extends State<Hinge> {
 
     // Hinge it
     final finalraint = cannon.HingeConstraint(staticBody, hingedBody,
-      pivotA: cannon.Vec3(0, -size * 0.5 - distance, 0),
-      axisA: cannon.Vec3(-1, 0, 0),
-      pivotB: cannon.Vec3(0, size * 0.5 + distance, 0),
-      axisB: cannon.Vec3(-1, 0, 0),
+      pivotA: vmath.Vector3(0, -size * 0.5 - distance, 0),
+      axisA: vmath.Vector3(-1, 0, 0),
+      pivotB: vmath.Vector3(0, size * 0.5 + distance, 0),
+      axisB: vmath.Vector3(-1, 0, 0),
     );
     world.addConstraint(finalraint);
   }

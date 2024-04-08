@@ -10,6 +10,7 @@ import '../rigid_body_shapes/box.dart';
 import '../rigid_body_shapes/shape.dart';
 import '../material/material.dart';
 import '../world/world_class.dart';
+import 'package:vector_math/vector_math.dart';
 
 enum BodyTypes{dynamic,static,kinematic}
 enum BodySleepStates{awake,sleepy,sleeping,}
@@ -27,8 +28,8 @@ class Body extends EventTarget {
     this.collisionFilterGroup = 1,
     this.collisionFilterMask = -1,
     this.collisionResponse = true,
-    Vec3? position,
-    Vec3? velocity,
+    Vector3? position,
+    Vector3? velocity,
     this.mass = 0,
     this.material,
     this.linearDamping = 0.01,
@@ -37,23 +38,23 @@ class Body extends EventTarget {
     this.sleepSpeedLimit = 0.1,
     this.sleepTimeLimit = 1,
     Quaternion? quaternion,
-    Vec3? angularVelocity,
+    Vector3? angularVelocity,
     this.fixedRotation = false,
     this.angularDamping = 0.01,
-    Vec3? linearFactor,
-    Vec3? angularFactor,
+    Vector3? linearFactor,
+    Vector3? angularFactor,
     Shape? shape,
     this.isTrigger = false,
   }):super() {
     id = Body.idCounter++;
     if (position != null) {
-      this.position.copy(position);
-      previousPosition.copy(position);
-      interpolatedPosition.copy(position);
-      initPosition.copy(position);
+      this.position.setFrom(position);
+      previousPosition.setFrom(position);
+      interpolatedPosition.setFrom(position);
+      initPosition.setFrom(position);
     }
     if (velocity != null) {
-      this.velocity.copy(velocity);
+      this.velocity.setFrom(velocity);
     }
 
     invMass = mass > 0 ? 1.0 / mass : 0;
@@ -63,19 +64,19 @@ class Body extends EventTarget {
     // }
     this.type = type ?? this.type;
     if (quaternion != null) {
-      this.quaternion.copy(quaternion);
-      previousQuaternion.copy(quaternion);
-      interpolatedQuaternion.copy(quaternion);
-      initQuaternion.copy(quaternion);
+      this.quaternion.setFrom(quaternion);
+      previousQuaternion.setFrom(quaternion);
+      interpolatedQuaternion.setFrom(quaternion);
+      initQuaternion.setFrom(quaternion);
     }
     if (angularVelocity != null) {
-      this.angularVelocity.copy(angularVelocity);
+      this.angularVelocity.setFrom(angularVelocity);
     }
     if (linearFactor != null) {
-      this.linearFactor.copy(linearFactor);
+      this.linearFactor.setFrom(linearFactor);
     }
     if (angularFactor != null) {
-      this.angularFactor.copy(angularFactor);
+      this.angularFactor.setFrom(angularFactor);
     }
     if (shape != null) {
       addShape(shape);
@@ -114,7 +115,7 @@ class Body extends EventTarget {
   /// Reference to the world the body is living in.
   World? world;
 
-  Vec3 vlambda = Vec3();
+  Vector3 vlambda = Vector3.zero();
 
   /// The collision group the body belongs to.
   int collisionFilterGroup;
@@ -126,24 +127,24 @@ class Body extends EventTarget {
   bool collisionResponse;
 
   /// World space position of the body.
-  Vec3 position = Vec3();
+  Vector3 position = Vector3.zero();
 
-  Vec3 previousPosition = Vec3();
+  Vector3 previousPosition = Vector3.zero();
 
   /// Interpolated position of the body.
-  Vec3 interpolatedPosition = Vec3();
+  Vector3 interpolatedPosition = Vector3.zero();
 
   /// Initial position of the body.
-  Vec3 initPosition = Vec3();
+  Vector3 initPosition = Vector3.zero();
 
   /// World space velocity of the body.
-  Vec3 velocity = Vec3();
+  Vector3 velocity = Vector3.zero();
 
   /// Initial velocity of the body.
-  Vec3 initVelocity = Vec3();
+  Vector3 initVelocity = Vector3.zero();
 
   /// Linear force on the body in world space.
-  Vec3 force = Vec3();
+  Vector3 force = Vector3.zero();
 
   /// The mass of the body.
   double mass;
@@ -175,42 +176,42 @@ class Body extends EventTarget {
   bool wakeUpAfterNarrowphase = false;
 
   /// World space rotational force on the body, around center of mass.
-  Vec3 torque = Vec3();
+  Vector3 torque = Vector3.zero();
 
   /// World space orientation of the body.
-  Quaternion quaternion = Quaternion();
+  Quaternion quaternion = Quaternion(0,0,0,1);
 
   /// Initial quaternion of the body.
-  Quaternion initQuaternion = Quaternion();
+  Quaternion initQuaternion = Quaternion(0,0,0,1);
 
-  Quaternion previousQuaternion = Quaternion();
+  Quaternion previousQuaternion = Quaternion(0,0,0,1);
 
   /// Interpolated orientation of the body.
-  Quaternion interpolatedQuaternion = Quaternion();
+  Quaternion interpolatedQuaternion = Quaternion(0,0,0,1);
 
   /// Angular velocity of the body, in world space. Think of the angular velocity as a vector, which the body rotates around. The length of this vector determines how fast (in radians per second) the body rotates.
-  Vec3 angularVelocity = Vec3();
+  Vector3 angularVelocity = Vector3.zero();
 
   /// Initial angular velocity of the body.
-  Vec3 initAngularVelocity = Vec3();
+  Vector3 initAngularVelocity = Vector3.zero();
 
   /// List of Shapes that have been added to the body.
   List<Shape> shapes = [];
 
   /// Position of each Shape in the body, given in local Body space.
-  List<Vec3> shapeOffsets = [];
+  List<Vector3> shapeOffsets = [];
 
   /// Orientation of each Shape, given in local Body space.
   List<Quaternion> shapeOrientations = [];
 
   /// The inertia of the body.
-  Vec3 inertia = Vec3();
+  Vector3 inertia = Vector3.zero();
 
-  Vec3 invInertia = Vec3();
-  Mat3 invInertiaWorld = Mat3();
+  Vector3 invInertia = Vector3.zero();
+  Matrix3 invInertiaWorld = Matrix3.zero();
   double invMassSolve = 0;
-  Vec3 invInertiaSolve  = Vec3();
-  Mat3 invInertiaWorldSolve = Mat3();
+  Vector3 invInertiaSolve  = Vector3.zero();
+  Matrix3 invInertiaWorldSolve = Matrix3.zero();
 
   /// Set to true if you don't want the body to rotate. Make sure to run .updateMassProperties() if you change this after the body creation.
   bool fixedRotation;
@@ -219,10 +220,10 @@ class Body extends EventTarget {
   double angularDamping;
 
   /// Use this property to limit the motion along any world axis. (1,1,1) will allow motion along all axes while (0,0,0) allows none.
-  Vec3 linearFactor = Vec3(1,1,1);
+  Vector3 linearFactor = Vector3(1,1,1);
 
   /// Use this property to limit the rotational motion along any world axis. (1,1,1) will allow rotation along all axes while (0,0,0) allows none.
-  Vec3 angularFactor = Vec3(1,1,1);
+  Vector3 angularFactor = Vector3(1,1,1);
 
   /// World space bounding box of the body and its shapes.
   AABB aabb = AABB();
@@ -232,31 +233,31 @@ class Body extends EventTarget {
 
   /// Total bounding radius of the Body including its shapes, relative to body.position.
   double boundingRadius = 0;
-  Vec3 wlambda = Vec3();
+  Vector3 wlambda = Vector3.zero();
 
   /// When true the body behaves like a trigger. It does not collide
   /// with other bodies but collision events are still triggered.;
   bool isTrigger;
 
-  final _tmpVec = Vec3();
-  final _tmpQuat = Quaternion();
+  final _tmpVec = Vector3.zero();
+  final _tmpQuat = Quaternion(0,0,0,1);
   final _updateShapeAABB = AABB();
-  final _uiwM1 = Mat3();
-  final _uiwM2 = Mat3();
-  //final _uiwM3 = Mat3();
+  final _uiwM1 = Matrix3.zero();
+  final _uiwM2 = Matrix3.zero();
+  //final _uiwM3 = Matrix3();
 
-  final _bodyApplyRotateForce = Vec3();
+  final _bodyApplyRotateForce = Vector3.zero();
 
-  final _bodyApplyLocalWorldForce = Vec3();
-  final _bodyApplyLocalForceRelativePointWorld = Vec3();
+  final _bodyApplyLocalWorldForce = Vector3.zero();
+  final _bodyApplyLocalForceRelativePointWorld = Vector3.zero();
 
-  final _bodyApplyImpulseVelo = Vec3();
-  final _bodyApplyImpulseRotVelo = Vec3();
+  final _bodyApplyImpulseVelo = Vector3.zero();
+  final _bodyApplyImpulseRotVelo = Vector3.zero();
 
-  final _bodyApplyLocalImpulseWorldImpulse = Vec3();
-  final _bodyApplyLocalImpulseRelativePoint = Vec3();
+  final _bodyApplyLocalImpulseWorldImpulse = Vector3.zero();
+  final _bodyApplyLocalImpulseRelativePoint = Vector3.zero();
 
-  final _bodyUpdateMassPropertiesHalfExtents = Vec3();
+  final _bodyUpdateMassPropertiesHalfExtents = Vector3.zero();
 
   /// Wake the body up.
   void wakeUp(){
@@ -271,8 +272,8 @@ class Body extends EventTarget {
   /// Force body sleep
   void sleep(){
     sleepState = BodySleepStates.sleeping;
-    velocity.set(0, 0, 0);
-    angularVelocity.set(0, 0, 0);
+    velocity.setValues(0, 0, 0);
+    angularVelocity.setValues(0, 0, 0);
     wakeUpAfterNarrowphase = false;
   }
 
@@ -281,7 +282,7 @@ class Body extends EventTarget {
   void sleepTick(double time){
     if (allowSleep) {
       final sleepState = this.sleepState;
-      final speedSquared = velocity.lengthSquared() + angularVelocity.lengthSquared();
+      final speedSquared = velocity.length2 + angularVelocity.length2;
       final speedLimitSquared =  math.pow(sleepSpeedLimit, 2);
       if (sleepState == BodySleepStates.awake && speedSquared < speedLimitSquared) {
         this.sleepState = BodySleepStates.sleepy; // Sleepy
@@ -307,52 +308,52 @@ class Body extends EventTarget {
     } 
     else {
       invMassSolve = invMass;
-      invInertiaSolve.copy(invInertia);
-      invInertiaWorldSolve.copy(invInertiaWorld);
+      invInertiaSolve.setFrom(invInertia);
+      invInertiaWorldSolve.setFrom(invInertiaWorld);
     }
   }
 
   /// Convert a world point to local body frame.
-  Vec3 pointToLocalFrame(Vec3 worldPoint,Vec3? result){
-    result ??= Vec3();
-    worldPoint.vsub(position, result);
-    quaternion.conjugate().vmult(result, result);
+  Vector3 pointToLocalFrame(Vector3 worldPoint,Vector3? result){
+    result ??= Vector3.zero();
+    worldPoint.sub2(position, result);
+    quaternion..conjugate()..vmult(result, result);
     return result;
   }
 
   /// Convert a world vector to local body frame
-  Vec3 vectorToLocalFrame(Vec3 worldVector,[Vec3? result]){
-    result ??= Vec3();
-    quaternion.conjugate().vmult(worldVector, result);
+  Vector3 vectorToLocalFrame(Vector3 worldVector,[Vector3? result]){
+    result ??= Vector3.zero();
+    quaternion..conjugate()..vmult(worldVector, result);
     return result;
   }
 
   /// Convert a local body point to world frame.
-  Vec3 pointToWorldFrame(Vec3 localPoint, Vec3? result){
-    result ??= Vec3();
+  Vector3 pointToWorldFrame(Vector3 localPoint, Vector3? result){
+    result ??= Vector3.zero();
     quaternion.vmult(localPoint, result);
-    result.vadd(position, result);
+    result.add2(position, result);
     return result;
   }
 
   /// Convert a local body point to world frame.
-  Vec3 vectorToWorldFrame(Vec3 localVector, [Vec3? result]){
-    result ??= Vec3();
+  Vector3 vectorToWorldFrame(Vector3 localVector, [Vector3? result]){
+    result ??= Vector3.zero();
     quaternion.vmult(localVector, result);
     return result;
   }
 
   /// Add a shape to the body with a local offset and orientation.
   /// @return The body object, for chainability.
-  Body addShape(Shape shape,[Vec3? offset, Quaternion? orientation]){
-    final off = Vec3();
-    final or = Quaternion();
+  Body addShape(Shape shape,[Vector3? offset, Quaternion? orientation]){
+    final off = Vector3.zero();
+    final or = Quaternion(0,0,0,1);
 
     if (offset != null) {
-      off.copy(offset);
+      off.setFrom(offset);
     }
     if (orientation != null) {
-      or.copy(orientation);
+      or.setFrom(orientation);
     }
 
     shapes.add(shape);
@@ -400,7 +401,7 @@ class Body extends EventTarget {
     for (int i = 0; i != N; i++) {
       final shape = shapes[i];
       shape.updateBoundingSphereRadius();
-      final offset = shapeOffsets[i].length();
+      final offset = shapeOffsets[i].length;
       final r = shape.boundingSphereRadius;
       if (offset + r > radius) {
         radius = offset + r;
@@ -427,10 +428,10 @@ class Body extends EventTarget {
 
       // Get shape world position
       bodyQuat.vmult(shapeOffsets[i], offset);
-      offset.vadd(position, offset);
+      offset.add2(position, offset);
 
       // Get shape world quaternion
-      bodyQuat.mult(shapeOrientations[i], orientation);
+      bodyQuat.multiply2(shapeOrientations[i], orientation);
 
       // Get shape AABB
       shape.calculateWorldAABB(offset, orientation, shapeAABB.lowerBound, shapeAABB.upperBound);
@@ -458,9 +459,9 @@ class Body extends EventTarget {
       final m1 = _uiwM1;
       final m2 = _uiwM2;
       m1.setRotationFromQuaternion(quaternion);
-      m1.transpose(m2);
-      m1.scale(I, m1);
-      m1.mmult(m2, invInertiaWorld);
+      m2..setFrom(m1)..transpose();
+      m1.vscale(I, m1);
+      m1.multiply2(m2, invInertiaWorld);
     }
   }
 
@@ -468,8 +469,8 @@ class Body extends EventTarget {
   /// Applying force this way will add to Body.force and Body.torque.
   /// @param force The amount of force to add.
   /// @param relativePoint A point relative to the center of mass to apply the force on.
-  void applyForce(Vec3 force, [Vec3? relativePoint]) {
-    relativePoint ??= Vec3();
+  void applyForce(Vector3 force, [Vector3? relativePoint]) {
+    relativePoint ??= Vector3.zero();
     // Needed?
     if (type != BodyTypes.dynamic) {
       return;
@@ -481,19 +482,19 @@ class Body extends EventTarget {
 
     // Compute produced rotational force
     final rotForce = _bodyApplyRotateForce;
-    relativePoint.cross(force, rotForce);
+    relativePoint.cross2(force, rotForce);
 
     // Add linear force
-    this.force.vadd(force, this.force);
+    this.force.add2(force, this.force);
 
     // Add rotational force
-    torque.vadd(rotForce, torque);
+    torque.add2(rotForce, torque);
   }
 
   /// Apply force to a local point in the body.
   /// @param force The force vector to apply, defined locally in the body frame.
   /// @param localPoint A local point in the body to apply the force on.
-  void applyLocalForce(Vec3 localForce, Vec3 localPoint){
+  void applyLocalForce(Vector3 localForce, Vector3 localPoint){
     if (type != BodyTypes.dynamic) {
       return;
     }
@@ -510,7 +511,7 @@ class Body extends EventTarget {
 
   /// Apply torque to the body.
   /// @param torque The amount of torque to add.
-  void applyTorque(Vec3 torque){
+  void applyTorque(Vector3 torque){
     if (type != BodyTypes.dynamic) {
       return;
     }
@@ -520,7 +521,7 @@ class Body extends EventTarget {
     }
 
     // Add rotational force
-    this.torque.vadd(torque, this.torque);
+    this.torque.add2(torque, this.torque);
   }
 
   /// Apply impulse to a point of the body. This could for example be a point on the Body surface.
@@ -528,8 +529,8 @@ class Body extends EventTarget {
   /// Impulses will be added to Body.velocity and Body.angularVelocity.;
   /// @param impulse The amount of impulse to add.;
   /// @param relativePoint A point relative to the center of mass to apply the force on.
-  void applyImpulse(Vec3 impulse, [Vec3? relativePoint]){
-    relativePoint ??= Vec3();
+  void applyImpulse(Vector3 impulse, [Vector3? relativePoint]){
+    relativePoint ??= Vector3.zero();
     if (type != BodyTypes.dynamic) {
       return;
     }
@@ -539,19 +540,19 @@ class Body extends EventTarget {
     }
 
     // Compute point position relative to the body center
-    final Vec3 r = relativePoint;
+    final Vector3 r = relativePoint;
 
     // Compute produced central impulse velocity
     final velo = _bodyApplyImpulseVelo;
-    velo.copy(impulse);
-    velo.scale(invMass, velo);
+    velo.setFrom(impulse);
+    velo.scale2(invMass, velo);
 
     // Add linear impulse
-    velocity.vadd(velo, velocity);
+    velocity.add2(velo, velocity);
 
     // Compute produced rotational impulse velocity
     final rotVelo = _bodyApplyImpulseRotVelo;
-    r.cross(impulse, rotVelo);
+    r.cross2(impulse, rotVelo);
 
     /*
      rotVelo.x *= this.invInertia.x;
@@ -561,13 +562,13 @@ class Body extends EventTarget {
     invInertiaWorld.vmult(rotVelo, rotVelo);
 
     // Add rotational Impulse
-    angularVelocity.vadd(rotVelo, angularVelocity);
+    angularVelocity.add2(rotVelo, angularVelocity);
   }
 
   /// Apply locally-defined impulse to a local point in the body.
   /// @param force The force vector to apply, defined locally in the body frame.
   /// @param localPoint A local point in the body to apply the force on.
-  void applyLocalImpulse(Vec3 localImpulse, Vec3 localPoint){
+  void applyLocalImpulse(Vector3 localImpulse, Vector3 localPoint){
     if (type != BodyTypes.dynamic) {
       return;
     }
@@ -592,14 +593,14 @@ class Body extends EventTarget {
 
     // Approximate with AABB box
     updateAABB();
-    halfExtents.set(
+    halfExtents.setValues(
       (aabb.upperBound.x - aabb.lowerBound.x) / 2,
       (aabb.upperBound.y - aabb.lowerBound.y) / 2,
       (aabb.upperBound.z - aabb.lowerBound.z) / 2
     );
     Box.calculateInertia(halfExtents, mass, I);
 
-    invInertia.set(
+    invInertia.setValues(
       I.x > 0 && !fixed ? 1.0 / I.x : 0,
       I.y > 0 && !fixed ? 1.0 / I.y : 0,
       I.z > 0 && !fixed ? 1.0 / I.z : 0
@@ -611,11 +612,11 @@ class Body extends EventTarget {
   /// @param worldPoint;
   /// @param result;
   /// @return The result vector.;
-  Vec3 getVelocityAtWorldPoint(Vec3 worldPoint, Vec3 result){
-    final Vec3 r = Vec3();
-    worldPoint.vsub(position, r);
-    angularVelocity.cross(r, result);
-    velocity.vadd(result, result);
+  Vector3 getVelocityAtWorldPoint(Vector3 worldPoint, Vector3 result){
+    final Vector3 r = Vector3.zero();
+    worldPoint.sub2(position, r);
+    angularVelocity.cross2(r, result);
+    velocity.add2(result, result);
     return result;
   }
 
@@ -625,8 +626,8 @@ class Body extends EventTarget {
   /// @param quatNormalizeFast If the quaternion should be normalized using "fast" quaternion normalization;
   void integrate(double dt,[bool quatNormalize = false,bool quatNormalizeFast = false]){
     // Save previous position
-    previousPosition.copy(position);
-    previousQuaternion.copy(quaternion);
+    previousPosition.setFrom(position);
+    previousQuaternion.setFrom(quaternion);
 
     if (!(type == BodyTypes.dynamic || type == BodyTypes.kinematic) || sleepState == BodySleepStates.sleeping) {
       // Only for dynamic
@@ -648,7 +649,7 @@ class Body extends EventTarget {
     velo.y += force.y * iMdt * linearFactor.y;
     velo.z += force.z * iMdt * linearFactor.z;
 
-    final e = invInertia.elements;
+    final e = invInertia.storage;
     final angularFactor = this.angularFactor;
     final tx = torque.x * angularFactor.x;
     final ty = torque.y * angularFactor.y;

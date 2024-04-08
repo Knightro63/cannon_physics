@@ -1,9 +1,9 @@
-import 'vec3.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// An element containing 6 entries, 3 spatial and 3 rotational degrees of freedom.
 class JacobianElement {
-  Vec3 spatial = Vec3();
-  Vec3 rotational = Vec3();
+  Vector3 spatial = Vector3.zero();
+  Vector3 rotational = Vector3.zero();
 
   /// Multiply with other JacobianElement
   double multiplyElement(JacobianElement element) {
@@ -11,7 +11,7 @@ class JacobianElement {
   }
 
   /// Multiply with two vectors
-  double multiplyVectors(Vec3 spatial, Vec3 rotational) {
+  double multiplyVectors(Vector3 spatial, Vector3 rotational) {
     return spatial.dot(this.spatial) + rotational.dot(this.rotational);
   }
 }

@@ -3,17 +3,7 @@ import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import '../src/conversion_utils.dart';
-
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
-extension on cannon.Vec3{
-  Vector3 toVector3(){
-    return Vector3(x,y,z);
-  }
-}
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Bunny extends StatefulWidget {
   const Bunny({
@@ -59,7 +49,7 @@ class _BunnyState extends State<Bunny> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(
       mass: 0,
-      position: cannon.Vec3(0, -5, 0),
+      position: vmath.Vector3(0, -5, 0),
     );
     groundBody.addShape(groundShape);
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
@@ -74,9 +64,9 @@ class _BunnyState extends State<Bunny> {
       final rawOffset = bunny[i]['offset']!;
 
       // Get vertices
-      final List<cannon.Vec3> vertices = [];
+      final List<vmath.Vector3> vertices = [];
       for (int j = 0; j < rawVertices.length; j += 3) {
-        vertices.add(cannon.Vec3(rawVertices[j], rawVertices[j + 1], rawVertices[j + 2]));
+        vertices.add(vmath.Vector3(rawVertices[j], rawVertices[j + 1], rawVertices[j + 2]));
       }
 
       // Get faces
@@ -86,7 +76,7 @@ class _BunnyState extends State<Bunny> {
       }
 
       // Get offset
-      final offset = cannon.Vec3(rawOffset[0], rawOffset[1], rawOffset[2]);
+      final offset = vmath.Vector3(rawOffset[0], rawOffset[1], rawOffset[2]);
       // Construct polyhedron
       final bunnyPart = cannon.ConvexPolyhedron(vertices:vertices, faces:faces);
 

@@ -1,14 +1,15 @@
 import 'package:cannon_physics/cannon_physics.dart';
+import 'package:vector_math/vector_math.dart';
 
 //export type ConeTwistConstraintOptions = ConstructorParameters<typeof ConeTwistConstraint>[2]
 
 /// A Cone Twist constraint, useful for ragdolls.
 class SpringConstraint extends Constraint {
   /// The axis direction for the constraint of the body A.
-  late Vec3 axisA;
+  late Vector3 axisA;
 
   /// The axis direction for the constraint of the body B.
-  late Vec3 axisB;
+  late Vector3 axisB;
 
   /// Rest length of the spring. A number > 0.
   late double _restLength;
@@ -47,9 +48,9 @@ class SpringConstraint extends Constraint {
     final halfDist = _restLength * 0.5;
     final normal = eq.ni;
 
-    bodyB.position.vsub(bodyA.position, normal);
+    bodyB.position.sub2(bodyA.position, normal);
     normal.normalize();
-    normal.scale(halfDist, eq.ri);
-    normal.scale(-halfDist, eq.rj);
+    normal.scale2(halfDist, eq.ri);
+    normal.scale2(-halfDist, eq.rj);
   }
 }

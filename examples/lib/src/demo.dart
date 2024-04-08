@@ -11,19 +11,9 @@ import 'package:three_dart/three_dart.dart' hide Texture, Color;
 import 'package:three_dart_jsm/three_dart_jsm.dart';
 import 'conversion_utils.dart';
 import 'package:flutter/services.dart';
+import 'package:vector_math/vector_math.dart' as vmath;
 
 enum RenderMode{solid,wireframe}
-
-extension on cannon.Quaternion{
-  Quaternion toQuaternion(){
-    return Quaternion(x,y,z,w);
-  }
-}
-extension on three.Vector3{
-  cannon.Vec3 toVec3(){
-    return cannon.Vec3(x,y,z);
-  }
-}
 
 class DemoSettings{
   DemoSettings({
@@ -87,7 +77,7 @@ class Demo{
     this.updatePhysics = updatePhysics ?? () => _updateCannonPhysics();
     
 
-    world.gravity = cannon.Vec3(this.settings.gx,this.settings.gy,this.settings.gz);
+    world.gravity = vmath.Vector3(this.settings.gx,this.settings.gy,this.settings.gz);
     world.quatNormalizeSkip = this.settings.quatNormalizeSkip;
     world.quatNormalizeFast = this.settings.quatNormalizeFast;
 
@@ -565,8 +555,8 @@ class Demo{
       Object3D dummy = Object3D();
 
       // Interpolated or not?
-      cannon.Vec3 position = body.interpolatedPosition;
-      cannon.Quaternion quaternion = body.interpolatedQuaternion;
+      vmath.Vector3 position = body.interpolatedPosition;
+      vmath.Quaternion quaternion = body.interpolatedQuaternion;
       if (settings.paused) {
         position = body.position;
         quaternion = body.quaternion;
@@ -596,7 +586,7 @@ class Demo{
         for (int ij = 0; ij < 2; ij++) {
           Object3D mesh = contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
-          cannon.Vec3 r = ij == 0 ? contact.ri : contact.rj;
+          vmath.Vector3 r = ij == 0 ? contact.ri : contact.rj;
           mesh.position.set(b.position.x + r.x, b.position.y + r.y, b.position.z + r.z);
         }
       }
@@ -612,7 +602,7 @@ class Demo{
         for (int ij = 0; ij < 2; ij++) {
           Object3D line = cm2contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
-          cannon.Vec3 r = ij == 0 ? contact.ri : contact.rj;
+          vmath.Vector3 r = ij == 0 ? contact.ri : contact.rj;
           line.scale.set(r.x, r.y, r.z);
           makeSureNotZero(line.scale);
           line.position.copy(b.position);
@@ -634,7 +624,7 @@ class Demo{
             Object3D line = distanceConstraintMeshCache.request();
 
             // Remember, bj is either a Vec3 or a Body.
-            cannon.Vec3 vector = bj.position;
+            vmath.Vector3 vector = bj.position;
 
             line.scale.set(vector.x - bi.position.x, vector.y - bi.position.y, vector.z - bi.position.z);
             makeSureNotZero(line.scale);
@@ -667,10 +657,10 @@ class Demo{
             relLine2.position.copy(bj.position);
 
             if (equation is cannon.ContactEquation) {
-              equation.bj.position.vadd(equation.rj, diffLine.position.toVec3());
+              equation.bj.position.add2(equation.rj, diffLine.position.toVector3());
             }
             else if (equation is cannon.FrictionEquation) {
-              equation.bj.position.vadd(equation.rj, diffLine.position.toVec3());
+              equation.bj.position.add2(equation.rj, diffLine.position.toVector3());
             }
           });
         }
@@ -689,12 +679,12 @@ class Demo{
         //cannon.Body bj = constraint.bj;
         Object3D line = normalMeshCache.request();
 
-        cannon.Vec3 constraintNormal = constraint.ni;
+        vmath.Vector3 constraintNormal = constraint.ni;
         cannon.Body body = bi;
         line.scale.set(constraintNormal.x, constraintNormal.y, constraintNormal.z);
         makeSureNotZero(line.scale);
         line.position.copy(body.position);
-        constraint.ri.vadd(line.position.toVec3(), line.position.toVec3());
+        constraint.ri.add2(line.position.toVector3(), line.position.toVector3());
       }
     }
     normalMeshCache.hideCached();
@@ -795,12 +785,12 @@ class Demo{
   }
   void restartCurrentScene() {
     bodies.forEach((body){
-      body.position.copy(body.initPosition);
-      body.velocity.copy(body.initVelocity);
-      if(body.initAngularVelocity != null) {
-        body.angularVelocity.copy(body.initAngularVelocity);
-        body.quaternion.copy(body.initQuaternion);
-      }
+      body.position.setFrom(body.initPosition);
+      body.velocity.setFrom(body.initVelocity);
+      //if(body.initAngularVelocity != null) {
+        body.angularVelocity.setFrom(body.initAngularVelocity);
+        body.quaternion.setFrom(body.initQuaternion);
+      //}
     });
   }
 

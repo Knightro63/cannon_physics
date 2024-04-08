@@ -5,38 +5,39 @@ import '../rigid_body_shapes/sphere.dart';
 import '../rigid_body_shapes/box.dart';
 import '../constraints/hinge_constraint.dart';
 import '../world/world_class.dart';
+import 'package:vector_math/vector_math.dart' hide Sphere;
 
 /// Simple vehicle helper class with spherical rigid body wheels.
 class RigidVehicle {
   /// The bodies of the wheels.
   List<Body> wheelBodies = [];
-  late Vec3 coordinateSystem;
+  late Vector3 coordinateSystem;
   /// The chassis body.
   late Body chassisBody;
   /// The constraints.
   List<HingeConstraint> constraints = [];//: (HingeConstraint & { motorTargetVelocity?: number })[];
   /// The wheel axes.
-  List<Vec3> wheelAxes = [];
+  List<Vector3> wheelAxes = [];
   /// The wheel forces.
   List<double> wheelForces = [];
 
   RigidVehicle({
-    Vec3? coordinateSystem,
+    Vector3? coordinateSystem,
     Body? chassisBody
   }){
-    this.coordinateSystem = coordinateSystem?.clone() ?? Vec3(1, 2, 3);
-    this.chassisBody = chassisBody ?? Body(mass: 1, shape: Box(Vec3(5, 0.5, 2)));
+    this.coordinateSystem = coordinateSystem?.clone() ?? Vector3(1, 2, 3);
+    this.chassisBody = chassisBody ?? Body(mass: 1, shape: Box(Vector3(5, 0.5, 2)));
   }
 
-  final _torque = Vec3();
-  final _worldAxis = Vec3();
+  final _torque = Vector3.zero();
+  final _worldAxis = Vector3.zero();
 
   /// Add a wheel
   int addWheel({
     Body? body,
-    Vec3? position,
-    Vec3? axis,
-    Vec3? direction,
+    Vector3? position,
+    Vector3? axis,
+    Vector3? direction,
   }){
     Body wheelBody = body ?? Body(mass: 1, shape: Sphere(1.2));
 
@@ -44,15 +45,15 @@ class RigidVehicle {
     wheelForces.add(0);
 
     // Position constrain wheels
-    final pos = position?.clone() ?? Vec3();
+    final pos = position?.clone() ?? Vector3.zero();
 
     // Set position locally to the chassis
-    final worldPosition = Vec3();
+    final worldPosition = Vector3.zero();
     chassisBody.pointToWorldFrame(pos, worldPosition);
-    wheelBody.position.set(worldPosition.x, worldPosition.y, worldPosition.z);
+    wheelBody.position.setValues(worldPosition.x, worldPosition.y, worldPosition.z);
 
     // Constrain wheel
-    final ax = axis?.clone() ?? Vec3(0, 0, 1);
+    final ax = axis?.clone() ?? Vector3(0, 0, 1);
     wheelAxes.add(ax);
 
     final hingeConstraint = HingeConstraint(
@@ -60,7 +61,7 @@ class RigidVehicle {
       wheelBody, 
       pivotA: pos,
       axisA: ax,
-      pivotB: Vec3.zero,
+      pivotB: Vector3.zero(),
       axisB: ax,
       collideConnected: false,
     );
@@ -79,7 +80,7 @@ class RigidVehicle {
     final s = math.sin(value);
     final x = axis.x;
     final z = axis.z;
-    constraints[wheelIndex].axisA.set(-c * x + s * z, 0, s * x + c * z);
+    constraints[wheelIndex].axisA.setValues(-c * x + s * z, 0, s * x + c * z);
   }
 
   /// Set the target rotational speed of the hinge constraint.
@@ -106,9 +107,9 @@ class RigidVehicle {
     final wheelBody = wheelBodies[wheelIndex];
     final bodyTorque = wheelBody.torque;
 
-    axis.scale(value, _torque);
+    axis.scale2(value, _torque);
     wheelBody.vectorToWorldFrame(_torque, _torque);
-    bodyTorque.vadd(_torque, bodyTorque);
+    bodyTorque.add2(_torque, bodyTorque);
   }
 
   /// Add the vehicle including its constraints to the world.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:vector_math/vector_math.dart' as vmath;
 
 class Convex extends StatefulWidget {
   const Convex({
@@ -43,10 +44,10 @@ class _ConvexState extends State<Convex> {
 
   cannon.ConvexPolyhedron createTetra() {
     final vertices = [
-      cannon.Vec3(0, 0, 0),
-      cannon.Vec3(2, 0, 0),
-      cannon.Vec3(0, 2, 0),
-      cannon.Vec3(0, 0, 2),
+      vmath.Vector3(0, 0, 0),
+      vmath.Vector3(2, 0, 0),
+      vmath.Vector3(0, 2, 0),
+      vmath.Vector3(0, 0, 2),
     ];
     const offset = -0.35;
     for (int i = 0; i < vertices.length; i++) {
@@ -67,7 +68,7 @@ class _ConvexState extends State<Convex> {
   }
 
   cannon.ConvexPolyhedron createBoxPolyhedron([double size = 1]) {
-    final box = cannon.Box(cannon.Vec3(size, size, size));
+    final box = cannon.Box(vmath.Vector3(size, size, size));
     return box.convexPolyhedronRepresentation;
   }
 
@@ -96,7 +97,7 @@ class _ConvexState extends State<Convex> {
       for (int j = 0; j < 3; j++) {
         final boxbody = cannon.Body(mass:mass );
         boxbody.addShape(convexShape);
-        boxbody.position.set(-(size * 2 * i + 0.01), size * 2 * j + size * 1.2, 0);
+        boxbody.position.setValues(-(size * 2 * i + 0.01), size * 2 * j + size * 1.2, 0);
         world.addBody(boxbody);
         demo.addVisual(boxbody);
       }
@@ -115,13 +116,13 @@ class _ConvexState extends State<Convex> {
     // ConvexPolyhedron box shape
     final boxBody1 = cannon.Body(mass:mass);
     boxBody1.addShape(convexShape);
-    boxBody1.position.set(0, size + 1, 0);
+    boxBody1.position.setValues(0, size + 1, 0);
     world.addBody(boxBody1);
     demo.addVisual(boxBody1);
 
     final boxBody2 = cannon.Body(mass:mass);
     boxBody2.addShape(convexShape);
-    boxBody2.position.set(-1.5, size * 4 + 1, 0);
+    boxBody2.position.setValues(-1.5, size * 4 + 1, 0);
     world.addBody(boxBody2);
     demo.addVisual(boxBody2);
   }
@@ -136,7 +137,7 @@ class _ConvexState extends State<Convex> {
     final convexShape = createBoxPolyhedron(size);
     final boxbody = cannon.Body(mass:mass );
     boxbody.addShape(convexShape);
-    boxbody.position.set(-1, size + 1, 0);
+    boxbody.position.setValues(-1, size + 1, 0);
     world.addBody(boxbody);
     demo.addVisual(boxbody);
 
@@ -144,7 +145,7 @@ class _ConvexState extends State<Convex> {
     final tetraShape = createTetra();
     final tetraBody = cannon.Body(mass:mass);
     tetraBody.addShape(tetraShape);
-    tetraBody.position.set(-5, size + 1, -3);
+    tetraBody.position.setValues(-5, size + 1, -3);
     world.addBody(tetraBody);
     demo.addVisual(tetraBody);
 
@@ -161,7 +162,7 @@ class _ConvexState extends State<Convex> {
     );
     final cylinderBody = cannon.Body(mass:mass);
     cylinderBody.addShape(cylinderShape);
-    cylinderBody.position.set(0, size * 4 + 1, 0);
+    cylinderBody.position.setValues(0, size * 4 + 1, 0);
     cylinderBody.quaternion.setFromEuler(0, 0, Math.PI / 3);
     world.addBody(cylinderBody);
     demo.addVisual(cylinderBody);

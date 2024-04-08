@@ -3,15 +3,16 @@ import '../equations/rotational_equation.dart';
 import '../math/vec3.dart';
 import '../objects/rigid_body.dart';
 import '../equations/rotational_motor_equation.dart';
+import 'package:vector_math/vector_math.dart';
 
 /// Lock constraint. Will remove all degrees of freedom between the bodies.
 class LockConstraint extends PointToPointConstraint {
-  late Vec3 xA;
-  late Vec3 xB;
-  late Vec3 yA;
-  late Vec3 yB;
-  late Vec3 zA;
-  late Vec3 zB;
+  late Vector3 xA;
+  late Vector3 xB;
+  late Vector3 yA;
+  late Vector3 yB;
+  late Vector3 zA;
+  late Vector3 zB;
 
   late RotationalEquation rotationalEquation1;
   late RotationalEquation rotationalEquation2;
@@ -25,9 +26,9 @@ class LockConstraint extends PointToPointConstraint {
       double maxForce = 1e6
     }
   ):super(bodyA, bodyB, null,null, maxForce) {
-    final halfWay = Vec3();
-    bodyA.position.vadd(bodyB.position, halfWay);
-    halfWay.scale(0.5, halfWay);
+    final halfWay = Vector3.zero();
+    bodyA.position.add2(bodyB.position, halfWay);
+    halfWay.scale2(0.5, halfWay);
     bodyB.pointToLocalFrame(halfWay, pivotB);
     bodyA.pointToLocalFrame(halfWay, pivotA);
 

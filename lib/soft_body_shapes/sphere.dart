@@ -29,12 +29,12 @@ class SphereSoftBody extends SoftBody{
         var u = ix / widthSegments;
         final body = Body(mass: mass);
         body.addShape(Particle());
-        body.position.set(
+        body.position.setValues(
           -radius * cos(u * pi * 2) * sin(v * pi), 
           radius * cos(v * pi), 
           radius * sin( u * pi * 2) * sin(v * pi)
         );
-        body.velocity.set(0, 0, (sin(iy * 0.1) + sin(ix * 0.1)) * 30);
+        body.velocity.setValues(0, 0, (sin(iy * 0.1) + sin(ix * 0.1)) * 30);
         particleBodies['$iy $ix'] = body;
       }
     }
