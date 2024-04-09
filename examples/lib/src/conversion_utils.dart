@@ -67,21 +67,22 @@ class ConversionUtils{
       case cannon.ShapeType.particle: {
         return three.SphereGeometry(0.1, 8, 8);
       }
-
       case cannon.ShapeType.plane: {
         return three.PlaneGeometry(500, 500, 4, 4);
       }
-
       case cannon.ShapeType.box: {
         shape as cannon.Box;
         return three.BoxGeometry(shape.halfExtents.x * 2, shape.halfExtents.y * 2, shape.halfExtents.z * 2);
       }
-
       case cannon.ShapeType.cylinder: {
         shape as cannon.Cylinder;
         return three.CylinderGeometry(shape.radiusTop, shape.radiusBottom, shape.height, shape.numSegments);
       }
-
+      case cannon.ShapeType.cone: {
+        shape as cannon.Cone;
+        return three.ConeGeometry(shape.radius, shape.height, shape.numSegments);
+      }
+      case cannon.ShapeType.capsule:
       case cannon.ShapeType.convex: {
         shape as cannon.ConvexPolyhedron;
         List<three.Vector3> vertices = [];
@@ -137,7 +138,32 @@ class ConversionUtils{
 
         return geometry;
       }
+      case cannon.ShapeType.capsule:{
+        shape as cannon.Capsule;
+        final geometry = three.BufferGeometry();
+        List<int> indicies = [];
+        List<double> verts = [];
+        for(int i = 0; i < shape.faces.length; i++){
+          for(int j = 0; j < shape.faces[i].length;j++){
+            indicies.add(shape.faces[i][j]);
+          }
+        }
+        for(int i = 0; i < shape.vertices.length; i++){
+          verts.addAll([shape.vertices[i].x,shape.vertices[i].y,shape.vertices[i].z]);
+        }
+        geometry.setIndex(indicies);
+        geometry.setAttribute('position', Float32BufferAttribute(Float32Array.from(verts), 3));
 
+        geometry.computeBoundingSphere();
+
+        if (flatShading) {
+          geometry.computeFaceNormals();
+        } else {
+          geometry.computeVertexNormals();
+        }
+
+        return geometry;
+      }
       case cannon.ShapeType.trimesh: {
         shape as cannon.Trimesh;
         final geometry = three.BufferGeometry();

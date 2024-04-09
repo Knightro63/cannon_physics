@@ -2,10 +2,6 @@ import 'dart:math' as math;
 import 'package:cannon_physics/cannon_physics.dart';
 import 'package:cannon_physics/utils/logger.dart';
 import 'package:vector_math/vector_math.dart';
-import 'shape.dart';
-import '../math/vec3.dart';
-import '../math/transform.dart';
-import '../math/quaternion.dart';
 
 final _projectLocalAxis = Vector3.zero();
 final _projectLocalOrigin = Vector3.zero();

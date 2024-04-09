@@ -8,9 +8,11 @@ enum ShapeType{
   plane,
   box,
   convex,
+  cylinder,
+  capsule,
+  cone,
   heightfield,
   particle,
-  cylinder,
   trimesh,
 }
 

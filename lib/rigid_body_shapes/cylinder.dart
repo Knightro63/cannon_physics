@@ -30,7 +30,7 @@ class Cylinder extends ConvexPolyhedron {
     this.radiusTop = 1, 
     this.radiusBottom = 1, 
     this.height = 1, 
-    this.numSegments = 8
+    this.numSegments = 8,
   }):super(type: ShapeType.cylinder){
     if (radiusTop < 0) {
       throw('The cylinder radiusTop cannot be negative.');
@@ -96,12 +96,6 @@ class Cylinder extends ConvexPolyhedron {
       temp.add(topface[topface.length - i - 1]);
     }
     faces.add(temp);
-
-    type = ShapeType.cylinder;
-    radiusTop = radiusTop;
-    radiusBottom = radiusBottom;
-    height = height;
-    numSegments = numSegments;
 
     init(vertices, faces, faceNormals, axes, boundingSphereRadius);
   }

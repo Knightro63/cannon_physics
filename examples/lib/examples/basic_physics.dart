@@ -58,7 +58,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
 
   List<int> fps = [0,0,0,0];
   double toRad = 0.0174532925199432957;
-  int type = 4;
+  int type = 6;
 
   @override
   void initState() {
@@ -131,12 +131,15 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     geos['sphere'] = three.SphereGeometry(1,16,10);
     geos['box'] =  three.BoxGeometry(1,1,1);
     geos['cylinder'] = three.CylinderGeometry(1,1,1);
+    geos['cone'] = three.ConeGeometry(1,1);
     
     // materials
     mats['sph']    = MeshPhongMaterial({'shininess': 10, 'name':'sph'});
     
     mats['box']    = MeshPhongMaterial({'shininess': 10, 'name':'box'});
     mats['cyl']    = MeshPhongMaterial({'shininess': 10, 'name':'cyl'});
+    mats['cone']    = MeshPhongMaterial({'shininess': 10, 'name':'cone'});
+    mats['capsule']    = MeshPhongMaterial({'shininess': 10, 'name':'capsule'});
     mats['ssph']   = MeshPhongMaterial({'shininess': 10, 'name':'ssph'});
     mats['sbox']   = MeshPhongMaterial({'shininess': 10, 'name':'sbox'});
     mats['scyl']   = MeshPhongMaterial({'shininess': 10, 'name':'scyl'});
@@ -246,8 +249,8 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     double x, y, z, w, h, d;
     int t;
     for(int i = 0; i < max;i++){
-      if(type==4) {
-        t = Math.floor(Math.random()*3)+1;
+      if(type==6) {
+        t = Math.floor(Math.random()*5)+1;
       }
       else {
         t = type;
@@ -299,7 +302,32 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         meshs.add(three.Mesh( geos['cylinder'], mat));
         meshs[i].scale.set( w*0.5, h, w*0.5 );
       }
-
+      else if(t==4){
+        three.Material mat = mats['cone']!;
+        mat.color = randColor;
+        cannon.Body sbody = cannon.Body(
+          shape: cannon.Cone(radius:w*0.5,height: h),
+          position:vmath.Vector3(x,y,z),
+          mass: 1
+        );
+        bodys.add(sbody);
+        world.addBody(sbody);
+        meshs.add(three.Mesh( geos['cone'], mat));
+        meshs[i].scale.set( w*0.5, h, w*0.5 );
+      }
+      else if(t==5){
+        three.Material mat = mats['capsule']!;
+        mat.color = randColor;
+        cannon.Body sbody = cannon.Body(
+          shape: cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h),
+          position:vmath.Vector3(x,y,z),
+          mass: 1
+        );
+        bodys.add(sbody);
+        world.addBody(sbody);
+        meshs.add(three.Mesh(ConversionUtils.shapeToGeometry(cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)), mat));
+        meshs[i].scale.set( w*0.5, h, w*0.5 );
+      }
       meshs[i].castShadow = true;
       meshs[i].receiveShadow = true;
 

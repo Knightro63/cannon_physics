@@ -28,35 +28,63 @@ import 'package:vector_math/vector_math.dart' hide Plane, Sphere, Ray;
 enum CollisionType{
   sphereSphere,
   spherePlane,
-  boxBox,
   sphereBox,
-  planeBox,
-  convexConvex,
   sphereConvex,
-  planeConvex,
-  boxConvex,
   sphereHeightfield,
-  boxHeightfield,
-  convexHeightfield,
   sphereParticle,
-  planeParticle,
-  boxParticle,
-  convexParticle,
-  cylinderCylinder,
   sphereCylinder,
-  planeCylinder,
+  sphereTrimesh,
+  sphereCone,
+  sphereCapsule,
+
+  boxBox,
+  boxConvex,
+  boxHeightfield,
+  boxParticle,
   boxCylinder,
-  convexCylinder,
-  heightfieldCylinder,
+  boxTrimesh,
+  boxCapsule,
+  boxCone,
+
+  planeBox,
+  planeConvex,
+  planeParticle,
+  planeCylinder,
+  planeTrimesh,
+  planeCone,
+  planeCapsule,
+
   particleHeightfield,
   particleCylinder,
   particleTrimesh,
-  sphereTrimesh,
-  planeTrimesh,
-  boxTrimesh,
-  cylinderTrimesh,
-  convexTrimesh,
-  trimeshTrimesh
+  particleCone,
+  particleCapsule,
+  particleConvex,
+
+  trimeshTrimesh,
+  trimeshCone,
+  trimeshCylinder,
+  trimeshCapsule,
+  trimeshConvex,
+
+  heightfieldCapsule,
+  heightfieldCone,
+  heightfieldCylinder,
+  heightfieldConvex,
+
+  convexConvex,
+  convexCylinder,
+  convexCone,
+  convexCapsule,
+  
+  cylinderCylinder,
+  cylinderCapsule,
+  cylinderCone,
+
+  capsuleCapsule,
+  capsuleCone,
+
+  coneCone,
 }
 
 /// Helper class for the World. Generates ContactEquations.
@@ -90,16 +118,42 @@ class Narrowphase {
     else if(type == CollisionType.planeBox) {
       return planeBox;
     }
-    else if(type == CollisionType.convexConvex) {
+    else if(
+      type == CollisionType.convexConvex ||
+      type == CollisionType.cylinderCapsule ||
+      type == CollisionType.capsuleCapsule ||
+      type == CollisionType.coneCone ||
+      type == CollisionType.capsuleCone || 
+      type == CollisionType.cylinderCone || 
+      type == CollisionType.cylinderCylinder ||
+      type == CollisionType.convexCapsule || 
+      type == CollisionType.convexCone || 
+      type == CollisionType.convexCylinder
+    ) {
       return convexConvex;
     }
-    else if(type == CollisionType.sphereConvex) {
+    else if(
+      type == CollisionType.sphereConvex || 
+      type == CollisionType.sphereCylinder ||
+      type == CollisionType.sphereCone ||
+      type == CollisionType.sphereCapsule
+    ) {
       return sphereConvex;
     }
-    else if(type == CollisionType.planeConvex) {
+    else if(
+      type == CollisionType.planeConvex ||
+      type == CollisionType.planeCylinder ||
+      type == CollisionType.planeCapsule ||
+      type == CollisionType.planeCone
+    ) {
       return planeConvex;
     }
-    else if(type == CollisionType.boxConvex) {
+    else if(
+      type == CollisionType.boxConvex || 
+      type == CollisionType.boxCylinder ||
+      type == CollisionType.boxCapsule ||
+      type == CollisionType.boxCone
+    ) {
       return boxConvex;
     }
     else if(type == CollisionType.sphereHeightfield) {
@@ -108,8 +162,13 @@ class Narrowphase {
     else if(type == CollisionType.boxHeightfield) {
       return boxHeightfield;
     }
-    else if(type == CollisionType.convexHeightfield) {
-      return convexHeightfield;
+    else if(
+      type == CollisionType.heightfieldConvex || 
+      type == CollisionType.heightfieldCylinder ||
+      type == CollisionType.heightfieldCapsule || 
+      type == CollisionType.heightfieldCone
+    ) {
+      return heightfieldConvex;
     }
     else if(type == CollisionType.sphereParticle) {
       return sphereParticle;
@@ -120,29 +179,13 @@ class Narrowphase {
     else if(type == CollisionType.boxParticle) {
       return boxParticle;
     }
-    else if(type == CollisionType.convexParticle) {
-      return convexParticle;
-    }
-    else if(type == CollisionType.cylinderCylinder) {
-      return convexConvex;
-    }
-    else if(type == CollisionType.sphereCylinder) {
-      return sphereConvex;
-    }
-    else if(type == CollisionType.planeCylinder) {
-      return planeConvex;
-    }
-    else if(type == CollisionType.boxCylinder) {
-      return boxConvex;
-    }
-    else if(type == CollisionType.convexCylinder) {
-      return convexConvex;
-    }
-    else if(type == CollisionType.heightfieldCylinder) {
-      return cylinderHeightfield;
-    }
-    else if(type == CollisionType.particleCylinder) {
-      return cylinderParticle;
+    else if(
+      type == CollisionType.particleConvex ||
+      type == CollisionType.particleCylinder ||
+      type == CollisionType.particleCapsule || 
+      type == CollisionType.particleCone
+    ) {
+      return particleConvex;
     }
     else if(type == CollisionType.particleHeightfield) {
       return heightfieldParticle;
@@ -159,11 +202,13 @@ class Narrowphase {
     else if(type == CollisionType.boxTrimesh) {
       return boxTrimesh;
     }
-    else if(type == CollisionType.cylinderTrimesh) {
-      return cylinderTrimesh;
-    }
-    else if(type == CollisionType.convexTrimesh) {
-      return convexTrimesh;
+    else if(
+      type == CollisionType.trimeshConvex ||
+      type == CollisionType.trimeshCylinder ||
+      type == CollisionType.trimeshCone ||
+      type == CollisionType.trimeshCapsule
+    ) {
+      return trimeshConvex;
     }
     else if(type == CollisionType.trimeshTrimesh) {
       return trimeshTrimesh;
@@ -272,64 +317,112 @@ class Narrowphase {
         return CollisionType.sphereSphere;
       case "sphereplane":
         return CollisionType.spherePlane;
-      case "boxbox":
-        return CollisionType.boxBox;
-      case "spherebox":
-        return CollisionType.sphereBox;
-      case "planebox":
-        return CollisionType.planeBox;
-      case "convexconvex":
-        return CollisionType.convexConvex;
-      case "sphereconvex":
-        return CollisionType.sphereConvex;
-      case "planeconvex":
-        return CollisionType.planeConvex;
-      case "boxconvex":
-        return CollisionType.boxConvex;
-      case "sphereheightfield":
-        return CollisionType.sphereHeightfield;
-      case "boxheightfield":
-        return CollisionType.boxHeightfield;
-      case "convexheightfield":
-        return CollisionType.convexHeightfield;
       case "sphereparticle":
         return CollisionType.sphereParticle;
-      case "planeparticle":
-        return CollisionType.planeParticle;
-      case "boxparticle":
-        return CollisionType.boxParticle;
-      case "convexparticle":
-        return CollisionType.convexParticle;
-      case "cylindercylinder":
-        return CollisionType.cylinderCylinder;
+      case "sphereheightfield":
+        return CollisionType.sphereHeightfield;
+      case "spherebox":
+        return CollisionType.sphereBox;
+      case "sphereconvex":
+        return CollisionType.sphereConvex;
       case "spherecylinder":
         return CollisionType.sphereCylinder;
-      case "planecylinder":
-        return CollisionType.planeCylinder;
+      case "spherecapsule":
+        return CollisionType.sphereCapsule;
+      case "spherecone":
+        return CollisionType.sphereCone;
+      case "spheretrimesh":
+        return CollisionType.sphereTrimesh;
+
+      case "boxbox":
+        return CollisionType.boxBox;
+      case "boxconvex":
+        return CollisionType.boxConvex;
+      case "boxheightfield":
+        return CollisionType.boxHeightfield;
+      case "boxparticle":
+        return CollisionType.boxParticle;
       case "boxcylinder":
         return CollisionType.boxCylinder;
-      case "convexcylinder":
-        return CollisionType.convexCylinder;
-      case "heightfieldcylinder":
-        return CollisionType.heightfieldCylinder;
+      case "boxcapsule":
+        return CollisionType.boxCapsule;
+      case "boxcone":
+        return CollisionType.boxCone;
+      case "boxtrimesh":
+        return CollisionType.boxTrimesh;
+
+      case "planeconvex":
+        return CollisionType.planeConvex;
+      case "planecone":
+        return CollisionType.planeCone;
+      case "planecapsule":
+        return CollisionType.planeCapsule;
+      case "planebox":
+        return CollisionType.planeBox;
+      case "planeparticle":
+        return CollisionType.planeParticle;
+      case "planecylinder":
+        return CollisionType.planeCylinder;
+      case "planetrimesh":
+        return CollisionType.planeTrimesh;
+
+      case "particleconvex":
+        return CollisionType.particleConvex;
+      case "particlecone":
+        return CollisionType.particleCone;
+      case "particlecapsule":
+        return CollisionType.particleCapsule;
       case "particlecylinder":
         return CollisionType.particleCylinder;
       case "particleheightfield":
         return CollisionType.particleHeightfield;
       case "particletrimesh":
         return CollisionType.particleTrimesh;
-      case "spheretrimesh":
-        return CollisionType.sphereTrimesh;
-      case "planetrimesh":
-        return CollisionType.planeTrimesh;
-      case "boxtrimesh":
-        return CollisionType.boxTrimesh;
-      case "cylindertrimesh":
-        return CollisionType.cylinderTrimesh;
-      case "convextrimesh":
-        return CollisionType.convexTrimesh;
+
+      case "trimeshcylinder":
+        return CollisionType.trimeshCylinder;
+      case "trimeshcone":
+        return CollisionType.trimeshCone;
+      case "trimeshcapsule":
+        return CollisionType.trimeshCapsule;
+      case "trimeshconvex":
+        return CollisionType.trimeshConvex;
       case "trimeshtrimesh":
         return CollisionType.trimeshTrimesh;
+
+      case "heightfieldcylinder":
+        return CollisionType.heightfieldCylinder;
+      case "heightfieldConvex":
+        return CollisionType.heightfieldConvex;
+      case "heightfieldCapsule":
+        return CollisionType.heightfieldCapsule;
+      case "heightfieldCone":
+        return CollisionType.heightfieldCone;
+
+      case "convexconvex":
+        return CollisionType.convexConvex;
+      case "convexcylinder":
+        return CollisionType.convexCylinder;
+      case "convexcone":
+        return CollisionType.convexCone;
+      case "convexcapsule":
+        return CollisionType.convexCapsule;
+
+      case "cylindercylinder":
+        return CollisionType.cylinderCylinder;
+      case "cylindercone":
+        return CollisionType.cylinderCone;
+      case "cylindercapsule":
+        return CollisionType.cylinderCapsule;
+
+      case "capsulecone":
+        return CollisionType.capsuleCone;
+      case "capsulecapsule":
+        return CollisionType.capsuleCapsule;
+
+      case "conecone":
+        return CollisionType.coneCone;
+
       default:
         return null;
     }
@@ -1606,7 +1699,7 @@ class Narrowphase {
   ]){
     si.convexPolyhedronRepresentation.material = si.material;
     si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
-    return convexParticle(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
+    return particleConvex(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, si, sj, justTest);
   }
   bool boxHeightfield(
     Box si,
@@ -1624,7 +1717,7 @@ class Narrowphase {
   ]){
     si.convexPolyhedronRepresentation.material = si.material;
     si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
-    return convexHeightfield(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+    return heightfieldConvex(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj, justTest);
   }
   bool boxTrimesh(
     Box si,
@@ -1642,7 +1735,7 @@ class Narrowphase {
   ]){
     si.convexPolyhedronRepresentation.material = si.material;
     si.convexPolyhedronRepresentation.collisionResponse = si.collisionResponse;
-    return convexTrimesh(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
+    return trimeshConvex(si.convexPolyhedronRepresentation, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
   }
 
   bool planeBox(
@@ -1903,7 +1996,7 @@ class Narrowphase {
 
     return false;
   }
-  bool convexHeightfield(
+  bool heightfieldConvex(
     ConvexPolyhedron si,
     Heightfield sj,
     Vector3 xi,
@@ -2038,7 +2131,7 @@ class Narrowphase {
 
     return false;
   }
-  bool convexParticle(
+  bool particleConvex(
     ConvexPolyhedron sj,
     Particle si,
     Vector3 xj,
@@ -2124,7 +2217,7 @@ class Narrowphase {
     }
     return false;
   }
-  bool convexTrimesh(
+  bool trimeshConvex(
     ConvexPolyhedron si,
     Trimesh sj,
     Vector3 xi,
@@ -2200,67 +2293,6 @@ class Narrowphase {
     triangles.clear();
     
     return false;
-  }
-
-  bool cylinderHeightfield(
-    Heightfield sj,
-    Cylinder si,
-    Vector3 xj,
-    Vector3 xi,
-    Quaternion qj,
-    Quaternion qi,
-    Body bj,
-    Body bi,
-    [
-      Shape? rsi,
-      Shape? rsj,
-      bool justTest = false
-  ]){
-    return convexHeightfield(
-      si,
-      sj,
-      xi,
-      xj,
-      qi,
-      qj,
-      bi,
-      bj,
-      rsi,
-      rsj,
-      justTest
-    );
-  }
-  bool cylinderParticle(
-    Particle si,
-    Cylinder sj,
-    Vector3 xi,
-    Vector3 xj,
-    Quaternion qi,
-    Quaternion qj,
-    Body bi,
-    Body bj,
-    [
-      Shape? rsi,
-      Shape? rsj,
-      bool justTest = false
-  ]){
-    return convexParticle(sj, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
-  }
-  bool cylinderTrimesh(
-    Cylinder si,
-    Trimesh sj,
-    Vector3 xi,
-    Vector3 xj,
-    Quaternion qi,
-    Quaternion qj,
-    Body bi,
-    Body bj,
-    [
-      Shape? rsi,
-      Shape? rsj,
-      bool justTest = false
-  ]){
-    return convexTrimesh(si, sj, xi, xj, qi, qj, bi, bj, rsi, rsj,justTest);
   }
 
   bool heightfieldParticle(
@@ -2342,7 +2374,7 @@ class Narrowphase {
         if (
           xj.distanceTo(worldPillarOffset) < si.pillarConvex.boundingSphereRadius
         ) {
-          intersecting = convexParticle(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+          intersecting = particleConvex(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
         }
 
         if (justTest && intersecting) {
@@ -2355,7 +2387,7 @@ class Narrowphase {
         if (
           xj.distanceTo(worldPillarOffset) < si.pillarConvex.boundingSphereRadius
         ) {
-          intersecting = convexParticle(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
+          intersecting = particleConvex(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
         }
 
         if (justTest && intersecting) {
@@ -2415,7 +2447,7 @@ class Narrowphase {
       if (
         xi.distanceTo(worldPillarOffset) < sj.boundingSphereRadius
       ) {
-        intersecting = convexParticle(hullB, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
+        intersecting = particleConvex(hullB, si, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
       }
 
       if (justTest && intersecting) {
@@ -2481,7 +2513,7 @@ class Narrowphase {
 
       //hullB.faceNormals = [triangleNormal];
       
-      convexTrimesh(hullB, sj, xi, xj, qi, qj, bi, bj);
+      trimeshConvex(hullB, sj, xi, xj, qi, qj, bi, bj);
 
       
       sj.getTriangleVertices(sj.indices[triangles[i]], va, vb, vc);
@@ -2494,7 +2526,7 @@ class Narrowphase {
       if (
         xi.distanceTo(worldPillarOffset) < sj.boundingSphereRadius
       ) {
-        intersecting = convexTrimesh(hullB, sj, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
+        intersecting = trimeshConvex(hullB, sj, xj, xi, qj, qi, bj, bi, rsi, rsj, justTest);
       }
 
       if (justTest && intersecting) {
