@@ -11,6 +11,7 @@ enum ShapeType{
   cylinder,
   capsule,
   cone,
+  sizedPlane,
   heightfield,
   particle,
   trimesh,

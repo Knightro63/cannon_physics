@@ -31,7 +31,7 @@ class LatheShape extends ConvexPolyhedron {
 		// generate vertices, uvs and normals
 		for (int i = 0; i <= numSegments; i++) {
 			final phi = phiStart + i * inverseSegments * phiLength;
-			for(int j = 0; j <= points.length-1; j++){
+			for(int j = points.length-1; j >= 0; j--){
         final vertex = Vector3.zero();
 				vertex.x = points[j].x * math.sin(phi);
 				vertex.y = points[j].y;
@@ -44,7 +44,7 @@ class LatheShape extends ConvexPolyhedron {
 
 		// indices
 		for(int i = 0; i < numSegments; i ++ ) {
-			for(int j = 0; j < points.length - 1; j++) {
+			for(int j = points.length-2; j >= 0; j--) {
 				final base = j + i * points.length;
 
 				final a = base;
@@ -56,7 +56,7 @@ class LatheShape extends ConvexPolyhedron {
 				indices.add([ c, d, b ]);
 			}
 		}
-    axes.add(Vector3(0, 1, 0));
+    //axes.add(Vector3(0, 1, 0));
     numSegments = numSegments;
 
     // print("VERTS:");
@@ -64,6 +64,6 @@ class LatheShape extends ConvexPolyhedron {
     //   print(vertices[i].storage);
     // }
 
-    init(vertices, indices, faceNormals, axes, boundingSphereRadius);
+    init(vertices, indices);
 	}
 }

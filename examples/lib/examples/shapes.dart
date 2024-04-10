@@ -152,6 +152,18 @@ class _ShapesState extends State<Shapes> {
     polyhedronBody.position.setValues(-size * 2, size + 1, -size * 2);
     world.addBody(polyhedronBody);
     demo.addVisual(polyhedronBody);
+
+    final capsuleShape = cannon.CapsuleLathe(
+      radiusTop: size/0.8, 
+      radiusBottom: size, 
+      height: size * 2, 
+      numSegments: 8
+    );
+    final capsuleBody = cannon.Body(mass:mass);
+    capsuleBody.addShape(capsuleShape);
+    capsuleBody.position.setValues(-size*4, size *4, -size * 2);
+    world.addBody(capsuleBody);
+    demo.addVisual(capsuleBody);
   }
 
   void setupWorld(){

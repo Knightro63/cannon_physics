@@ -67,6 +67,10 @@ class ConversionUtils{
       case cannon.ShapeType.particle: {
         return three.SphereGeometry(0.1, 8, 8);
       }
+      case cannon.ShapeType.sizedPlane: {
+        shape as cannon.SizedPlane;
+        return three.PlaneGeometry(shape.width, shape.height, 4, 4);
+      }
       case cannon.ShapeType.plane: {
         return three.PlaneGeometry(500, 500, 4, 4);
       }
@@ -82,6 +86,7 @@ class ConversionUtils{
         shape as cannon.Cone;
         return three.ConeGeometry(shape.radius, shape.height, shape.numSegments);
       }
+      case cannon.ShapeType.capsule:
       case cannon.ShapeType.convex: {
         shape as cannon.ConvexPolyhedron;
         List<three.Vector3> vertices = [];
@@ -142,16 +147,21 @@ class ConversionUtils{
         final geometry = three.BufferGeometry();
         List<int> indicies = [];
         List<double> verts = [];
+        List<double> normals = [];
         for(int i = 0; i < shape.faces.length; i++){
           for(int j = 0; j < shape.faces[i].length;j++){
             indicies.add(shape.faces[i][j]);
           }
         }
         for(int i = 0; i < shape.vertices.length; i++){
-          verts.addAll([shape.vertices[i].x,shape.vertices[i].y,shape.vertices[i].z]);
+          verts.addAll([shape.vertices[i].x/10,shape.vertices[i].y/10,shape.vertices[i].z/10]);
+          if(shape.faceNormals.length > i){
+            normals.addAll([shape.faceNormals[i]!.x,shape.faceNormals[i]!.y,shape.faceNormals[i]!.z]);
+          }
         }
         geometry.setIndex(indicies);
         geometry.setAttribute('position', Float32BufferAttribute(Float32Array.from(verts), 3));
+        //geometry.setAttribute('normal', Float32BufferAttribute(Float32Array.from(normals), 3));
 
         geometry.computeBoundingSphere();
 

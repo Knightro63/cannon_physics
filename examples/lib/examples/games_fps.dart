@@ -58,7 +58,11 @@ class _TestGamePageState extends State<TestGame> {
   List<cannon.Body> balls = [];
   int sphereIdx = 0;
 
-  Capsule playerCollider = Capsule(Vector3( 0, 0.35, 0 ), Vector3( 0, 1, 0 ), 0.35);
+  cannon.CapsuleLathe playerCollider = cannon.CapsuleLathe(
+    radiusBottom: 0.35,
+    radiusTop: 0.35,
+    height: 0.65
+  );//Vector3( 0, 0.35, 0 ), Vector3( 0, 1, 0 ), 0.35);
   late cannon.Body playerBody;
 
   bool playerOnFloor = false;
@@ -90,6 +94,8 @@ class _TestGamePageState extends State<TestGame> {
   bool split = true;
   bool paused = false;
 
+  late vmath.Vector3 startingPos;
+
   @override
   void initState() {
     super.initState();
@@ -106,7 +112,7 @@ class _TestGamePageState extends State<TestGame> {
   void initCannonPhysics(){
     world = cannon.World();
     world.quatNormalizeSkip = 0;
-    world.quatNormalizeFast = true;
+    world.quatNormalizeFast = false;
     world.allowSleep = true;
 
     cannon.GSSolver solver = cannon.GSSolver();
@@ -206,30 +212,6 @@ class _TestGamePageState extends State<TestGame> {
       final triBody = cannon.Body();
       triBody.addShape(triShape);
       world.addBody(triBody);
-
-      final va = vmath.Vector3.zero();
-      final vb = vmath.Vector3.zero();
-      final vc = vmath.Vector3.zero();
-      //final normal = vmath.Vector3.zero();
-
-      for (int i = 0; i < triShape.indices.length/3; i+=3) {//N = triangles.length; i != N
-        triShape.getTriangleVertices( triShape.indices[i], va, vb, vc);
-
-        MeshBasicMaterial triggerMaterial = MeshBasicMaterial({'color': 0x00ff00, 'wireframe': false, 'wireframeLinewidth':0.2});
-        
-          final geometry = three.BufferGeometry();
-          
-          geometry.setIndex([0,1,2]);
-          geometry.setAttribute(
-              'position', Float32BufferAttribute(Float32Array.from([
-                va.x,va.y,va.z,vb.x,vb.y,vb.z,vc.x,vc.y,vc.z
-              ]), 3));
-
-          //geometry.computeBoundingSphere();
-          //geometry.computeFaceNormals();
-
-        scene.add(three.Mesh(geometry, triggerMaterial));
-      }
       
       scene.add(object);
 
@@ -263,13 +245,11 @@ class _TestGamePageState extends State<TestGame> {
     sphereBody.linearDamping = 0.9;
 
     //Create Player
-    late cannon.Cylinder playerShape = cannon.Cylinder(
-      radiusTop:radius,
-      radiusBottom: radius
-    );
     playerBody = cannon.Body(mass: mass);
-    playerBody.addShape(playerShape);
-    world.addBody(playerBody);
+    playerBody.addShape(playerCollider);
+    //world.addBody(playerBody);
+
+    startingPos = vmath.Vector3.copy(playerBody.position);
 
     //add fps controller
     fpsControl = FirstPersonControls(camera, _globalKey);
@@ -403,15 +383,15 @@ class _TestGamePageState extends State<TestGame> {
     final body = playerBody;
     // Interpolated or not?
     vmath.Vector3 position = body.interpolatedPosition;
-    //cannon.Quaternion quaternion = body.interpolatedQuaternion;
+    vmath.Quaternion quaternion = body.interpolatedQuaternion;
 
     if(paused) {
       position = body.position;
-      //quaternion = body.quaternion;
+      quaternion = body.quaternion;
     }
 
-    //camera.position.copy(position.toVector3());
-    camera.position.copy(playerCollider.end);
+    camera.position.copy(position.toVector3());
+    camera.position.copy( Vector3(position.x,position.y+playerCollider.height,position.z));//position.toVector3()playerCollider.height);
   }
   void updateVisuals(){
     for (int i = 0; i < spheres.length; i++) {
@@ -446,10 +426,12 @@ class _TestGamePageState extends State<TestGame> {
 
   void teleportPlayerIfOob(){
     if(camera.position.y <= - 25){
-      playerCollider.start.set(0,0.35,0);
-      playerCollider.end.set(0,1,0);
-      playerCollider.radius = 0.35;
-      camera.position.copy(playerCollider.end);
+      // playerCollider.start.set(0,0.35,0);
+      // playerCollider.end.set(0,1,0);
+      // playerCollider.radius = 0.35;
+      final body = playerBody;
+      body.position = startingPos.clone();
+      camera.position.copy(Vector3(startingPos.x,startingPos.y+playerCollider.height,startingPos.z));
       camera.rotation.set(0,0,0);
     }
   }

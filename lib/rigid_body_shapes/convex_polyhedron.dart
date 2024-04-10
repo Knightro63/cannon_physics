@@ -77,13 +77,13 @@ class ConvexPolyhedron extends Shape {
   // final Vector3 _convexPolyhedronPointIsInside = Vector3.zero();
   // final Vector3 _convexPolyhedronVToP = Vector3.zero();
   // final Vector3 _convexPolyhedronVToPointInside = Vector3.zero();
-  void init(
+  void init([
     List<Vector3>?  vertices,
     List<List<int>>? faces,
     List<Vector3?>? normals,
     List<Vector3>? axes,
     double? boundingSphereRadius
-  ){
+  ]){
     //const { vertices = [], faces = [], normals = [], axes, boundingSphereRadius } = props
     this.vertices = vertices ?? [];
     faceNormals = normals ?? [];
@@ -490,8 +490,8 @@ class ConvexPolyhedron extends Shape {
       worldA1.setFrom(a);
       quatA.vmult(worldA1, worldA1);
       posA.add2(worldA1, worldA1);
-      
-      final otherFace = polyA.connectedFaces.isNotEmpty? polyA.connectedFaces[i]:0;
+
+      final otherFace = polyA.connectedFaces.isNotEmpty && polyA.connectedFaces.length > i? polyA.connectedFaces[i]:0;
       localPlaneNormal.setFrom(faceNormals[otherFace]!);
       final localPlaneEq = getPlaneConstantOfFace(otherFace);
       planeNormalWS.setFrom(localPlaneNormal);

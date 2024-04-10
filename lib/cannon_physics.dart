@@ -40,6 +40,8 @@ export 'rigid_body_shapes/convex_polyhedron.dart';
 export 'rigid_body_shapes/cylinder.dart';
 export 'rigid_body_shapes/cone.dart';
 export 'rigid_body_shapes/capsule.dart';
+export 'rigid_body_shapes/capsule_lathe.dart';
+export 'rigid_body_shapes/sized_plane.dart';
 export 'rigid_body_shapes/lathe.dart';
 export 'rigid_body_shapes/particle.dart';
 export 'rigid_body_shapes/plane.dart';

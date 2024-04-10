@@ -59,7 +59,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
   List<int> fps = [0,0,0,0];
   double toRad = 0.0174532925199432957;
   int type = 6;
-  int max = 20;
+  int max = 50;
 
   @override
   void initState() {
@@ -133,12 +133,14 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     geos['box'] =  three.BoxGeometry(1,1,1);
     geos['cylinder'] = three.CylinderGeometry(1,1,1);
     geos['cone'] = three.ConeGeometry(1,1);
+    geos['plane'] = three.PlaneGeometry(1,1);
     
     // materials
     mats['sph']    = MeshPhongMaterial({'shininess': 10, 'name':'sph'});
     
     mats['box']    = MeshPhongMaterial({'shininess': 10, 'name':'box'});
     mats['cyl']    = MeshPhongMaterial({'shininess': 10, 'name':'cyl'});
+    mats['plane']    = MeshPhongMaterial({'shininess': 10, 'name':'plane'});
     mats['cone']    = MeshPhongMaterial({'shininess': 10, 'name':'cone'});
     mats['capsule']    = MeshPhongMaterial({'shininess': 10, 'name':'capsule'});
     mats['ssph']   = MeshPhongMaterial({'shininess': 10, 'name':'ssph'});
@@ -313,8 +315,20 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         world.addBody(sbody);
         meshs.add(three.Mesh( geos['cone'], mat));
         meshs[i].scale.set( w*0.5, h, w*0.5 );
-        print(w*0.5);
       }
+      // else if(t==5){
+      //   three.Material mat = mats['plane']!;
+      //   mat.color = randColor;
+      //   cannon.Body sbody = cannon.Body(
+      //     shape: cannon.SizedPlane(w*0.5,h*0.5),
+      //     position:vmath.Vector3(x,y,z),
+      //     mass: 1
+      //   )..quaternion.setFromEuler(0, 0, Math.PI / 2);
+      //   bodys.add(sbody);
+      //   world.addBody(sbody);
+      //   meshs.add(three.Mesh( geos['plane'], mat));
+      //   meshs[i].scale.set( w*0.5, h, w*0.5 );
+      // }
       else if(t==5){
         three.Material mat = mats['capsule']!;
         mat.color = randColor;
@@ -328,12 +342,12 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         meshs.add(
           three.Mesh(
             ConversionUtils.shapeToGeometry(
-              cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)
+              cannon.CapsuleLathe(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)
             ), 
             mat
           )
         );
-        meshs[i].scale.set( w*0.5, h, w*0.5 );
+        //meshs[i].scale.set( w*0.5, h, w*0.5 );
       }
       meshs[i].castShadow = true;
       meshs[i].receiveShadow = true;
@@ -348,7 +362,6 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
     double x, y, z;
     Mesh mesh; 
     cannon.Body body;
-    //print(bodys[0].getPosition());
     for(int i = 0; i < bodys.length;i++){
       body = bodys[i];
       mesh = meshs[i];

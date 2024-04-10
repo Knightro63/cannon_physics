@@ -16,7 +16,6 @@ import '../rigid_body_shapes/particle.dart';
 import '../rigid_body_shapes/plane.dart';
 import '../rigid_body_shapes/trimesh.dart';
 import '../rigid_body_shapes/heightfield.dart';
-import '../rigid_body_shapes/cylinder.dart';
 import '../material/contact_material.dart';
 import '../world/world_class.dart';
 import 'package:vector_math/vector_math.dart' hide Plane, Sphere, Ray;
@@ -36,6 +35,7 @@ enum CollisionType{
   sphereTrimesh,
   sphereCone,
   sphereCapsule,
+  sphereSizedPlane,
 
   boxBox,
   boxConvex,
@@ -45,6 +45,7 @@ enum CollisionType{
   boxTrimesh,
   boxCapsule,
   boxCone,
+  boxSizedPlane,
 
   planeBox,
   planeConvex,
@@ -53,6 +54,7 @@ enum CollisionType{
   planeTrimesh,
   planeCone,
   planeCapsule,
+  planeSizedPlane,
 
   particleHeightfield,
   particleCylinder,
@@ -60,31 +62,40 @@ enum CollisionType{
   particleCone,
   particleCapsule,
   particleConvex,
+  particleSizedPlane,
 
   trimeshTrimesh,
   trimeshCone,
   trimeshCylinder,
   trimeshCapsule,
   trimeshConvex,
+  trimeshSizedPlane,
 
   heightfieldCapsule,
   heightfieldCone,
   heightfieldCylinder,
   heightfieldConvex,
+  heightfieldSizedPlane,
 
   convexConvex,
   convexCylinder,
   convexCone,
   convexCapsule,
+  convexSizedPlane,
   
   cylinderCylinder,
   cylinderCapsule,
   cylinderCone,
+  cylinderSizedPlane,
 
   capsuleCapsule,
   capsuleCone,
+  capsuleSizedPlane,
 
   coneCone,
+  coneSizedPlane,
+
+  sizedPlaneSizedPlane
 }
 
 /// Helper class for the World. Generates ContactEquations.
@@ -128,7 +139,12 @@ class Narrowphase {
       type == CollisionType.cylinderCylinder ||
       type == CollisionType.convexCapsule || 
       type == CollisionType.convexCone || 
-      type == CollisionType.convexCylinder
+      type == CollisionType.convexCylinder ||
+      type == CollisionType.sizedPlaneSizedPlane ||
+      type == CollisionType.convexSizedPlane ||
+      type == CollisionType.cylinderSizedPlane ||
+      type == CollisionType.capsuleSizedPlane || 
+      type == CollisionType.coneSizedPlane
     ) {
       return convexConvex;
     }
@@ -136,7 +152,8 @@ class Narrowphase {
       type == CollisionType.sphereConvex || 
       type == CollisionType.sphereCylinder ||
       type == CollisionType.sphereCone ||
-      type == CollisionType.sphereCapsule
+      type == CollisionType.sphereCapsule ||
+      type == CollisionType.sphereSizedPlane
     ) {
       return sphereConvex;
     }
@@ -144,7 +161,8 @@ class Narrowphase {
       type == CollisionType.planeConvex ||
       type == CollisionType.planeCylinder ||
       type == CollisionType.planeCapsule ||
-      type == CollisionType.planeCone
+      type == CollisionType.planeCone ||
+      type == CollisionType.planeSizedPlane
     ) {
       return planeConvex;
     }
@@ -152,7 +170,8 @@ class Narrowphase {
       type == CollisionType.boxConvex || 
       type == CollisionType.boxCylinder ||
       type == CollisionType.boxCapsule ||
-      type == CollisionType.boxCone
+      type == CollisionType.boxCone ||
+      type == CollisionType.boxSizedPlane
     ) {
       return boxConvex;
     }
@@ -166,7 +185,8 @@ class Narrowphase {
       type == CollisionType.heightfieldConvex || 
       type == CollisionType.heightfieldCylinder ||
       type == CollisionType.heightfieldCapsule || 
-      type == CollisionType.heightfieldCone
+      type == CollisionType.heightfieldCone ||
+      type == CollisionType.heightfieldSizedPlane
     ) {
       return heightfieldConvex;
     }
@@ -183,7 +203,8 @@ class Narrowphase {
       type == CollisionType.particleConvex ||
       type == CollisionType.particleCylinder ||
       type == CollisionType.particleCapsule || 
-      type == CollisionType.particleCone
+      type == CollisionType.particleCone ||
+      type == CollisionType.particleSizedPlane
     ) {
       return particleConvex;
     }
@@ -206,7 +227,8 @@ class Narrowphase {
       type == CollisionType.trimeshConvex ||
       type == CollisionType.trimeshCylinder ||
       type == CollisionType.trimeshCone ||
-      type == CollisionType.trimeshCapsule
+      type == CollisionType.trimeshCapsule ||
+      type == CollisionType.trimeshSizedPlane
     ) {
       return trimeshConvex;
     }
@@ -333,6 +355,8 @@ class Narrowphase {
         return CollisionType.sphereCone;
       case "spheretrimesh":
         return CollisionType.sphereTrimesh;
+      case "spheresizedplane":
+        return CollisionType.sphereSizedPlane;
 
       case "boxbox":
         return CollisionType.boxBox;
@@ -350,6 +374,8 @@ class Narrowphase {
         return CollisionType.boxCone;
       case "boxtrimesh":
         return CollisionType.boxTrimesh;
+      case "boxsizedplane":
+        return CollisionType.boxSizedPlane;
 
       case "planeconvex":
         return CollisionType.planeConvex;
@@ -365,6 +391,8 @@ class Narrowphase {
         return CollisionType.planeCylinder;
       case "planetrimesh":
         return CollisionType.planeTrimesh;
+      case "planesizedplane":
+        return CollisionType.planeSizedPlane;
 
       case "particleconvex":
         return CollisionType.particleConvex;
@@ -378,6 +406,8 @@ class Narrowphase {
         return CollisionType.particleHeightfield;
       case "particletrimesh":
         return CollisionType.particleTrimesh;
+      case "particlesizedplane":
+        return CollisionType.particleSizedPlane;
 
       case "trimeshcylinder":
         return CollisionType.trimeshCylinder;
@@ -389,15 +419,19 @@ class Narrowphase {
         return CollisionType.trimeshConvex;
       case "trimeshtrimesh":
         return CollisionType.trimeshTrimesh;
+      case "trimeshsizedplane":
+        return CollisionType.trimeshSizedPlane;
 
       case "heightfieldcylinder":
         return CollisionType.heightfieldCylinder;
-      case "heightfieldConvex":
+      case "heightfieldconvex":
         return CollisionType.heightfieldConvex;
-      case "heightfieldCapsule":
+      case "heightfieldcapsule":
         return CollisionType.heightfieldCapsule;
-      case "heightfieldCone":
+      case "heightfieldcone":
         return CollisionType.heightfieldCone;
+      case "heightfieldsizedplane":
+        return CollisionType.heightfieldSizedPlane;
 
       case "convexconvex":
         return CollisionType.convexConvex;
@@ -407,6 +441,8 @@ class Narrowphase {
         return CollisionType.convexCone;
       case "convexcapsule":
         return CollisionType.convexCapsule;
+      case "convexSizedPlane":
+        return CollisionType.convexSizedPlane;
 
       case "cylindercylinder":
         return CollisionType.cylinderCylinder;
@@ -414,14 +450,23 @@ class Narrowphase {
         return CollisionType.cylinderCone;
       case "cylindercapsule":
         return CollisionType.cylinderCapsule;
+      case "cylindersizedplane":
+        return CollisionType.cylinderSizedPlane;
 
       case "capsulecone":
         return CollisionType.capsuleCone;
       case "capsulecapsule":
         return CollisionType.capsuleCapsule;
+      case "capsulesizedplane":
+        return CollisionType.capsuleSizedPlane;
 
       case "conecone":
         return CollisionType.coneCone;
+      case "conesizedplane":
+        return CollisionType.coneSizedPlane;
+
+      case "sizedplanesizedplane":
+        return CollisionType.sizedPlaneSizedPlane;
 
       default:
         return null;
@@ -431,7 +476,7 @@ class Narrowphase {
   CollisionType? getCollisionType(ShapeType a, ShapeType b){
     String n1 = a.name+b.name;
     String n2 = b.name+a.name;
-    return _getCollisionType(n1) ?? _getCollisionType(n2);
+    return _getCollisionType(n1.toLowerCase()) ?? _getCollisionType(n2.toLowerCase());
     // for(int i = 0; i < CollisionType.values.length; i++){
     //   if(n1 == CollisionType.values[i].name.toLowerCase()){
     //     return CollisionType.values[i];
@@ -2159,9 +2204,9 @@ class Narrowphase {
     cqj..setFrom(qj)..conjugate();
     cqj.vmult(local, local);
     if (sj.pointIsInside(local)) {
-      //if (sj.worldVerticesNeedsUpdate) {
+      if (sj.worldVerticesNeedsUpdate) {
         sj.computeWorldVertices(xj, qj);
-      //}
+      }
       if (sj.worldFaceNormalsNeedsUpdate) {
         sj.computeWorldFaceNormals(qj);
       }
@@ -2189,17 +2234,17 @@ class Narrowphase {
 
       if (penetratedFaceIndex != -1) {
         // Setup contact
-        var r = createContactEquation(bi, bj, si, sj, rsi, rsj);
+        final r = createContactEquation(bi, bj, si, sj, rsi, rsj);
         penetratedFaceNormal.scale2(minPenetration!, worldPenetrationVec);
         // rj is the particle position projected to the face
         worldPenetrationVec.add2(xi, worldPenetrationVec);
         worldPenetrationVec.sub2(xj, worldPenetrationVec);
         r.rj.setFrom(worldPenetrationVec);
-        //final projectedToFace = xi.sub2(xj).add2(worldPenetrationVec);
+        //final projectedToFace = xi..sub(xj)..add(worldPenetrationVec);
         //projectedToFace.setFrom(r.rj);
 
-        //qj.vmult(r.rj,r.rj);
-        //penetratedFaceNormal.negate(r.ni); // Contact normal
+        qj.vmult(r.rj,r.rj);
+        r.ni..setFrom(penetratedFaceNormal)..negate(); // Contact normal
         r.ri.setValues(0, 0, 0); // Center of particle
 
         // Make relative to bodies
