@@ -59,6 +59,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
   List<int> fps = [0,0,0,0];
   double toRad = 0.0174532925199432957;
   int type = 6;
+  int max = 20;
 
   @override
   void initState() {
@@ -204,8 +205,6 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
   }
 
   void populate(n) {
-    int max = 200;
-
     if(n==1){ 
       type = 1;
     }
@@ -314,6 +313,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         world.addBody(sbody);
         meshs.add(three.Mesh( geos['cone'], mat));
         meshs[i].scale.set( w*0.5, h, w*0.5 );
+        print(w*0.5);
       }
       else if(t==5){
         three.Material mat = mats['capsule']!;
@@ -325,7 +325,14 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         );
         bodys.add(sbody);
         world.addBody(sbody);
-        meshs.add(three.Mesh(ConversionUtils.shapeToGeometry(cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)), mat));
+        meshs.add(
+          three.Mesh(
+            ConversionUtils.shapeToGeometry(
+              cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)
+            ), 
+            mat
+          )
+        );
         meshs[i].scale.set( w*0.5, h, w*0.5 );
       }
       meshs[i].castShadow = true;

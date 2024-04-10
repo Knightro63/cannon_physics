@@ -82,7 +82,6 @@ class ConversionUtils{
         shape as cannon.Cone;
         return three.ConeGeometry(shape.radius, shape.height, shape.numSegments);
       }
-      case cannon.ShapeType.capsule:
       case cannon.ShapeType.convex: {
         shape as cannon.ConvexPolyhedron;
         List<three.Vector3> vertices = [];
