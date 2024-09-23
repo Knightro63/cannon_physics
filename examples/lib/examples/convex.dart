@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -78,7 +78,7 @@ class _ConvexState extends State<Convex> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0 );
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     // groundBody.position.set(-10, 0, 0)
     world.addBody(groundBody);
     demo.addVisual(groundBody);
@@ -163,7 +163,7 @@ class _ConvexState extends State<Convex> {
     final cylinderBody = cannon.Body(mass:mass);
     cylinderBody.addShape(cylinderShape);
     cylinderBody.position.setValues(0, size * 4 + 1, 0);
-    cylinderBody.quaternion.setFromEuler(0, 0, Math.PI / 3);
+    cylinderBody.quaternion.setFromEuler(0, 0, math.pi / 3);
     world.addBody(cylinderBody);
     demo.addVisual(cylinderBody);
   }

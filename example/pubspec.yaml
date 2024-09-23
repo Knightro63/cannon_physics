@@ -21,14 +21,8 @@ dependencies:
   cannon_physics:
     path: ../
   vector_math: ^2.1.4
-  flutter_gl: ^0.0.21
-  three_dart:
-    git:
-      url: https://github.com/Knightro63/three_dart.git
-  three_dart_jsm:
-    git:
-      url: https://github.com/Knightro63/three_dart_jsm.git
-  
+  three_js: ^0.0.6
+  three_js_geometry: ^0.0.2
   cupertino_icons: ^1.0.2
 
 dev_dependencies:

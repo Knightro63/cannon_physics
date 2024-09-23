@@ -919,7 +919,7 @@ class Narrowphase {
     for (int j = 0; j != 2 && !found; j++) {
       for (int k = 0; k != 2 && !found; k++) {
         for (int l = 0; l != 2 && !found; l++) {
-          rj!.setValues(0.0, 0.0, 0.0);
+          rj.setValues(0.0, 0.0, 0.0);
           if (j != 0) {
             rj.add2(sides[0], rj);
           } else {

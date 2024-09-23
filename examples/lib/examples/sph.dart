@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -66,7 +66,7 @@ class _SPHState extends State<SPH> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0, material: material);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -74,7 +74,7 @@ class _SPHState extends State<SPH> {
     final planeShapeXmin = cannon.Plane();
     final planeXmin = cannon.Body(mass: 0, material:material);
     planeXmin.addShape(planeShapeXmin);
-    planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
+    planeXmin.quaternion.setFromEuler(0, math.pi / 2, 0);
     planeXmin.position.setValues(-width * 0.5, 0, 0);
     world.addBody(planeXmin);
 
@@ -82,7 +82,7 @@ class _SPHState extends State<SPH> {
     final planeShapeXmax = cannon.Plane();
     final planeXmax = cannon.Body(mass: 0, material: material);
     planeXmax.addShape(planeShapeXmax);
-    planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
+    planeXmax.quaternion.setFromEuler(0, -math.pi / 2, 0);
     planeXmax.position.setValues(width * 0.5, 0, 0);
     world.addBody(planeXmax);
 
@@ -98,7 +98,7 @@ class _SPHState extends State<SPH> {
     final planeShapeZmax = cannon.Plane();
     final planeZmax = cannon.Body(mass: 0, material:material);
     planeZmax.addShape(planeShapeZmax);
-    planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
+    planeZmax.quaternion.setFromEuler(0, math.pi, 0);
     planeZmax.position.setValues(0, 0, height * 0.5);
     world.addBody(planeZmax);
 
@@ -113,9 +113,9 @@ class _SPHState extends State<SPH> {
           final particle = cannon.Body(mass:mass, material:material);
           particle.addShape(cannon.Particle());
           particle.position.setValues(
-            ((i + (Math.random() - 0.5) * randRange + 0.5) * width) / nx - width * 0.5,
+            ((i + (math.Random().nextDouble() - 0.5) * randRange + 0.5) * width) / nx - width * 0.5,
             (k * height) / nz,
-            ((j + (Math.random() - 0.5) * randRange + 0.5) * height) / nz - height * 0.5
+            ((j + (math.Random().nextDouble() - 0.5) * randRange + 0.5) * height) / nz - height * 0.5
           );
           world.addBody(particle);
           sph.add(particle);

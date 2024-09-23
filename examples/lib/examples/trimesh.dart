@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 import 'package:cannon_physics_example/src/conversion_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'package:three_js/three_js.dart';
+import 'package:three_js_geometry/three_js_geometry.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -65,9 +66,9 @@ class _TriMeshState extends State<TriMesh> {
     }
 
     // Torus
-    final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
-    //final torusGeometry = IcosahedronGeometry(2,2);
-    final torusMaterial = MeshStandardMaterial({'wireframe':true});//{'color': 0x2b4c7f }
+    //final torusGeometry = TorusGeometry(4, 3.5, 16, 16);
+    final torusGeometry = IcosahedronGeometry(2,2);
+    final torusMaterial = MeshStandardMaterial.fromMap({'color': 0x2b4c7f });
     final torusMesh = Mesh(torusGeometry, torusMaterial);
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 
@@ -75,7 +76,7 @@ class _TriMeshState extends State<TriMesh> {
     final torusBody = cannon.Body(mass: 1,angularDamping: 0 );
     torusBody.addShape(torusShape);
     torusBody.position.setValues(0.01, 0.01, 0.01);
-    torusBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    torusBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     torusBody.angularVelocity.setValues(0, 0, 1);
     world.addBody(torusBody);
     demo.addVisual(torusBody, mesh: torusMesh, material: torusMaterial);
@@ -105,7 +106,7 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -140,7 +141,7 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -176,7 +177,7 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -211,13 +212,13 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
    final torusGeometry1 = TorusGeometry();
     //final torusGeometry = IcosahedronGeometry(2,2);
-    final torusMaterial1 = MeshStandardMaterial({'color': 0x2b4c7f});//{'color': 0x2b4c7f }'wireframe':true
+    final torusMaterial1 = MeshStandardMaterial.fromMap({'color': 0x2b4c7f});//{'color': 0x2b4c7f }'wireframe':true
     final torusMesh1 = Mesh(torusGeometry1, torusMaterial1);
     final shape = ConversionUtils.geometryToShape(torusGeometry1);
     final body = cannon.Body(
@@ -250,7 +251,7 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -285,7 +286,7 @@ class _TriMeshState extends State<TriMesh> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
 

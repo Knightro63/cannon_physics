@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import '../src/conversion_utils.dart';
@@ -52,7 +52,7 @@ class _BunnyState extends State<Bunny> {
       position: vmath.Vector3(0, -5, 0),
     );
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -85,7 +85,7 @@ class _BunnyState extends State<Bunny> {
     }
 
     // Create body
-    bunnyBody.quaternion.setFromEuler(Math.PI, 0, 0);
+    bunnyBody.quaternion.setFromEuler(math.pi, 0, 0);
     world.addBody(bunnyBody);
     demo.addVisual(bunnyBody);
   }

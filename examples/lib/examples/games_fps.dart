@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:cannon_physics_example/src/conversion_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'package:flutter_gl/flutter_gl.dart';
-import 'package:three_dart/three_dart.dart' as three;
-import 'package:three_dart/three_dart.dart' hide Texture, Color;
-import 'package:three_dart_jsm/three_dart_jsm.dart';
+import 'package:three_js/three_js.dart' as three;
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
 
@@ -19,7 +15,7 @@ class SphereData{
     required this.body,
   });
 
-  Mesh mesh;
+  three.Mesh mesh;
   cannon.Body body;
 }
 
@@ -31,28 +27,10 @@ class TestGame extends StatefulWidget {
 }
 
 class _TestGamePageState extends State<TestGame> {
-  late FirstPersonControls fpsControl;
-  // gl values
-  //late Object3D object;
-  bool animationReady = false;
-  late FlutterGlPlugin three3dRender;
-  WebGLRenderTarget? renderTarget;
-  WebGLRenderer? renderer;
-  int? fboId;
-  late double width;
-  late double height;
-  Size? screenSize;
-  late Scene scene;
-  late Camera camera;
-  double dpr = 1.0;
-  bool verbose = false;
-  bool disposed = false;
-  final GlobalKey<DomLikeListenableState> _globalKey = GlobalKey<DomLikeListenableState>();
-  dynamic sourceTexture;
+  late three.FirstPersonControls fpsControl;
+  late three.ThreeJS threeJs;
 
   int stepsPerFrame = 5;
-  Clock clock = Clock();
-
   double gravity = 30;
 
   List<cannon.Body> balls = [];
@@ -80,30 +58,34 @@ class _TestGamePageState extends State<TestGame> {
     LogicalKeyboardKey.arrowRight: false,
   };
 
-  Vector3 vector1 = Vector3();
-  Vector3 vector2 = Vector3();
-  Vector3 vector3 = Vector3();
+  three.Vector3 vector1 = three.Vector3();
+  three.Vector3 vector2 = three.Vector3();
+  three.Vector3 vector3 = three.Vector3();
 
-  late final Vector3 playerVelocity;
+  late final three.Vector3 playerVelocity;
   
   late cannon.Body sphereBody;
 
   late cannon.World world;
   List<SphereData> spheres = [];
   double? lastCallTime;
-  bool split = true;
+  bool split = false;
   bool paused = false;
 
   late vmath.Vector3 startingPos;
 
   @override
   void initState() {
+    threeJs = three.ThreeJS(
+      onSetupComplete: (){setState(() {});},
+      setup: setup
+    );
     super.initState();
   }
   @override
   void dispose() {
-    disposed = true;
-    three3dRender.dispose();
+    fpsControl.dispose();
+    threeJs.dispose();
     super.dispose();
   }
   //----------------------------------
@@ -121,7 +103,7 @@ class _TestGamePageState extends State<TestGame> {
     world.defaultContactMaterial.contactEquationRelaxation = 4;
 
     solver.iterations = 1;
-    solver.tolerance = 0.1;
+    solver.tolerance = 1;
     
     if(split){
       world.solver = cannon.SplitSolver(solver);
@@ -133,18 +115,7 @@ class _TestGamePageState extends State<TestGame> {
     world.gravity.setValues(0, -gravity, 0);
     world.broadphase = cannon.NaiveBroadphase();
   }
-  void initSize(BuildContext context) {
-    if (screenSize != null) {
-      return;
-    }
 
-    final mqd = MediaQuery.of(context);
-
-    screenSize = mqd.size;
-    dpr = mqd.devicePixelRatio;
-
-    initPlatformState();
-  }
   void updatePhysics() {
     // Step world
     const timeStep = 1 / 60;
@@ -161,63 +132,50 @@ class _TestGamePageState extends State<TestGame> {
     world.step(timeStep, timeSinceLastCall, stepsPerFrame);
     lastCallTime = now;
   }
-  void animate() {
-    if (!mounted || disposed) {
-      return;
-    }
-    render();
-    Future.delayed(const Duration(milliseconds: 1000~/60), () {
-      if(!paused){
-        world.fixedStep();
-        //updatePhysics();
-        fpsControl.update(lastCallTime!);
-        updateVisuals();
-        teleportPlayerIfOob();
-      }
-      animate();
-    });
-  }
-  Future<void> initPage() async {
-    scene = Scene();
-    scene.background = three.Color(0x88ccee);
 
-    camera = PerspectiveCamera(70, width / height, 0.1, 1000);
-    camera.rotation.order = 'YXZ';
+  Future<void> setup() async {
+    initCannonPhysics();
+
+    threeJs.scene = three.Scene();
+    threeJs.scene.background = three.Color.fromHex32(0x88ccee);
+
+    threeJs.camera = three.PerspectiveCamera(70, threeJs.width / threeJs.height, 0.1, 1000);
+    threeJs.camera.rotation.order = three.RotationOrders.yxz;
 
     // lights
-    HemisphereLight fillLight1 = HemisphereLight( 0x4488bb, 0x002244, 0.5 );
-    fillLight1.position.set( 2, 1, 1 );
-    scene.add(fillLight1);
+    three.HemisphereLight fillLight1 = three.HemisphereLight( 0x4488bb, 0x002244, 0.5 );
+    fillLight1.position.setValues( 2, 1, 1 );
+    threeJs.scene.add(fillLight1);
 
-    DirectionalLight directionalLight = DirectionalLight( 0xffffff, 0.8 );
-    directionalLight.position.set( - 5, 25, - 1 );
-    directionalLight.castShadow = true;
+    three.DirectionalLight directionalLight = three.DirectionalLight( 0xffffff, 0.8 );
+    directionalLight.position.setValues( - 5, 25, - 1 );
+    // directionalLight.castShadow = true;
 
-    directionalLight.shadow!.camera!.near = 0.01;
-    directionalLight.shadow!.camera!.far = 500;
-    directionalLight.shadow!.camera!.right = 30;
-    directionalLight.shadow!.camera!.left = - 30;
-    directionalLight.shadow!.camera!.top	= 30;
-    directionalLight.shadow!.camera!.bottom = - 30;
-    directionalLight.shadow!.mapSize.width = 1024;
-    directionalLight.shadow!.mapSize.height = 1024;
-    directionalLight.shadow!.radius = 4;
-    directionalLight.shadow!.bias = - 0.00006;
+    // directionalLight.shadow!.camera!.near = 0.01;
+    // directionalLight.shadow!.camera!.far = 500;
+    // directionalLight.shadow!.camera!.right = 30;
+    // directionalLight.shadow!.camera!.left = - 30;
+    // directionalLight.shadow!.camera!.top	= 30;
+    // directionalLight.shadow!.camera!.bottom = - 30;
+    // directionalLight.shadow!.mapSize.width = 1024;
+    // directionalLight.shadow!.mapSize.height = 1024;
+    // directionalLight.shadow!.radius = 4;
+    // directionalLight.shadow!.bias = - 0.00006;
 
-    scene.add(directionalLight);
+    threeJs.scene.add(directionalLight);
 
-    GLTFLoader().setPath('assets/models/').load('collision-world.glb', (gltf){
-      Object3D object = gltf["scene"];
+   three.GLTFLoader().setPath('assets/models/').fromAsset('collision-world.glb').then((gltf){
+      three.Object3D object = gltf!.scene;
       cannon.Trimesh triShape = ConversionUtils.fromGraphNode(object);
       final triBody = cannon.Body();
       triBody.addShape(triShape);
       world.addBody(triBody);
       
-      scene.add(object);
+      threeJs.scene.add(object);
 
       object.traverse((child){
         if(child.type == 'Mesh'){
-          Mesh part = child;
+          three.Object3D part = child;
           part.castShadow = true;
           part.visible = true;
           part.receiveShadow = true;
@@ -247,112 +205,53 @@ class _TestGamePageState extends State<TestGame> {
     //Create Player
     playerBody = cannon.Body(mass: mass);
     playerBody.addShape(playerCollider);
-    //world.addBody(playerBody);
+    world.addBody(playerBody);
 
     startingPos = vmath.Vector3.copy(playerBody.position);
 
     //add fps controller
-    fpsControl = FirstPersonControls(camera, _globalKey);
+    fpsControl = three.FirstPersonControls(camera: threeJs.camera, listenableKey: threeJs.globalKey);
     fpsControl.lookSpeed = 1/100;
     fpsControl.movementSpeed = 15.0;
-    fpsControl.lookType = LookType.position;
+    fpsControl.lookType = three.LookType.position;
     playerVelocity = fpsControl.velocity;
-    fpsControl.domElement.addEventListener( 'keyup', (event){
+    fpsControl.domElement.addEventListener( three.PeripheralType.keyup, (event){
       if(event.keyId == 32){
         playerVelocity.y = 15;
       }
     }, false );
-    fpsControl.domElement.addEventListener( 'pointerdown', (event){
+    fpsControl.domElement.addEventListener( three.PeripheralType.pointerdown, (event){
       mouseTime = DateTime.now().millisecondsSinceEpoch;
     }, false );
-    fpsControl.domElement.addEventListener( 'pointerup', (event){
+    fpsControl.domElement.addEventListener( three.PeripheralType.pointerup, (event){
       throwBall();
     }, false );
-    animationReady = true;
-  }
-  void render() {
-    final _gl = three3dRender.gl;
-    renderer!.render(scene, camera);
-    _gl.flush();
-    if(!kIsWeb) {
-      three3dRender.updateTexture(sourceTexture);
-    }
-  }
-  void initRenderer() {
-    Map<String, dynamic> _options = {
-      "width": width,
-      "height": height,
-      "gl": three3dRender.gl,
-      "antialias": true,
-      "canvas": three3dRender.element,
-    };
 
-    if(!kIsWeb && Platform.isAndroid){
-      _options['logarithmicDepthBuffer'] = true;
-    }
-
-    renderer = WebGLRenderer(_options);
-    renderer!.setPixelRatio(dpr);
-    renderer!.setSize(width, height, false);
-    renderer!.shadowMap.enabled = true;
-
-    if(!kIsWeb){
-      WebGLRenderTargetOptions pars = WebGLRenderTargetOptions({"format": RGBAFormat,"samples": 8});
-      renderTarget = WebGLRenderTarget((width * dpr).toInt(), (height * dpr).toInt(), pars);
-      renderTarget!.samples = 8;
-      renderer!.setRenderTarget(renderTarget);
-      sourceTexture = renderer!.getRenderTargetGLTexture(renderTarget!);
-    }
-    else{
-      renderTarget = null;
-    }
-  }
-  void initScene() async{
-    initCannonPhysics();
-    await initPage();
-    initRenderer();
-    animate();
-  }
-  Future<void> initPlatformState() async {
-    width = screenSize!.width;
-    height = screenSize!.height;
-
-    three3dRender = FlutterGlPlugin();
-
-    Map<String, dynamic> _options = {
-      "antialias": true,
-      "alpha": true,
-      "width": width.toInt(),
-      "height": height.toInt(),
-      "dpr": dpr,
-      'precision': 'highp'
-    };
-    await three3dRender.initialize(options: _options);
-
-    setState(() {});
-
-    // TODO web wait dom ok!!!
-    Future.delayed(const Duration(milliseconds: 100), () async {
-      await three3dRender.prepareContext();
-      initScene();
+    
+    threeJs.addAnimationEvent((dt){
+      world.fixedStep();
+      updatePhysics();
+      fpsControl.update(lastCallTime!);
+      updateVisuals();
+      teleportPlayerIfOob();
     });
   }
 
   void throwBall() {
-    double shootVelocity = 15 + ( 1 - Math.exp((mouseTime-DateTime.now().millisecondsSinceEpoch) * 0.1));
+    double shootVelocity = 15 + ( 1 - math.exp((mouseTime-DateTime.now().millisecondsSinceEpoch) * 0.1));
     cannon.Sphere ballShape = cannon.Sphere(0.2);
     three.SphereGeometry ballGeometry = three.SphereGeometry(ballShape.radius, 32, 32);
 
     three.Vector3 getShootDirection() {
       three.Vector3 vector = three.Vector3(0, 0, 1);
-      vector.unproject(camera);
-      three.Ray ray = three.Ray(sphereBody.position.toVector3(), vector.sub(sphereBody.position).normalize());
+      vector.unproject(threeJs.camera);
+      three.Ray ray = three.Ray.originDirection(sphereBody.position.toVector3(), vector.sub(sphereBody.position.toVector3()).normalize());
       return ray.direction;
     }
 
     cannon.Body ballBody = cannon.Body(mass: 1);
     ballBody.addShape(ballShape);
-    three.Mesh ballMesh = three.Mesh(ballGeometry, three.MeshLambertMaterial({ 'color': 0xdddddd }));
+    three.Mesh ballMesh = three.Mesh(ballGeometry, three.MeshLambertMaterial.fromMap({ 'color': 0xdddddd }));
 
     ballMesh.castShadow = true;
     ballMesh.receiveShadow = true;
@@ -374,10 +273,10 @@ class _TestGamePageState extends State<TestGame> {
     double y = sphereBody.position.y + shootDirection.y * (radius * 1.02 + ballShape.radius);
     double z = sphereBody.position.z + shootDirection.z * (radius * 1.02 + ballShape.radius);
     ballBody.position.setValues(x, y, z);
-    ballMesh.position.copy(ballBody.position.toVector3());
+    ballMesh.position.setFrom(ballBody.position.toVector3());
 
     world.addBody(ballBody);
-    scene.add(ballMesh);
+    threeJs.scene.add(ballMesh);
   }
   void updatePlayer(){
     final body = playerBody;
@@ -390,14 +289,14 @@ class _TestGamePageState extends State<TestGame> {
       quaternion = body.quaternion;
     }
 
-    camera.position.copy(position.toVector3());
-    camera.position.copy( Vector3(position.x,position.y+playerCollider.height,position.z));//position.toVector3()playerCollider.height);
+    threeJs.camera.position.setFromCylindrical(position.toVector3());
+    threeJs.camera.position.setFrom( three.Vector3(position.x,position.y+playerCollider.height,position.z));//position.toVector3()playerCollider.height);
   }
   void updateVisuals(){
     for (int i = 0; i < spheres.length; i++) {
       final body = spheres[i].body;
       final visual = spheres[i].mesh;
-      Object3D dummy = Object3D();
+      three.Object3D dummy = three.Object3D();
 
       // Interpolated or not?
       vmath.Vector3 position = body.interpolatedPosition;
@@ -407,9 +306,9 @@ class _TestGamePageState extends State<TestGame> {
         quaternion = body.quaternion;
       }
 
-      if (visual is InstancedMesh) {
-        dummy.position.copy(position.toVector3());
-        dummy.quaternion.copy(quaternion.toQuaternion());
+      if (visual is three.InstancedMesh) {
+        dummy.position.setFrom(position.toVector3());
+        dummy.quaternion.setFrom(quaternion.toQuaternion());
 
         dummy.updateMatrix();
 
@@ -417,60 +316,28 @@ class _TestGamePageState extends State<TestGame> {
         visual.instanceMatrix!.needsUpdate = true;
       } 
       else {
-        visual.position.copy(position.toVector3());
-        visual.quaternion.copy(quaternion.toQuaternion());
+        visual.position.setFrom(position.toVector3());
+        visual.quaternion.setFrom(quaternion.toQuaternion());
       }
     }
-    updatePlayer();
+    //updatePlayer();
   }
 
   void teleportPlayerIfOob(){
-    if(camera.position.y <= - 25){
+    if(threeJs.camera.position.y <= - 25){
       // playerCollider.start.set(0,0.35,0);
       // playerCollider.end.set(0,1,0);
       // playerCollider.radius = 0.35;
       final body = playerBody;
       body.position = startingPos.clone();
-      camera.position.copy(Vector3(startingPos.x,startingPos.y+playerCollider.height,startingPos.z));
-      camera.rotation.set(0,0,0);
+      threeJs.camera.position.setFrom(three.Vector3(startingPos.x,startingPos.y+playerCollider.height,startingPos.z));
+      threeJs.camera.rotation.set(0,0,0);
     }
   }
 
-  Widget threeDart() {
-    return Builder(builder: (BuildContext context) {
-      initSize(context);
-      return Container(
-        width: screenSize!.width,
-        height: screenSize!.height,
-        color: Theme.of(context).canvasColor,
-        child: DomLikeListenable(
-          key: _globalKey,
-          builder: (BuildContext context) {
-            return Container(
-              width: width,
-              height: height,
-              color: Theme.of(context).canvasColor,
-              child: Builder(builder: (BuildContext context) {
-                if (kIsWeb) {
-                  return three3dRender.isInitialized
-                      ? HtmlElementView(
-                          viewType:
-                              three3dRender.textureId!.toString())
-                      : Container();
-                } else {
-                  return three3dRender.isInitialized
-                      ? Texture(textureId: three3dRender.textureId!)
-                      : Container();
-                }
-              })
-            );
-          }),
-      );
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    return threeDart();
+    return threeJs.build();
   }
 }

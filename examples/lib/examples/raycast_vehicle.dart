@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -93,7 +93,7 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
       );
       wheelBody.type = cannon.BodyTypes.kinematic;
       wheelBody.collisionFilterGroup = 0; // turn off collisions
-      final quaternion = vmath.Quaternion(0,0,0,1).setFromEuler(-Math.PI / 2, 0, 0);
+      final quaternion = vmath.Quaternion(0,0,0,1).setFromEuler(-math.pi / 2, 0, 0);
       wheelBody.addShape(cylinderShape, vmath.Vector3.zero(), quaternion);
       wheelBodies.add(wheelBody);
       demo.addVisual(wheelBody);
@@ -124,7 +124,7 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
           continue;
         }
 
-        final height = Math.cos((i / sizeX) * Math.PI * 5) * Math.cos((j / sizeZ) * Math.PI * 5) * 2 + 2;
+        final height = math.cos((i / sizeX) * math.pi * 5) * math.cos((j / sizeZ) * math.pi * 5) * 2 + 2;
         matrix[i].add(height);
       }
     }
@@ -143,7 +143,7 @@ class _RaycastVehicleState extends State<RaycastVehicle> {
       // ((sizeZ - 1) * heightfieldShape.elementSize) / 2
       (sizeZ * heightfieldShape.elementSize) / 2
     );
-    heightfieldBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    heightfieldBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(heightfieldBody);
     demo.addVisual(heightfieldBody);
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -55,7 +55,7 @@ class _RagDollState extends State<RagDoll> {
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
     groundBody.position.setValues(0, -1, 0);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
   }
@@ -72,9 +72,9 @@ class _RagDollState extends State<RagDoll> {
     // It returns an array of body parts and their constraints
     final RagdollData data = createRagdoll(
       scale: 3,
-      angle: Math.PI / 4,
-      angleShoulders: Math.PI / 3,
-      twistAngle: Math.PI / 8,
+      angle: math.pi / 4,
+      angleShoulders: math.pi / 3,
+      twistAngle: math.pi / 8,
     );
 
     data.bodies.forEach((body){
@@ -103,9 +103,9 @@ class _RagDollState extends State<RagDoll> {
     // It returns an array of body parts and their constraints
     final RagdollData data = createRagdoll(
       scale: 3,
-      angle: Math.PI,
-      angleShoulders: Math.PI,
-      twistAngle: Math.PI,
+      angle: math.pi,
+      angleShoulders: math.pi,
+      twistAngle: math.pi,
     );
 
     data.bodies.forEach((body){

@@ -1,7 +1,7 @@
-import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
-import 'package:three_dart/three_dart.dart' as three;
-import 'package:three_dart/three_dart.dart' hide Texture, Color;
+import 'package:three_js/three_js.dart';
+import 'package:three_js_geometry/three_js_geometry.dart';
+import 'dart:math' as math;
 import 'package:vector_math/vector_math.dart' as vmath;
 
 extension CQ2Q on vmath.Quaternion{
@@ -57,45 +57,45 @@ class GeometryCache {
 }
 
 class ConversionUtils{
-  static three.BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true, vmath.Vector3? position}) {
+  static BufferGeometry shapeToGeometry(cannon.Shape shape,{bool flatShading = true, vmath.Vector3? position}) {
     switch (shape.type) {
       case cannon.ShapeType.sphere: {
         shape as cannon.Sphere;
-        return three.SphereGeometry(shape.radius, 8, 8);
+        return SphereGeometry(shape.radius, 8, 8);
       }
 
       case cannon.ShapeType.particle: {
-        return three.SphereGeometry(0.1, 8, 8);
+        return SphereGeometry(0.1, 8, 8);
       }
       case cannon.ShapeType.sizedPlane: {
         shape as cannon.SizedPlane;
-        return three.PlaneGeometry(shape.width, shape.height, 4, 4);
+        return PlaneGeometry(shape.width, shape.height, 4, 4);
       }
       case cannon.ShapeType.plane: {
-        return three.PlaneGeometry(500, 500, 4, 4);
+        return PlaneGeometry(500, 500, 4, 4);
       }
       case cannon.ShapeType.box: {
         shape as cannon.Box;
-        return three.BoxGeometry(shape.halfExtents.x * 2, shape.halfExtents.y * 2, shape.halfExtents.z * 2);
+        return BoxGeometry(shape.halfExtents.x * 2, shape.halfExtents.y * 2, shape.halfExtents.z * 2);
       }
       case cannon.ShapeType.cylinder: {
         shape as cannon.Cylinder;
-        return three.CylinderGeometry(shape.radiusTop, shape.radiusBottom, shape.height, shape.numSegments);
+        return CylinderGeometry(shape.radiusTop, shape.radiusBottom, shape.height, shape.numSegments);
       }
       case cannon.ShapeType.cone: {
         shape as cannon.Cone;
-        return three.ConeGeometry(shape.radius, shape.height, shape.numSegments);
+        return ConeGeometry(shape.radius, shape.height, shape.numSegments);
       }
       case cannon.ShapeType.capsule:
       case cannon.ShapeType.convex: {
         shape as cannon.ConvexPolyhedron;
-        List<three.Vector3> vertices = [];
+        List<Vector3> vertices = [];
         // Add vertices
         for (int i = 0; i < shape.vertices.length; i++) {
           final vertex = shape.vertices[i];
           vertices.add(vertex.toVector3());
         }
-        final geometry = three.ConvexGeometry(vertices);
+        final geometry = ConvexGeometry(vertices);
         geometry.computeBoundingSphere();
 
         if(flatShading) {
@@ -108,11 +108,11 @@ class ConversionUtils{
       }
       case cannon.ShapeType.heightfield: {
         shape as cannon.Heightfield;
-        final geometry = three.PlaneGeometry(
+        final geometry = PlaneGeometry(
           shape.size.width,
           shape.size.height,
-          shape.segments.width-1,
-          shape.segments.height-1
+          shape.segments.width.toInt()-1,
+          shape.segments.height.toInt()-1
         );
         
         final Float32Array verts = geometry.attributes['position'].array;
@@ -129,7 +129,7 @@ class ConversionUtils{
         }
 
         geometry.translate(shape.size.width/2, shape.size.height/2,0);
-        geometry.rotateZ(Math.PI/2);
+        geometry.rotateZ(math.pi/2);
         geometry.translate(shape.size.width, 0,0);
 
         geometry.computeBoundingSphere();
@@ -144,7 +144,7 @@ class ConversionUtils{
       }
       case cannon.ShapeType.capsule:{
         shape as cannon.Capsule;
-        final geometry = three.BufferGeometry();
+        final geometry = BufferGeometry();
         List<int> indicies = [];
         List<double> verts = [];
         List<double> normals = [];
@@ -160,7 +160,7 @@ class ConversionUtils{
           }
         }
         geometry.setIndex(indicies);
-        geometry.setAttribute('position', Float32BufferAttribute(Float32Array.from(verts), 3));
+        geometry.setAttributeFromString('position', Float32BufferAttribute(Float32Array.fromList(verts), 3));
         //geometry.setAttribute('normal', Float32BufferAttribute(Float32Array.from(normals), 3));
 
         geometry.computeBoundingSphere();
@@ -175,18 +175,18 @@ class ConversionUtils{
       }
       case cannon.ShapeType.trimesh: {
         shape as cannon.Trimesh;
-        final geometry = three.BufferGeometry();
+        final geometry = BufferGeometry();
         
         geometry.setIndex(shape.indices);
-        geometry.setAttribute(
-            'position', Float32BufferAttribute(Float32Array.from(shape.vertices), 3));
+        geometry.setAttributeFromString(
+            'position', Float32BufferAttribute(Float32Array.fromList(shape.vertices), 3));
         if(shape.normals != null){
-          geometry.setAttribute(
-            'normal', Float32BufferAttribute(Float32Array.from(shape.normals!), 3));
+          geometry.setAttributeFromString(
+            'normal', Float32BufferAttribute(Float32Array.fromList(shape.normals!), 3));
         }
         if(shape.uvs != null){
-          geometry.setAttribute(
-            'uv', Float32BufferAttribute(Float32Array.from(shape.uvs!), 2));
+          geometry.setAttributeFromString(
+            'uv', Float32BufferAttribute(Float32Array.fromList(shape.uvs!), 2));
         }
 
         geometry.computeBoundingSphere();
@@ -208,20 +208,20 @@ class ConversionUtils{
 
   static Object3D bodyToMesh(cannon.Body body, material) {
     final group = Group();
-    group.position.copy(body.position.toVector3());
-    group.quaternion.copy(body.quaternion.toQuaternion());
+    group.position.setFrom(body.position.toVector3());
+    group.quaternion.setFrom(body.quaternion.toQuaternion());
 
     final meshes = body.shapes.map((shape){
       final geometry = shapeToGeometry(shape);
-      return three.Mesh(geometry, material);
+      return Mesh(geometry, material);
     });
     
     int i = 0;
-    meshes.forEach((three.Mesh mesh){
+    meshes.forEach((Mesh mesh){
       final offset = body.shapeOffsets[i];
       final orientation = body.shapeOrientations[i];
-      mesh.position.copy(offset);
-      mesh.quaternion.copy(orientation.toQuaternion());
+      mesh.position.setFrom(offset.toVector3());
+      mesh.quaternion.setFrom(orientation.toQuaternion());
       group.add(mesh);
       i++;
     });
@@ -248,12 +248,12 @@ class ConversionUtils{
           geometry = obj.geometry!;
         }
 
-			  BufferAttribute positionAttribute = geometry.getAttribute('position');
+			  BufferAttribute positionAttribute = geometry.getAttributeFromString('position');
 
 				for(int i = 0; i < positionAttribute.count; i += 3) {
-					Vector3 v1 = Vector3().fromBufferAttribute(positionAttribute, i);
-					Vector3 v2 = Vector3().fromBufferAttribute(positionAttribute, i + 1);
-					Vector3 v3 = Vector3().fromBufferAttribute(positionAttribute, i + 2);
+					Vector3 v1 = Vector3().fromBuffer(positionAttribute, i);
+					Vector3 v2 = Vector3().fromBuffer(positionAttribute, i + 1);
+					Vector3 v3 = Vector3().fromBuffer(positionAttribute, i + 2);
 
 					v1.applyMatrix4(obj.matrixWorld);
 					v2.applyMatrix4(obj.matrixWorld);
@@ -339,7 +339,7 @@ class ConversionUtils{
             geometry.parameters!['tube'], 
             geometry.parameters!['radialSegments'], 
             geometry.parameters!['tubularSegments'],
-            geometry.parameters!['arch'] ?? Math.PI*2,
+            geometry.parameters!['arch'] ?? math.pi*2,
           )
         );
       }
@@ -386,7 +386,7 @@ class ConversionUtils{
         //   vecs.add(Vector3(pts[i],pts[i+1],pts[i+2]));
         // }
 
-        // final hullGeometry = three.ConvexGeometry(vecs);
+        // final hullGeometry = ConvexGeometry(vecs);
 
         Float32Array points = geometry.attributes['position'].array;
         Float32Array norms = geometry.attributes['normal'].array;

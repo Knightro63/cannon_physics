@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -107,7 +107,7 @@ class _ImpulsesState extends State<Impulses> {
     body.addShape(shape);
     body.linearDamping = damping;
     body.angularDamping = damping;
-    body.quaternion.setFromEuler(0, 0, Math.PI);
+    body.quaternion.setFromEuler(0, 0, math.pi);
     world.addBody(body);
     demo.addVisual(body);
 

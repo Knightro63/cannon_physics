@@ -115,8 +115,8 @@ class OctreeNode {
   List<int> aabbQuery(AABB aabb, List<int> result){
     final List<OctreeNode> queue = [this];
     final children = this.children;
-    for (int i = 0, N = this.children.length; i != N; i++) {
-        children[i].aabbQuery(aabb, result);
+    for (int i = 0, N = children.length; i != N; i++) {
+      children[i].aabbQuery(aabb, result);
     }
     while (queue.isNotEmpty) {
       final OctreeNode node = queue.removeLast();
@@ -131,7 +131,7 @@ class OctreeNode {
 
   /// Get all data, potentially intersected by a ray.
   /// @return The "result" object
-  List<int> rayQuery(Ray ray, Transform treeTransform, List<int>result){
+  List<int> rayQuery(Ray ray, Transform treeTransform, List<int> result){
     //if(ray.direction.length() == 0) return;
     // Use aabb query for now.
     /** @todo implement real ray query which needs less lookups */

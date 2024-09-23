@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -46,7 +46,7 @@ class _EventsState extends State<Events> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 

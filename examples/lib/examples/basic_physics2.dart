@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
-import 'package:three_dart/three_dart.dart' as three;
-import 'package:three_dart/three_dart.dart' hide Texture, Color;
+import 'dart:math' as math;
+import 'package:three_js/three_js.dart' as three;
 import 'package:vector_math/vector_math.dart' as vmath;
 import '../src/conversion_utils.dart';
 
@@ -77,18 +77,18 @@ class _BasicPhysicsState extends State<BasicPhysics> {
     int t;
     for(int i = 0; i < max;i++){
       if(type==4) {
-        t = Math.floor(Math.random()*3)+1;
+        t = (math.Random().nextDouble() *3).floor() +1;
       }
       else {
         t = type;
       }
-      x = -100 + Math.random()*200;
-      z = -100 + Math.random()*200;
-      y = 100 + Math.random()*1000;
-      w = 10 + Math.random()*10;
-      h = 10 + Math.random()*10;
-      d = 10 + Math.random()*10;
-      three.Color randColor = three.Color().setHex((Math.random() * 0xFFFFFF).toInt());
+      x = -100 + math.Random().nextDouble() *200;
+      z = -100 + math.Random().nextDouble() *200;
+      y = 100 + math.Random().nextDouble() *1000;
+      w = 10 + math.Random().nextDouble() *10;
+      h = 10 + math.Random().nextDouble() *10;
+      d = 10 + math.Random().nextDouble() *10;
+      three.Color randColor = three.Color.fromHex32((math.Random().nextDouble()  * 0xFFFFFF).toInt());
 
       if(t==1){
         three.Material mat = mats['sph']!;
@@ -130,7 +130,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
     demo.world.fixedStep();
 
     double x, y, z;
-    Object3D mesh; 
+    three.Object3D mesh; 
     cannon.Body body;
     //print(bodys[0].getPosition());
     for(int i = 0; i < demo.bodies.length;i++){
@@ -139,26 +139,26 @@ class _BasicPhysicsState extends State<BasicPhysics> {
 
       if(body.sleepState != cannon.BodySleepStates.sleeping){
         
-        mesh.position.copy(body.position.toVector3());
-        mesh.quaternion.copy(body.quaternion.toQuaternion());
+        mesh.position.setFrom(body.position.toVector3());
+        mesh.quaternion.setFrom(body.quaternion.toQuaternion());
 
         // change material
-        if(mesh.material.name == 'sbox') mesh.material = mats['box'];
-        if(mesh.material.name == 'ssph') mesh.material = mats['sph'];
-        if(mesh.material.name == 'scyl') mesh.material = mats['cyl']; 
+        if(mesh.material?.name == 'sbox') mesh.material = mats['box'];
+        if(mesh.material?.name == 'ssph') mesh.material = mats['sph'];
+        if(mesh.material?.name == 'scyl') mesh.material = mats['cyl']; 
 
         // reset position
         if(mesh.position.y<-100){
-          x = -100 + Math.random()*200;
-          z = -100 + Math.random()*200;
-          y = 100 + Math.random()*1000;
+          x = -100 + math.Random().nextDouble() *200;
+          z = -100 + math.Random().nextDouble() *200;
+          y = 100 + math.Random().nextDouble() *1000;
           body.position = vmath.Vector3(x,y,z);
         }
       } 
       else {
-        if(mesh.material.name == 'box') mesh.material = mats['sbox'];
-        if(mesh.material.name == 'sph') mesh.material = mats['ssph'];
-        if(mesh.material.name == 'cyl') mesh.material = mats['scyl'];
+        if(mesh.material?.name == 'box') mesh.material = mats['sbox'];
+        if(mesh.material?.name == 'sph') mesh.material = mats['ssph'];
+        if(mesh.material?.name == 'cyl') mesh.material = mats['scyl'];
       }
     }
   }
@@ -166,13 +166,13 @@ class _BasicPhysicsState extends State<BasicPhysics> {
     final world = demo.world;
     world.broadphase = cannon.NaiveBroadphase();
 
-    mats['sph']    = MeshPhongMaterial({'shininess': 10, 'name':'sph'});
-    mats['box']    = MeshPhongMaterial({'shininess': 10, 'name':'box'});
-    mats['cyl']    = MeshPhongMaterial({'shininess': 10, 'name':'cyl'});
-    mats['ssph']   = MeshPhongMaterial({'shininess': 10, 'name':'ssph'});
-    mats['sbox']   = MeshPhongMaterial({'shininess': 10, 'name':'sbox'});
-    mats['scyl']   = MeshPhongMaterial({'shininess': 10, 'name':'scyl'});
-    mats['ground'] = MeshPhongMaterial({'shininess': 10, 'color':0x3D4143, 'transparent':true, 'opacity':0.5});
+    mats['sph']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sph'});
+    mats['box']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'box'});
+    mats['cyl']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'cyl'});
+    mats['ssph']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'ssph'});
+    mats['sbox']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sbox'});
+    mats['scyl']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'scyl'});
+    mats['ground'] = three.MeshPhongMaterial.fromMap({'shininess': 10, 'color':0x3D4143, 'transparent':true, 'opacity':0.5});
 
     populate(4);
   }

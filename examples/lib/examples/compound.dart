@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -51,7 +51,7 @@ class _CompoundState extends State<Compound> {
     const mass = 10.0;
     final body = cannon.Body(mass:mass);
     body.position.setValues(0, 6, 0);
-    body.quaternion.setFromEuler(0, 0, Math.PI * 0.03);
+    body.quaternion.setFromEuler(0, 0, math.pi * 0.03);
 
     // Use a box shape as child shape
     final shape = cannon.Box(vmath.Vector3(size * 0.5, size * 0.5, size * 0.5));
@@ -86,7 +86,7 @@ class _CompoundState extends State<Compound> {
     body.addShape(sphereShape, vmath.Vector3(1, 1, 0));
 
     body.position.setValues(0, 6, 0);
-    body.quaternion.setFromEuler(0, 0, -Math.PI * 0.03);
+    body.quaternion.setFromEuler(0, 0, -math.pi * 0.03);
     world.addBody(body);
     demo.addVisual(body);
   }
@@ -95,7 +95,7 @@ class _CompoundState extends State<Compound> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     demo.world.addBody(groundBody);
     demo.addVisual(groundBody);
   }

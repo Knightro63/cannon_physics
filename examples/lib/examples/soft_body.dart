@@ -1,8 +1,7 @@
 import 'package:cannon_physics_example/src/conversion_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gl/native-array/index.dart';
-import 'package:three_dart/three_dart.dart';
-import 'package:three_dart_jsm/three_dart_jsm.dart';
+import 'dart:math' as math;
+import 'package:three_js/three_js.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -48,7 +47,7 @@ class _SPHState extends State<SoftBody> {
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
     groundBody.position.setValues(0, 1, 0);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     // world.addBody(groundBody);
     // demo.addVisual(groundBody);
   }
@@ -75,7 +74,7 @@ class _SPHState extends State<SoftBody> {
             cons.bodyA.position.toVector3(),
             cons.bodyB.position.toVector3()
         ]);
-      demo.scene.add(
+      demo.threeJs.scene.add(
         Line(
           line, 
           LineBasicMaterial()

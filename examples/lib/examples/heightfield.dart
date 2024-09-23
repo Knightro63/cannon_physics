@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -54,7 +54,7 @@ class _HeightfieldState extends State<Heightfield> {
           continue;
         }
 
-        final height = Math.cos((i / sizeX) * Math.PI * 2) * Math.cos((j / sizeZ) * Math.PI * 2) + 2;
+        final height = math.cos((i / sizeX) * math.pi * 2) * math.cos((j / sizeZ) * math.pi * 2) + 2;
         matrix[i].add(height);
       }
     }
@@ -71,7 +71,7 @@ class _HeightfieldState extends State<Heightfield> {
       -4,
       ((sizeZ - 1) * heightfieldShape.elementSize) / 2
     );
-    heightfieldBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    heightfieldBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(heightfieldBody);
     demo.addVisual(heightfieldBody);
 

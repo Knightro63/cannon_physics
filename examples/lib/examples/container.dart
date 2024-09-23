@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -63,7 +63,7 @@ class _ContainerState extends State<ContainerCP> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0, material: stone);
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -71,7 +71,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeShapeXmin = cannon.Plane();
     final planeXmin = cannon.Body(mass: 0, material: stone);
     planeXmin.addShape(planeShapeXmin);
-    planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
+    planeXmin.quaternion.setFromEuler(0, math.pi / 2, 0);
     planeXmin.position.setValues(-5, 0, 0);
     world.addBody(planeXmin);
 
@@ -79,7 +79,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeShapeXmax = cannon.Plane();
     final planeXmax = cannon.Body( mass: 0, material: stone);
     planeXmax.addShape(planeShapeXmax);
-    planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
+    planeXmax.quaternion.setFromEuler(0, -math.pi / 2, 0);
     planeXmax.position.setValues(5, 0, 0);
     world.addBody(planeXmax);
 
@@ -95,7 +95,7 @@ class _ContainerState extends State<ContainerCP> {
     final planeShapeZmax = cannon.Plane();
     final planeZmax = cannon.Body(mass: 0, material: stone );
     planeZmax.addShape(planeShapeZmax);
-    planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
+    planeZmax.quaternion.setFromEuler(0, math.pi, 0);
     planeZmax.position.setValues(0, 0, 5);
     world.addBody(planeZmax);
 
@@ -111,9 +111,9 @@ class _ContainerState extends State<ContainerCP> {
           final sphereBody = cannon.Body(mass: 5, material: stone );
           sphereBody.addShape(sphereShape);
           sphereBody.position.setValues(
-            -(i * 2 - nx * 0.5 + (Math.random() - 0.5) * randRange),
+            -(i * 2 - nx * 0.5 + (math.Random().nextDouble() - 0.5) * randRange),
             1 + k * 2.1 + heightOffset,
-            j * 2 - ny * 0.5 + (Math.random() - 0.5) * randRange
+            j * 2 - ny * 0.5 + (math.Random().nextDouble() - 0.5) * randRange
           );
           sphereBody.allowSleep = true;
           sphereBody.sleepSpeedLimit = 1;

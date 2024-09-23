@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:math' as math;
 
-import 'package:flutter_gl/flutter_gl.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
-import 'package:three_dart/three_dart.dart' as three;
-import 'package:three_dart/three_dart.dart' hide Texture, Color;
-import 'package:three_dart_jsm/three_dart_jsm.dart';
+import 'package:three_js/three_js.dart' as three;
+import 'package:three_js_geometry/three_js_geometry.dart';
 import 'package:vector_math/vector_math.dart' as vmath;
 import '../src/conversion_utils.dart';
 
@@ -25,26 +22,8 @@ class Cloth extends StatefulWidget {
 }
 
 class _ClothPageState extends State<Cloth> {
-  FocusNode node = FocusNode();
-  // gl values
-  //late Object3D object;
-  bool animationReady = false;
-  late FlutterGlPlugin three3dRender;
-  WebGLRenderTarget? renderTarget;
-  WebGLRenderer? renderer;
-  late OrbitControls controls;
-  int? fboId;
-  late double width;
-  late double height;
-  Size? screenSize;
-  late Scene scene;
-  late Camera camera;
-  double dpr = 1.0;
-  bool verbose = false;
-  bool disposed = false;
-  final GlobalKey<DomLikeListenableState> _globalKey = GlobalKey<DomLikeListenableState>();
-  dynamic sourceTexture;
-
+  late three.ThreeJS threeJs;
+  late three.OrbitControls controls;
   late three.BufferGeometry clothGeometry;
   late three.Mesh sphereMesh;
 
@@ -65,88 +44,77 @@ class _ClothPageState extends State<Cloth> {
 
   @override
   void initState() {
+    threeJs = three.ThreeJS(
+      onSetupComplete: (){setState(() {});},
+      setup: setup
+    );
     mass = (clothMass / cols) * rows;
     restDistance = clothSize / cols;
     super.initState();
   }
   @override
   void dispose() {
-    disposed = true;
-    controls.clearListeners(); 
-    three3dRender.dispose();
+    controls.dispose();
+    threeJs.dispose();
     super.dispose();
   }
-  void initScene() async{
-    await initThree();
-    initRenderer();
-    initCannonPhysics();
-    animate();
-  }
-  void initSize(BuildContext context) {
-    if (screenSize != null) {
-      return;
-    }
 
-    final mqd = MediaQuery.of(context);
+  Future<void> setup() async {
+    threeJs.scene = three.Scene();
 
-    screenSize = mqd.size;
-    dpr = mqd.devicePixelRatio;
-
-    initPlatformState();
-  }
-
-  Future<void> initThree() async {
-    scene = Scene();
-
-    camera = PerspectiveCamera(30, width / height, 0.5, 10000);
-    camera.position.set(Math.cos(Math.PI/4) * 3,0,Math.sin(Math.PI/4) * 3);
+    threeJs.camera = three.PerspectiveCamera(30, threeJs.width / threeJs.height, 0.5, 10000);
+    threeJs.camera.position.setValues(math.cos(math.pi/4) * 3,0,math.sin(math.pi/4) * 3);
     //camera.rotation.order = 'YXZ';
 
-    final OrbitControls _controls = OrbitControls(camera, _globalKey);
-    controls = _controls;
+    controls = three.OrbitControls(threeJs.camera, threeJs.globalKey);
     //controls.target.set(0,20,0);
     //controls.update();
     
-    scene.add(AmbientLight( 0x3D4143 ) );
-    DirectionalLight light = DirectionalLight( 0xffffff , 1.4);
-    light.position.set( 300, 1000, 500 );
-    light.target!.position.set( 0, 0, 0 );
-    light.castShadow = true;
+    threeJs.scene.add(three.AmbientLight( 0x3D4143 ) );
+    three.DirectionalLight light = three.DirectionalLight( 0xffffff , 1.4);
+    light.position.setValues( 300, 1000, 500 );
+    light.target!.position.setValues( 0, 0, 0 );
+    // light.castShadow = true;
 
-    int d = 300;
-    light.shadow!.camera = OrthographicCamera( -d, d, d, -d,  500, 1600 );
-    light.shadow!.bias = 0.0001;
-    light.shadow!.mapSize.width = light.shadow!.mapSize.height = 1024;
+    // double d = 300;
+    // light.shadow!.camera =three.OrthographicCamera( -d, d, d, -d,  500, 1600 );
+    // light.shadow!.bias = 0.0001;
+    // light.shadow!.mapSize.width = light.shadow!.mapSize.height = 1024;
 
-    scene.add( light );
+    threeJs.scene.add( light );
 
     // Cloth material
-    three.Texture clothTexture = await three.TextureLoader(null).loadAsync('assets/images/sunflower.jpg');
-    clothTexture.wrapS = three.RepeatWrapping;
-    clothTexture.wrapT = three.RepeatWrapping;
-    clothTexture.anisotropy = 16;
-    clothTexture.encoding = three.sRGBEncoding;
+    three.Texture? clothTexture = await three.TextureLoader().fromAsset('assets/images/sunflower.jpg');
+    clothTexture?.wrapS = three.RepeatWrapping;
+    clothTexture?.wrapT = three.RepeatWrapping;
+    clothTexture?.anisotropy = 16;
+    clothTexture?.encoding = three.sRGBEncoding;
 
-    three.MeshPhongMaterial clothMaterial = three.MeshPhongMaterial({
+    three.MeshPhongMaterial clothMaterial = three.MeshPhongMaterial.fromMap({
       'map': clothTexture,
       'side': three.DoubleSide,
     });
     // Cloth geometry
-    clothGeometry = three.ParametricGeometry(clothFunction, cols, rows);
+    clothGeometry = ParametricGeometry(clothFunction, cols, rows);
 
     // Cloth mesh
     three.Mesh clothMesh = three.Mesh(clothGeometry, clothMaterial);
     //clothMesh.position.set(0,-1,0);
-    scene.add(clothMesh);
+    threeJs.scene.add(clothMesh);
  
     // Sphere
     three.SphereGeometry sphereGeometry = three.SphereGeometry(sphereSize);
-    three.MeshPhongMaterial sphereMaterial = three.MeshPhongMaterial({'color': 0x888888 });
+    three.MeshPhongMaterial sphereMaterial = three.MeshPhongMaterial.fromMap({'color': 0x888888 });
 
     sphereMesh = three.Mesh(sphereGeometry, sphereMaterial);
-    scene.add(sphereMesh);
+    threeJs.scene.add(sphereMesh);
 
-    animationReady = true;
+    initCannonPhysics();
+    threeJs.addAnimationEvent((dt){
+      world.fixedStep();
+      updateCannonPhysics();
+      controls.update();
+    });
   }
 
   //----------------------------------
@@ -190,8 +158,8 @@ class _ClothPageState extends State<Cloth> {
     );
 
     sphereBody.addShape(sphereShape);
-    sphereMesh.position.copy(sphereBody.shapeOffsets[0].toVector3());
-    sphereMesh.quaternion.copy(sphereBody.shapeOrientations[0].toQuaternion());
+    sphereMesh.position.setFrom(sphereBody.shapeOffsets[0].toVector3());
+    sphereMesh.quaternion.setFrom(sphereBody.shapeOrientations[0].toQuaternion());
     world.addBody(sphereBody);
 
     // Create cannon particles
@@ -233,7 +201,7 @@ class _ClothPageState extends State<Cloth> {
     double y = (v + 0.5) * restDistance * rows;
     double z = 0;
 
-    target.set(x, y, z);
+    target.setValues(x, y, z);
 
     return target;
   }
@@ -255,123 +223,12 @@ class _ClothPageState extends State<Cloth> {
 
     // Move the ball in a circular motion
     double time = world.time;
-    sphereBody.position.setValues(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
+    sphereBody.position.setValues(movementRadius * math.sin(time), 0, movementRadius * math.cos(time));
 
     // Make the three.js ball follow the cannon.js one
     // Copying quaternion is not needed since it's a sphere
-    sphereMesh.position.copy(sphereBody.position.toVector3());
-    sphereMesh.quaternion.copy(sphereBody.quaternion.toQuaternion());
-  }
-  void animate() {
-    if (!mounted || disposed) {
-      return;
-    }
-    render();
-
-    Future.delayed(const Duration(milliseconds: 16), () {
-      animate();
-    });
-  }
-  void render() {
-    final _gl = three3dRender.gl;
-    renderer!.render(scene, camera);
-    _gl.flush();
-    world.fixedStep();
-    updateCannonPhysics();
-    controls.update();
-    if(!kIsWeb) {
-      three3dRender.updateTexture(sourceTexture);
-    }
-  }
-  void initRenderer() {
-    Map<String, dynamic> _options = {
-      "width": width,
-      "height": height,
-      "gl": three3dRender.gl,
-      "antialias": true,
-      "canvas": three3dRender.element,
-    };
-
-    if(!kIsWeb && Platform.isAndroid){
-      _options['logarithmicDepthBuffer'] = true;
-    }
-
-    renderer = WebGLRenderer(_options);
-    renderer!.setPixelRatio(dpr);
-    renderer!.setSize(width, height, false);
-    renderer!.shadowMap.enabled = true;
-    renderer!.shadowMap.type = three.PCFShadowMap;
-    //renderer!.outputEncoding = three.sRGBEncoding;
-
-    if(!kIsWeb){
-      WebGLRenderTargetOptions pars = WebGLRenderTargetOptions({"format": RGBAFormat,"samples": 8});
-      renderTarget = WebGLRenderTarget((width * dpr).toInt(), (height * dpr).toInt(), pars);
-      renderer!.setRenderTarget(renderTarget);
-      sourceTexture = renderer!.getRenderTargetGLTexture(renderTarget!);
-    }
-    else{
-      renderTarget = null;
-    }
-  }
-
-  Future<void> initPlatformState() async {
-    width = screenSize!.width;
-    height = screenSize!.height;
-
-    three3dRender = FlutterGlPlugin();
-
-    Map<String, dynamic> _options = {
-      "antialias": true,
-      "alpha": true,
-      "width": width.toInt(),
-      "height": height.toInt(),
-      "dpr": dpr,
-      'precision': 'highp'
-    };
-    await three3dRender.initialize(options: _options);
-
-    setState(() {});
-
-    // TODO web wait dom ok!!!
-    Future.delayed(const Duration(milliseconds: 100), () async {
-      await three3dRender.prepareContext();
-      initScene();
-    });
-  }
-
-  Widget threeDart() {
-    return Builder(builder: (BuildContext context) {
-      initSize(context);
-      return Container(
-        width: screenSize!.width,
-        height: screenSize!.height,
-        color: Theme.of(context).canvasColor,
-        child: DomLikeListenable(
-          key: _globalKey,
-          builder: (BuildContext context) {
-            FocusScope.of(context).requestFocus(node);
-            return Container(
-              width: width,
-              height: height,
-              color: Theme.of(context).canvasColor,
-              child: Builder(builder: (BuildContext context) {
-                if (kIsWeb) {
-                  return three3dRender.isInitialized
-                      ? HtmlElementView(
-                          viewType:
-                              three3dRender.textureId!.toString())
-                      : Container();
-                } else {
-                  return three3dRender.isInitialized
-                      ? Texture(textureId: three3dRender.textureId!)
-                      : Container();
-                }
-              })
-            );
-          }
-        ),
-      );
-    });
+    sphereMesh.position.setFrom(sphereBody.position.toVector3());
+    sphereMesh.quaternion.setFrom(sphereBody.quaternion.toQuaternion());
   }
 
   @override
@@ -381,7 +238,7 @@ class _ClothPageState extends State<Cloth> {
       width: double.infinity,
       child: Stack(
         children: [
-          threeDart(),
+          threeJs.build(),
         ],
       )
     );

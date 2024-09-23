@@ -1,16 +1,9 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-
-import 'package:flutter_gl/flutter_gl.dart';
-import 'package:cannon_physics/cannon_physics.dart' as cannon;
-import 'package:three_dart/three_dart.dart' as three;
-import 'package:three_dart/three_dart.dart' hide Texture, Color;
-import 'package:three_dart_jsm/three_dart_jsm.dart';
-import 'conversion_utils.dart';
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:cannon_physics/cannon_physics.dart' as cannon;
+import 'package:three_js/three_js.dart' as three;
+import 'conversion_utils.dart';
 import 'package:vector_math/vector_math.dart' as vmath;
 
 enum RenderMode{solid,wireframe}
@@ -70,7 +63,15 @@ class DemoSettings{
  */
 class Demo{
   void Function() onSetupComplete;
-  Demo({required this.onSetupComplete,DemoSettings? settings, void Function()? updatePhysics}){
+  Demo({required this.onSetupComplete, DemoSettings? settings, void Function()? updatePhysics}){
+    threeJs = three.ThreeJS(
+      onSetupComplete: onSetupComplete, 
+      setup: setup,
+      settings: three.Settings(
+        //useSourceTexture: true
+      )
+    );
+    threeJs.scene = three.Scene();
     this.settings = settings ?? DemoSettings();
 
     world = cannon.World();
@@ -103,39 +104,21 @@ class Demo{
     initGeometryCaches();
   }
 
-  final GlobalKey<DomLikeListenableState> globalKey = GlobalKey<DomLikeListenableState>();
-  DomLikeListenableState get domElement => globalKey.currentState!;
-
   Map<String,Function> domElements = {};
+  late final three.ThreeJS threeJs;
 
   late cannon.World world;
   List<cannon.Body> bodies = [];
   List<three.Object3D> visuals = [];
   late DemoSettings settings;
-
-  bool animationReady = false;
-  late FlutterGlPlugin three3dRender;
-  WebGLRenderTarget? renderTarget;
-  WebGLRenderer? renderer;
-  late OrbitControls controls;
-
-  late double width;
-  late double height;
-  Size? screenSize;
-  Scene scene = Scene();
-  late Camera camera;
-  double dpr = 1.0;
-  bool verbose = false;
-  bool disposed = false;
-  
-  dynamic sourceTexture;
+  late three.OrbitControls controls;
   
   double? lastCallTime;
   bool resetCallTime = false;
   double toRad = 0.0174532925199432957;
 
-  late SpotLight _spotLight;
-  late AmbientLight _ambientLight;
+  late three.SpotLight _spotLight;
+  late three.AmbientLight _ambientLight;
 
   Map<LogicalKeyboardKey,bool> keyStates = {
     LogicalKeyboardKey.keyW: false,
@@ -150,10 +133,9 @@ class Demo{
     LogicalKeyboardKey.arrowRight: false,
   };
   int mouseTime = 0;
-  bool mounted = false;
 
-  MeshBasicMaterial _wireframeMaterial = MeshBasicMaterial({'color': 0xffffff, 'wireframe': true});
-  MeshLambertMaterial _solidMaterial = MeshLambertMaterial({'color': 0xdddddd});
+  final three.MeshBasicMaterial _wireframeMaterial = three.MeshBasicMaterial.fromMap({'color': 0xffffff, 'wireframe': true});
+  final three.MeshLambertMaterial _solidMaterial = three.MeshLambertMaterial.fromMap({'color': 0xdddddd});
   late three.Material _currentMaterial;
 
   late void Function() updatePhysics;
@@ -177,11 +159,8 @@ class Demo{
   Map<String,dynamic> scenes = {};
 
   void dispose(){
-    disposed = true;
-    // renderTarget?.dispose();
-    // renderer?.dispose();
-    scene.dispose();
-    three3dRender.dispose();
+    controls.dispose();
+    threeJs.dispose();
   }
   // void addEventListener(String type,Function(dynamic) listener){
   //   world.addEventListener('postStep', listener);
@@ -205,80 +184,80 @@ class Demo{
       _currentMaterial = _wireframeMaterial;
     }
 
-    three.MeshBasicMaterial contactDotMaterial = three.MeshBasicMaterial({ 'color': 0xffffff });
+    three.MeshBasicMaterial contactDotMaterial = three.MeshBasicMaterial.fromMap({ 'color': 0xffffff });
 
     final contactPointGeometry = three.SphereGeometry(0.1, 6, 6);
-    contactMeshCache = GeometryCache(scene, (){
+    contactMeshCache = GeometryCache(threeJs.scene, (){
       return three.Mesh(contactPointGeometry, contactDotMaterial);
     });
 
-    cm2contactMeshCache = GeometryCache(scene, (){
-      BufferGeometry geometry = BufferGeometry();
-      geometry.setAttribute(
+    cm2contactMeshCache = GeometryCache(threeJs.scene, (){
+      three.BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList([0,0,0,1,1,1]), 3, false)
       );
-      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+      return three.Line(geometry, three.LineBasicMaterial.fromMap({ 'color': 0xff0000 }));
     });
 
     three.BoxGeometry bboxGeometry = three.BoxGeometry(1, 1, 1);
-    three.MeshBasicMaterial bboxMaterial = three.MeshBasicMaterial({
+    three.MeshBasicMaterial bboxMaterial = three.MeshBasicMaterial.fromMap({
       'color': materialColor,
       'wireframe': true,
     });
 
-    bboxMeshCache = GeometryCache(scene, (){
+    bboxMeshCache = GeometryCache(threeJs.scene, (){
       return three.Mesh(bboxGeometry, bboxMaterial);
     });
 
-    distanceConstraintMeshCache = GeometryCache(scene, (){
-      BufferGeometry geometry = three.BufferGeometry();
-      geometry.setAttribute(
+    distanceConstraintMeshCache = GeometryCache(threeJs.scene, (){
+      three.BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList([0,0,0,1,1,1]), 3, false)
       );
-      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+      return three.Line(geometry, three.LineBasicMaterial.fromMap({ 'color': 0xff0000 }));
     });
 
-    p2pConstraintMeshCache = GeometryCache(scene, () {
-      BufferGeometry geometry = three.BufferGeometry();
-      geometry.setAttribute(
+    p2pConstraintMeshCache = GeometryCache(threeJs.scene, () {
+      three.BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList([0,0,0,1,1,1]), 3, false)
       );
-      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0xff0000 }));
+      return three.Line(geometry, three.LineBasicMaterial.fromMap({ 'color': 0xff0000 }));
     });
 
-    normalMeshCache = GeometryCache(scene, (){
-      BufferGeometry geometry = three.BufferGeometry();
-      geometry.setAttribute(
+    normalMeshCache = GeometryCache(threeJs.scene, (){
+      three.BufferGeometry geometry = three.BufferGeometry();
+      geometry.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from([0,0,0,1,1,1]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList([0,0,0,1,1,1]), 3, false)
       );
-      return three.Line(geometry, three.LineBasicMaterial({ 'color': 0x00ff00 }));
+      return three.Line(geometry, three.LineBasicMaterial.fromMap({ 'color': 0x00ff00 }));
     });
 
-    axesMeshCache = GeometryCache(scene, (){
+    axesMeshCache = GeometryCache(threeJs.scene, (){
       three.Object3D mesh = three.Object3D();
       List<double> origin = [0, 0, 0];
-      BufferGeometry gX = BufferGeometry();
-      BufferGeometry gY = BufferGeometry();
-      BufferGeometry gZ = BufferGeometry();
-      gX.setAttribute(
+      three.BufferGeometry gX = three.BufferGeometry();
+      three.BufferGeometry gY = three.BufferGeometry();
+      three.BufferGeometry gZ = three.BufferGeometry();
+      gX.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from(origin+[1,0,0]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList(origin+[1,0,0]), 3, false)
       );
-      gY.setAttribute(
+      gY.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from(origin+[0,1,0]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList(origin+[0,1,0]), 3, false)
       );
-      gZ.setAttribute(
+      gZ.setAttributeFromString(
         'position',
-          Float32BufferAttribute(Float32Array.from(origin+[0,0,1]), 3, false)
+          three.Float32BufferAttribute(three.Float32Array.fromList(origin+[0,0,1]), 3, false)
       );
-      three.Line lineX = three.Line(gX, three.LineBasicMaterial({ 'color': 0xff0000 }));
-      three.Line lineY = three.Line(gY, three.LineBasicMaterial({ 'color': 0x00ff00 }));
-      three.Line lineZ = three.Line(gZ, three.LineBasicMaterial({ 'color': 0x0000ff }));
+      three.Line lineX = three.Line(gX, three.LineBasicMaterial.fromMap({ 'color': 0xff0000 }));
+      three.Line lineY = three.Line(gY, three.LineBasicMaterial.fromMap({ 'color': 0x00ff00 }));
+      three.Line lineZ = three.Line(gZ, three.LineBasicMaterial.fromMap({ 'color': 0x0000ff }));
       mesh.add(lineX);
       mesh.add(lineY);
       mesh.add(lineZ);
@@ -299,44 +278,15 @@ class Demo{
     normalMeshCache.restart();
     normalMeshCache.hideCached();
   }
-  void initSize(BuildContext context){
-    if (screenSize != null) {
-      return;
-    }
 
-    final mqd = MediaQuery.of(context);
+  void setup() async {
+    threeJs.scene.fog = three.Fog(0x222222, 1000, 2000);
 
-    screenSize = mqd.size;
-    dpr = mqd.devicePixelRatio;
+    threeJs.camera = three.PerspectiveCamera(24, threeJs.width/threeJs.height, 5, 2000);
+    threeJs.camera.position.setValues(0,20,40);
+    threeJs.camera.lookAt(three.Vector3(0, 0, 0));
 
-   initPlatformState();
-  }
-  
-  void animate() {
-    if (!mounted || disposed) {
-      return;
-    }
-    render();
-    Future.delayed(const Duration(milliseconds: 1000~/60), () {
-      if(!pause){
-        updatePhysics();
-        for(int i = 0; i < events.length;i++){
-          events[i].call(world.dt);
-        }
-        updateVisuals();
-      }
-      animate();
-    });
-  }
-
-  void initPage() async {
-    scene.fog = three.Fog(0x222222, 1000, 2000);
-
-    camera = PerspectiveCamera(24, width/height, 5, 2000);
-    camera.position.set(0,20,40);
-    camera.lookAt(three.Vector3(0, 0, 0));
-
-    controls = OrbitControls(camera, globalKey);
+    controls = three.OrbitControls(threeJs.camera, threeJs.globalKey);
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
     controls.enableDamping = true;
@@ -345,47 +295,69 @@ class Demo{
     controls.minDistance = 10;
     controls.maxDistance = 500;
 
-    _ambientLight = AmbientLight(0xffffff, 0.1);
-    scene.add(_ambientLight);
+    _ambientLight = three.AmbientLight(0xffffff, 0.1);
+    threeJs.scene.add(_ambientLight);
 
-    DirectionalLight directionalLight = DirectionalLight( 0xffffff , 0.15);
-    directionalLight.position.set(-30, 40, 30);
-    directionalLight.target!.position.set( 0, 0, 0 );
-    scene.add(directionalLight);
+    three.DirectionalLight directionalLight = three.DirectionalLight( 0xffffff , 0.15);
+    directionalLight.position.setValues(-30, 40, 30);
+    directionalLight.target!.position.setValues( 0, 0, 0 );
+    threeJs.scene.add(directionalLight);
 
-    _spotLight = three.SpotLight(0xffffff, 0.9, 0.0, Math.PI / 8, 1.0);
-    _spotLight.position.set(-30, 40, 30);
-    _spotLight.target!.position.set(0, 0, 0);
+    _spotLight = three.SpotLight(0xffffff, 0.9, 0.0, math.pi / 8, 1.0);
+    _spotLight.position.setValues(-30, 40, 30);
+    _spotLight.target!.position.setValues(0, 0, 0);
 
-    _spotLight.castShadow = true;
+    //_spotLight.castShadow = true;
 
     _spotLight.shadow!.camera!.near = 10;
     _spotLight.shadow!.camera!.far = 100;
     _spotLight.shadow!.camera!.fov = 30;
 
-    // spotLight.shadow.bias = -0.0001
+    _spotLight.shadow?.bias = -0.0001;
     _spotLight.shadow!.mapSize.width = 2048;
     _spotLight.shadow!.mapSize.height = 2048;
 
-    scene.add(_spotLight);
+    threeJs.scene.add(_spotLight);
 
     for(String type in domElements.keys){
-      domElement.addEventListener(type, domElements[type]!);
+      final t = getType(type);
+      if(t != null){
+        threeJs.domElement.addEventListener(t, domElements[type]!);
+      }
     }
 
+    threeJs.addAnimationEvent((dt){
+      controls.update();
+      if(!pause){
+        updatePhysics();
+        for(int i = 0; i < events.length;i++){
+          events[i].call(world.dt);
+        }
+        updateVisuals();
+      }
+    });
+
     start();
+  }
+  three.PeripheralType? getType(String type){
+    for(final t in three.PeripheralType.values){
+      if(t.name == type){
+        return t;
+      }
+    }
+    return null;
   }
   void setRenderMode(RenderMode mode){
     switch(mode) {
       case RenderMode.solid:
         _currentMaterial = _solidMaterial;
         _spotLight.intensity = 1;
-        _ambientLight.color!.setHex(0x222222);
+        _ambientLight.color!.setFromHex32(0x222222);
         break;
       case RenderMode.wireframe:
         _currentMaterial = _wireframeMaterial;
         _spotLight.intensity = 0;
-        _ambientLight.color!.setHex(0xffffff);
+        _ambientLight.color!.setFromHex32(0xffffff);
         break;
     }
 
@@ -395,7 +367,7 @@ class Demo{
         visual.material = _currentMaterial;
       }
       visual.traverse((child){
-        if (child.material) {
+        if (child.material != null) {
           child.material = _currentMaterial;
         }
       });
@@ -405,8 +377,8 @@ class Demo{
   }
 
   void addVisual(cannon.Body body, {three.Mesh? mesh, three.Material? material}){
-    MeshLambertMaterial particleMaterial = MeshLambertMaterial({ 'color': 0xff0000 });
-    MeshBasicMaterial triggerMaterial = MeshBasicMaterial({ 'color': 0x00ff00, 'wireframe': true, 'wireframeLinewidth':1.0 });
+    three.MeshLambertMaterial particleMaterial = three.MeshLambertMaterial.fromMap({ 'color': 0xff0000 });
+    three.MeshBasicMaterial triggerMaterial = three.MeshBasicMaterial.fromMap({ 'color': 0x00ff00, 'wireframe': true, 'wireframeLinewidth':1.0 });
     // if it's a particle paint it red, if it's a trigger paint it as green, otherwise just gray
     final isParticle = body.shapes.every((s) => s is cannon.Particle);
     final mat = material ?? (isParticle ? particleMaterial : body.isTrigger ? triggerMaterial : _currentMaterial);
@@ -415,14 +387,14 @@ class Demo{
     final me = mesh?.clone() ?? ConversionUtils.bodyToMesh(body, mat);
     
     // enable shadows on every object
-    // mesh.traverse((child){
-    //   child.castShadow = true;
-    //   child.receiveShadow = true;
-    // });
+    mesh?.traverse((child){
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
 
     bodies.add(body);
     visuals.add(me);
-    scene.add(me);
+    threeJs.scene.add(me);
   }
   void addVisuals(List<cannon.Body> bodies) {
     bodies.forEach((body){
@@ -438,10 +410,10 @@ class Demo{
 
     final visual = visuals[index];
 
-    bodies.splice(index, 1);
-    visuals.splice(index, 1);
+    bodies.removeAt(index);
+    visuals.removeAt(index);
 
-    scene.remove(visual);
+    threeJs.scene.remove(visual);
   }
   void removeAllVisuals() {
     while (bodies.isNotEmpty) {
@@ -476,83 +448,12 @@ class Demo{
     lastCallTime = now;
   }
 
-  void render() {
-    final _gl = three3dRender.gl;
-    renderer!.render(scene, camera);
-    _gl.flush();
-    controls.update();
-    if(!kIsWeb) {
-      three3dRender.updateTexture(sourceTexture);
-    }
-  }
-  void initRenderer() {
-    Map<String, dynamic> _options = {
-      "width": width,
-      "height": height,
-      "gl": three3dRender.gl,
-      "antialias": true,
-      "canvas": three3dRender.element,
-    };
-
-    if(!kIsWeb && Platform.isAndroid){
-      _options['logarithmicDepthBuffer'] = true;
-    }
-
-    renderer = WebGLRenderer(_options);
-    renderer!.setPixelRatio(dpr);
-    renderer!.setSize(width, height, false);
-    renderer!.shadowMap.enabled = true;
-    renderer!.shadowMap.type = three.PCFShadowMap;
-
-    if(!kIsWeb){
-      WebGLRenderTargetOptions pars = WebGLRenderTargetOptions({"format": RGBAFormat,"samples": 8});
-      renderTarget = WebGLRenderTarget((width * dpr).toInt(), (height * dpr).toInt(), pars);
-      renderer!.setRenderTarget(renderTarget);
-      sourceTexture = renderer!.getRenderTargetGLTexture(renderTarget!);
-    }
-    else{
-      renderTarget = null;
-    }
-  }
-
-  void initScene() async{
-    initPage();
-    initRenderer();
-    // setupWorld();
-    mounted = true;
-    animate();
-    onSetupComplete();
-  }
-
-  Future<void> initPlatformState() async {
-    width = screenSize!.width;
-    height = screenSize!.height;
-
-    three3dRender = FlutterGlPlugin();
-
-    Map<String, dynamic> _options = {
-      "antialias": true,
-      "alpha": true,
-      "width": width.toInt(),
-      "height": height.toInt(),
-      "dpr": dpr,
-      'precision': 'highp'
-    };
-    await three3dRender.initialize(options: _options);
-
-    // TODO web wait dom ok!!!
-    Future.delayed(const Duration(milliseconds: 100), () async {
-      await three3dRender.prepareContext();
-      initScene();
-    });
-  }
-
   void updateVisuals(){
     // Copy position data into visuals
     for (int i = 0; i < bodies.length; i++) {
       final body = bodies[i];
       final visual = visuals[i];
-      Object3D dummy = Object3D();
+      three.Object3D dummy = three.Object3D();
 
       // Interpolated or not?
       vmath.Vector3 position = body.interpolatedPosition;
@@ -562,17 +463,17 @@ class Demo{
         quaternion = body.quaternion;
       }
 
-      if (visual is InstancedMesh) {
-        dummy.position.copy(position.toVector3());
-        dummy.quaternion.copy(quaternion.toQuaternion());
+      if (visual is three.InstancedMesh) {
+        dummy.position.setFrom(position.toVector3());
+        dummy.quaternion.setFrom(quaternion.toQuaternion());
 
         dummy.updateMatrix();
 
         visual.setMatrixAt(body.index, dummy.matrix);
         visual.instanceMatrix!.needsUpdate = true;
       } else {
-        visual.position.copy(position.toVector3());
-        visual.quaternion.copy(quaternion.toQuaternion());
+        visual.position.setFrom(position.toVector3());
+        visual.quaternion.setFrom(quaternion.toQuaternion());
       }
     }
 
@@ -584,10 +485,10 @@ class Demo{
         cannon.ContactEquation contact = world.contacts[i];
 
         for (int ij = 0; ij < 2; ij++) {
-          Object3D mesh = contactMeshCache.request();
+          three.Object3D mesh = contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
           vmath.Vector3 r = ij == 0 ? contact.ri : contact.rj;
-          mesh.position.set(b.position.x + r.x, b.position.y + r.y, b.position.z + r.z);
+          mesh.position.setValues(b.position.x + r.x, b.position.y + r.y, b.position.z + r.z);
         }
       }
     }
@@ -600,12 +501,12 @@ class Demo{
         cannon.ContactEquation contact = world.contacts[i];
 
         for (int ij = 0; ij < 2; ij++) {
-          Object3D line = cm2contactMeshCache.request();
+          three.Object3D line = cm2contactMeshCache.request();
           cannon.Body b = ij == 0 ? contact.bi : contact.bj;
           vmath.Vector3 r = ij == 0 ? contact.ri : contact.rj;
-          line.scale.set(r.x, r.y, r.z);
+          line.scale.setValues(r.x, r.y, r.z);
           makeSureNotZero(line.scale);
-          line.position.copy(b.position);
+          line.position.setFrom(b.position.toVector3());
         }
       }
     }
@@ -621,14 +522,14 @@ class Demo{
             cannon.Body bi = equation.bi;
             cannon.Body bj = equation.bj;
 
-            Object3D line = distanceConstraintMeshCache.request();
+            three.Object3D line = distanceConstraintMeshCache.request();
 
             // Remember, bj is either a Vec3 or a Body.
             vmath.Vector3 vector = bj.position;
 
-            line.scale.set(vector.x - bi.position.x, vector.y - bi.position.y, vector.z - bi.position.z);
+            line.scale.setValues(vector.x - bi.position.x, vector.y - bi.position.y, vector.z - bi.position.z);
             makeSureNotZero(line.scale);
-            line.position.copy(bi.position);
+            line.position.setFrom(bi.position.toVector3());
           });
         }
         // Lines for point to point constraints
@@ -637,24 +538,24 @@ class Demo{
             cannon.Body bi = equation.bi;
             cannon.Body bj = equation.bj;
 
-            Object3D relLine1 = p2pConstraintMeshCache.request();
-            Object3D relLine2 = p2pConstraintMeshCache.request();
-            Object3D diffLine = p2pConstraintMeshCache.request();
+            three.Object3D relLine1 = p2pConstraintMeshCache.request();
+            three.Object3D relLine2 = p2pConstraintMeshCache.request();
+            three.Object3D diffLine = p2pConstraintMeshCache.request();
             if(equation is cannon.ContactEquation){
-              relLine1.scale.set(equation.ri.x, equation.ri.y, equation.ri.z);
-              relLine2.scale.set(equation.rj.x, equation.rj.y, equation.rj.z);
+              relLine1.scale.setValues(equation.ri.x, equation.ri.y, equation.ri.z);
+              relLine2.scale.setValues(equation.rj.x, equation.rj.y, equation.rj.z);
             }
             else if(equation is cannon.FrictionEquation){
-              relLine1.scale.set(equation.ri.x, equation.ri.y, equation.ri.z);
-              relLine2.scale.set(equation.rj.x, equation.rj.y, equation.rj.z);
+              relLine1.scale.setValues(equation.ri.x, equation.ri.y, equation.ri.z);
+              relLine2.scale.setValues(equation.rj.x, equation.rj.y, equation.rj.z);
             }
 
             // BUG this is not exposed anymore in the ContactEquation, this sections needs to be updated
             makeSureNotZero(relLine1.scale);
             makeSureNotZero(relLine2.scale);
             makeSureNotZero(diffLine.scale);
-            relLine1.position.copy(bi.position);
-            relLine2.position.copy(bj.position);
+            relLine1.position.setFrom(bi.position.toVector3());
+            relLine2.position.setFrom(bj.position.toVector3());
 
             if (equation is cannon.ContactEquation) {
               equation.bj.position.add2(equation.rj, diffLine.position.toVector3());
@@ -677,13 +578,13 @@ class Demo{
 
         cannon.Body bi = constraint.bi;
         //cannon.Body bj = constraint.bj;
-        Object3D line = normalMeshCache.request();
+        three.Object3D line = normalMeshCache.request();
 
         vmath.Vector3 constraintNormal = constraint.ni;
         cannon.Body body = bi;
-        line.scale.set(constraintNormal.x, constraintNormal.y, constraintNormal.z);
+        line.scale.setValues(constraintNormal.x, constraintNormal.y, constraintNormal.z);
         makeSureNotZero(line.scale);
-        line.position.copy(body.position);
+        line.position.setFrom(body.position.toVector3());
         constraint.ri.add2(line.position.toVector3(), line.position.toVector3());
       }
     }
@@ -695,9 +596,9 @@ class Demo{
       for (int i = 0; i < bodies.length; i++) {
         cannon.Body body = bodies[i];
 
-        Object3D mesh = axesMeshCache.request();
-        mesh.position.copy(body.position.toVector3());
-        mesh.quaternion.copy(body.quaternion.toQuaternion());
+        three.Object3D mesh = axesMeshCache.request();
+        mesh.position.setFrom(body.position.toVector3());
+        mesh.quaternion.setFrom(body.quaternion.toQuaternion());
       }
     }
     axesMeshCache.hideCached();
@@ -714,23 +615,23 @@ class Demo{
 
         // Todo: cap the infinite AABB to scene AABB, for now just dont render
         if (
-          isFinite(body.aabb.lowerBound.x) &&
-          isFinite(body.aabb.lowerBound.y) &&
-          isFinite(body.aabb.lowerBound.z) &&
-          isFinite(body.aabb.upperBound.x) &&
-          isFinite(body.aabb.upperBound.y) &&
-          isFinite(body.aabb.upperBound.z) &&
+          body.aabb.lowerBound.x.isFinite &&
+          (body.aabb.lowerBound.y.isFinite) &&
+          (body.aabb.lowerBound.z.isFinite) &&
+          (body.aabb.upperBound.x.isFinite) &&
+          (body.aabb.upperBound.y.isFinite) &&
+          (body.aabb.upperBound.z.isFinite) &&
           body.aabb.lowerBound.x - body.aabb.upperBound.x != 0 &&
           body.aabb.lowerBound.y - body.aabb.upperBound.y != 0 &&
           body.aabb.lowerBound.z - body.aabb.upperBound.z != 0
         ) {
-          Object3D mesh = bboxMeshCache.request();
-          mesh.scale.set(
+          three.Object3D mesh = bboxMeshCache.request();
+          mesh.scale.setValues(
             body.aabb.lowerBound.x - body.aabb.upperBound.x,
             body.aabb.lowerBound.y - body.aabb.upperBound.y,
             body.aabb.lowerBound.z - body.aabb.upperBound.z
           );
-          mesh.position.set(
+          mesh.position.setValues(
             (body.aabb.lowerBound.x + body.aabb.upperBound.x) * 0.5,
             (body.aabb.lowerBound.y + body.aabb.upperBound.y) * 0.5,
             (body.aabb.lowerBound.z + body.aabb.upperBound.z) * 0.5
@@ -825,32 +726,9 @@ class Demo{
 
   Widget threeDart() {
     return Builder(builder: (BuildContext context) {
-      initSize(context);
       return Stack(
         children:[
-          Container(
-            width: screenSize!.width,
-            height: screenSize!.height,
-            color: Theme.of(context).canvasColor,
-            child: DomLikeListenable(
-              key: globalKey,
-              builder: (BuildContext context) {
-                return Container(
-                  width: width,
-                  height: height,
-                  color: Theme.of(context).canvasColor,
-                  child: Builder(builder: (BuildContext context) {
-                    if (kIsWeb) {
-                      return three3dRender.isInitialized? HtmlElementView(viewType:three3dRender.textureId!.toString()):Container();
-                    } 
-                    else {
-                      return three3dRender.isInitialized?Texture(textureId: three3dRender.textureId!):Container();
-                    }
-                  })
-                );
-              }
-            ),
-          ),
+          threeJs.build(),
           if(scenes.isNotEmpty)Positioned(
             top: 20,
             right: 20,

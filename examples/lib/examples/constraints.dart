@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -46,7 +46,7 @@ class _ConstraintsState extends State<Constraints> {
     final groundBody = cannon.Body(mass: 0);
     groundBody.addShape(groundShape);
     groundBody.position.setValues(0, 1, 0);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
   }
@@ -291,7 +291,7 @@ class _ConstraintsState extends State<Constraints> {
         final body = cannon.Body(mass: j == rows - 1 ? 0 : mass);
         body.addShape(cannon.Particle());
         body.position.setValues(-dist * i, dist * j + 5, 0);
-        body.velocity.setValues(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 3);
+        body.velocity.setValues(0, 0, (math.sin(i * 0.1) + math.sin(j * 0.1)) * 3);
         bodies['$i $j'] = body;
         world.addBody(body);
         demo.addVisual(body);
@@ -335,7 +335,7 @@ class _ConstraintsState extends State<Constraints> {
           final body = cannon.Body( mass:mass );
           body.addShape(cannon.Particle());
           body.position.setValues(-dist * i, dist * k + dist * Nz * 0.3 + 1, dist * j);
-          body.velocity.setValues(0, 0, (Math.sin(i * 0.1) + Math.sin(j * 0.1)) * 30);
+          body.velocity.setValues(0, 0, (math.sin(i * 0.1) + math.sin(j * 0.1)) * 30);
           bodies['$i $j $k'] = body;
           world.addBody(body);
           demo.addVisual(body);
@@ -363,24 +363,24 @@ class _ConstraintsState extends State<Constraints> {
           // Diagonals
           if (i < Nx - 1 && j < Ny - 1 && k < Nz - 1) {
             // 3d diagonals
-            connect(i, j, k, i + 1, j + 1, k + 1, Math.sqrt(3) * dist);
-            connect(i + 1, j, k, i, j + 1, k + 1, Math.sqrt(3) * dist);
-            connect(i, j + 1, k, i + 1, j, k + 1, Math.sqrt(3) * dist);
-            connect(i, j, k + 1, i + 1, j + 1, k, Math.sqrt(3) * dist);
+            connect(i, j, k, i + 1, j + 1, k + 1, math.sqrt(3) * dist);
+            connect(i + 1, j, k, i, j + 1, k + 1, math.sqrt(3) * dist);
+            connect(i, j + 1, k, i + 1, j, k + 1, math.sqrt(3) * dist);
+            connect(i, j, k + 1, i + 1, j + 1, k, math.sqrt(3) * dist);
           }
 
           // 2d diagonals
           if (i < Nx - 1 && j < Ny - 1) {
-            connect(i + 1, j, k, i, j + 1, k, Math.sqrt(2) * dist);
-            connect(i, j + 1, k, i + 1, j, k, Math.sqrt(2) * dist);
+            connect(i + 1, j, k, i, j + 1, k, math.sqrt(2) * dist);
+            connect(i, j + 1, k, i + 1, j, k, math.sqrt(2) * dist);
           }
           if (i < Nx - 1 && k < Nz - 1) {
-            connect(i + 1, j, k, i, j, k + 1, Math.sqrt(2) * dist);
-            connect(i, j, k + 1, i + 1, j, k, Math.sqrt(2) * dist);
+            connect(i + 1, j, k, i, j, k + 1, math.sqrt(2) * dist);
+            connect(i, j, k + 1, i + 1, j, k, math.sqrt(2) * dist);
           }
           if (j < Ny - 1 && k < Nz - 1) {
-            connect(i, j + 1, k, i, j, k + 1, Math.sqrt(2) * dist);
-            connect(i, j, k + 1, i, j + 1, k, Math.sqrt(2) * dist);
+            connect(i, j + 1, k, i, j, k + 1, math.sqrt(2) * dist);
+            connect(i, j, k + 1, i, j + 1, k, math.sqrt(2) * dist);
           }
         }
       }

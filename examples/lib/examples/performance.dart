@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -45,7 +45,7 @@ class _PerformanceState extends State<Performance> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0 );
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
@@ -57,9 +57,9 @@ class _PerformanceState extends State<Performance> {
     for (int i = 0; i < N; i++) {
       // start with random positions
       final position = vmath.Vector3(
-        (Math.random() * 2 - 1) * 2.5,
-        Math.random() * 10,
-        (Math.random() * 2 - 1) * 2.5
+        (math.Random().nextDouble() * 2 - 1) * 2.5,
+        math.Random().nextDouble() * 10,
+        (math.Random().nextDouble() * 2 - 1) * 2.5
       );
 
       final boxBody = cannon.Body(

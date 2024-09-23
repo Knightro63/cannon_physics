@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -50,14 +50,14 @@ class _PileState extends State<Pile> {
     final groundShape = cannon.Plane();
     final groundBody = cannon.Body(mass: 0 );
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    groundBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(groundBody);
     demo.addVisual(groundBody);
 
     final planeShapeXmin = cannon.Plane();
     final planeXmin = cannon.Body(mass: 0);
     planeXmin.addShape(planeShapeXmin);
-    planeXmin.quaternion.setFromEuler(0, Math.PI / 2, 0);
+    planeXmin.quaternion.setFromEuler(0, math.pi / 2, 0);
     planeXmin.position.setValues(-5, 0, 0);
     world.addBody(planeXmin);
 
@@ -65,7 +65,7 @@ class _PileState extends State<Pile> {
     final planeShapeXmax = cannon.Plane();
     final planeXmax = cannon.Body(mass: 0 );
     planeXmax.addShape(planeShapeXmax);
-    planeXmax.quaternion.setFromEuler(0, -Math.PI / 2, 0);
+    planeXmax.quaternion.setFromEuler(0, -math.pi / 2, 0);
     planeXmax.position.setValues(5, 0, 0);
     world.addBody(planeXmax);
 
@@ -81,7 +81,7 @@ class _PileState extends State<Pile> {
     final planeShapeZmax = cannon.Plane();
     final planeZmax = cannon.Body(mass: 0);
     planeZmax.addShape(planeShapeZmax);
-    planeZmax.quaternion.setFromEuler(0, Math.PI, 0);
+    planeZmax.quaternion.setFromEuler(0, math.pi, 0);
     planeZmax.position.setValues(0, 0, 5);
     world.addBody(planeZmax);
 
@@ -94,7 +94,7 @@ class _PileState extends State<Pile> {
       final sphereShape = cannon.Sphere(size);
       final sphereBody = cannon.Body(
         mass: 5,
-        position: vmath.Vector3(-size * 2 * Math.sin(i), size * 2 * 7, size * 2 * Math.cos(i)),
+        position: vmath.Vector3(-size * 2 * math.sin(i), size * 2 * 7, size * 2 * math.cos(i)),
       );
       sphereBody.addShape(sphereShape);
       world.addBody(sphereBody);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -119,7 +119,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
           continue;
         }
 
-        double height = Math.sin((i / sizeX) * Math.PI * 7) * Math.sin((j / sizeZ) * Math.PI * 7) * 6 + 6;
+        double height = math.sin((i / sizeX) * math.pi * 7) * math.sin((j / sizeZ) * math.pi * 7) * 6 + 6;
         matrix[i].add(height);
       }
     }
@@ -135,7 +135,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
       -15,
       ((sizeZ - 1) * heightfieldShape.elementSize) / 2
     );
-    heightfieldBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    heightfieldBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);
     world.addBody(heightfieldBody);
     demo.addVisual(heightfieldBody);
 
@@ -150,7 +150,7 @@ class _RigidVehicleState extends State<RigidVehicle> {
     // Keybindings
     // Add force on keydown
     demo.addDomListener('keydown', (event){
-      const maxSteerVal = Math.PI / 8;
+      const maxSteerVal = math.pi / 8;
       //const maxSpeed = 100.0;
       const maxForce = 100.0;
 

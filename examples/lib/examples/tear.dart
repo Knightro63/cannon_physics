@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 
@@ -79,7 +78,7 @@ class _TearState extends State<Tear> {
       for (int i = constraints.length - 1; i >= 0; i--) {
         // The multiplier is proportional to how much force that is added to the bodies by the constraint.
         // If this exceeds a limit we remove the constraint.
-        num multiplier = Math.abs(constraints[i].equations[0].multiplier);
+        num multiplier = (constraints[i].equations[0].multiplier).abs();
         if (multiplier > 1000) {
           world.removeConstraint(constraints[i]);
         }

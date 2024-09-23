@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:three_dart/three_dart.dart';
+import 'dart:math' as math;
 import '../src/demo.dart';
 import 'package:cannon_physics/cannon_physics.dart' as cannon;
 import 'package:vector_math/vector_math.dart' as vmath;
@@ -59,7 +59,7 @@ class _CallbackState extends State<Callback> {
       final distance = moon_to_planet.length;
 
       moon_to_planet.normalize();
-      moon_to_planet.scale2(1500 / Math.pow(distance, 2), moon.force);
+      moon_to_planet.scale2(1500 / math.pow(distance, 2), moon.force);
     });
 
     world.addBody(moon);
