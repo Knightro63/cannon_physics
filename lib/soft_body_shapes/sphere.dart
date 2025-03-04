@@ -25,7 +25,7 @@ class SphereSoftBody extends SoftBody{
     
     for (int iy = 0; iy <= heightSegments; iy++) {
       final theta = ((2 * pi) / heightSegments) * (iy + 1);
-      final thetaN = ((2 * pi) / heightSegments) * (iy + 0.5);
+      //final thetaN = ((2 * pi) / heightSegments) * (iy + 0.5);
       final body1 = Body(mass: mass);
       body1.addShape(Particle());
       body1.position.setValues(

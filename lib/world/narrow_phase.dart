@@ -2315,11 +2315,11 @@ class Narrowphase {
       sj.getTriangleVertices(sj.indices[i], va, vb, vc);
       sj.getIndicesNormal(i, triangleNormal);
 
-      Vector3 offsetResult = Vector3(
-        (va.x+vb.x+vc.x)/3,
-        (va.y+vb.y+vc.y)/3,
-        (va.z+vb.z+vc.z)/3
-      );
+      // Vector3 offsetResult = Vector3(
+      //   (va.x+vb.x+vc.x)/3,
+      //   (va.y+vb.y+vc.y)/3,
+      //   (va.z+vb.z+vc.z)/3
+      // );
       cp.computeEdges();
       //cp.computeNormals();
       cp.updateBoundingSphereRadius();
