@@ -153,7 +153,7 @@ class _ShapesState extends State<Shapes> {
     world.addBody(polyhedronBody);
     demo.addVisual(polyhedronBody);
 
-    final capsuleShape = cannon.CapsuleLathe(
+    final capsuleShape = cannon.Capsule(
       radiusTop: size/0.8, 
       radiusBottom: size, 
       height: size * 2, 

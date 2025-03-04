@@ -306,7 +306,7 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         meshs.add(
           three.Mesh(
             ConversionUtils.shapeToGeometry(
-              cannon.CapsuleLathe(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)
+              cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h)
             ), 
             mat
           )

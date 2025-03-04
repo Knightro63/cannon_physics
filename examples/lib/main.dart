@@ -42,7 +42,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Tween;
 import 'package:cannon_physics_example/examples/cloth.dart';
 import 'package:cannon_physics_example/examples/tween.dart';
-
+import 'package:cannon_physics_example/examples/bowling.dart';
 import 'src/plugins/plugin.dart';
 void main() {
   setPathUrlStrategy();
@@ -113,6 +113,9 @@ class _MyAppState extends State<MyApp> {
               },
               '/bounce':(BuildContext context) {
                 return const Bounce();
+              },
+              '/bowling':(BuildContext context) {
+                return const Bowling();
               },
               '/bunny':(BuildContext context) {
                 return const Bunny();
@@ -282,6 +285,7 @@ class _ExamplesPageState extends State<Examples> {
     'basic_physics',
     'body_types',
     'bounce',
+    'bowling',
     'bunny',
     'callbacks',
     'collision_filter',

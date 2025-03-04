@@ -23,7 +23,7 @@ class LatheShape extends ConvexPolyhedron {
 		// buffers
 		final List<List<int>> indices = [];
 		final List<Vector3> vertices = [];
-    List<Vector3> axes =[];
+    //List<Vector3> axes =[];
 
 		// helper variables
 		double inverseSegments = 1.0 / numSegments;

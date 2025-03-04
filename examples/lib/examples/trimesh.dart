@@ -73,7 +73,7 @@ class _TriMeshState extends State<TriMesh> {
     final torusShape = ConversionUtils.geometryToShape(torusGeometry);
 
     //final torusShape = cannon.Trimesh.createTorus(cannon.TorusGeometry(5, 3.5, 16,16));
-    final torusBody = cannon.Body(mass: 1,angularDamping: 0 );
+    final torusBody = cannon.Body(mass: 1, angularDamping: 0 );
     torusBody.addShape(torusShape);
     torusBody.position.setValues(0.01, 0.01, 0.01);
     torusBody.quaternion.setFromEuler(-math.pi / 2, 0, 0);

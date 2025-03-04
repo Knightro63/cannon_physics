@@ -36,7 +36,7 @@ class _TestGamePageState extends State<TestGame> {
   List<cannon.Body> balls = [];
   int sphereIdx = 0;
 
-  cannon.CapsuleLathe playerCollider = cannon.CapsuleLathe(
+  cannon.Capsule playerCollider = cannon.Capsule(
     radiusBottom: 0.35,
     radiusTop: 0.35,
     height: 0.65
@@ -94,7 +94,7 @@ class _TestGamePageState extends State<TestGame> {
   void initCannonPhysics(){
     world = cannon.World();
     world.quatNormalizeSkip = 0;
-    world.quatNormalizeFast = false;
+    world.quatNormalizeFast = true;
     world.allowSleep = true;
 
     cannon.GSSolver solver = cannon.GSSolver();

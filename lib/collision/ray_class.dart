@@ -122,12 +122,9 @@ class Ray {
     }
   }
 
-
-
   Ray([Vector3? from, Vector3? to]) {
     this.from = from ?? Vector3.zero();
     this.to = to ?? Vector3.zero();
-
     callback = (result){};
   }
 
@@ -507,9 +504,9 @@ class Ray {
       final dot = direction.dot(normal);
 
       // Bail out if ray and plane are parallel
-      // if (dot.abs() < precision) {
-      //   continue;
-      // }
+      if (dot.abs() < precision) {
+        continue;
+      }
 
       // calc distance to plane
       final scalar = normal.dot(vector) / dot;
@@ -618,9 +615,9 @@ class Ray {
       final dot = localDirection.dot(normal);
 
       // Bail out if ray and plane are parallel
-      // if (dot.abs() < precision){
-      //   continue;
-      // }
+      if (dot.abs() < precision){
+        continue;
+      }
 
       // calc distance to plane
       final scalar = normal.dot(vector) / dot;

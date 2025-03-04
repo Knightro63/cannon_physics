@@ -4,7 +4,6 @@
 *.log
 *.pyc
 *.swp
-*.metadata
 .DS_Store
 .atom/
 .buildlog/
@@ -24,11 +23,12 @@
 .vscode/*
 
 */macos
-*/ios
-*/windows
-*/linux
-*/android
 */web
+*/ios
+*/android
+*/linux
+*/windows
+
 # Flutter repo-specific
 /bin/cache/
 /bin/internal/bootstrap.bat

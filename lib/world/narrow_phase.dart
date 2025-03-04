@@ -1487,10 +1487,10 @@ class Narrowphase {
     final v = _sphereTrimeshV;
     final radiusSquared = si.radius * si.radius;
 
-    for (int i = 0; i < sj.indices.length/3; i++){//triangles.length
+    for (int i = 0; i < triangles.length; i++){//sj.indices.length/3
       for (int j = 0; j < 3; j++) {
         {
-          sj.getVertex(sj.indices[i*3+j], v);//triangles[i]*3 + j
+          sj.getVertex(sj.indices[triangles[i] * 3 + j], v);//sj.indices[i*3+j]
           v.sub2(local, relpos);
           if (relpos.length2 <= radiusSquared) {
             // Safe up
@@ -1521,8 +1521,8 @@ class Narrowphase {
             createFrictionEquationsFromContact(r, frictionResult);
           }
           {
-            sj.getVertex(sj.indices[i*3 + j], edgeVertexA);//triangles[i]*3
-            sj.getVertex(sj.indices[i*3 + ((j + 1) % 3)], edgeVertexB);//triangles[i]*3
+            sj.getVertex(sj.indices[triangles[i] * 3 + j], edgeVertexA);//sj.indices[i*3 + j]
+            sj.getVertex(sj.indices[triangles[i] * 3 + ((j+1)%3)], edgeVertexB);//sj.indices[i*3 + ((j + 1) % 3)]
             edgeVertexB.sub2(edgeVertexA, edgeVector);
             
             // Project sphere position to the edge
@@ -1567,8 +1567,8 @@ class Narrowphase {
           }
         }
         {
-          sj.getTriangleVertices(i, va, vb, vc);//triangles[i]
-          sj.getIndicesNormal(i, normal);//triangles[i]
+          sj.getTriangleVertices(triangles[i], va, vb, vc);//triangles[i]
+          sj.getIndicesNormal(triangles[i], normal);//triangles[i]
 
           local.sub2(va, tmp);
           double dist = tmp.dot(normal);
@@ -2243,7 +2243,7 @@ class Narrowphase {
         //final projectedToFace = xi..sub(xj)..add(worldPenetrationVec);
         //projectedToFace.setFrom(r.rj);
 
-        qj.vmult(r.rj,r.rj);
+        //qj.vmult(r.rj,r.rj);
         r.ni..setFrom(penetratedFaceNormal)..negate(); // Contact normal
         r.ri.setValues(0, 0, 0); // Center of particle
 
@@ -2417,7 +2417,7 @@ class Narrowphase {
         si.getConvexTrianglePillar(i, j, false);
         Transform.pointToWorldFrame(xi, qi, si.pillarOffset, worldPillarOffset);
         if (
-          xj.distanceTo(worldPillarOffset) < si.pillarConvex.boundingSphereRadius
+          xj.distanceTo(worldPillarOffset) <= si.pillarConvex.boundingSphereRadius
         ) {
           intersecting = particleConvex(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
         }
@@ -2430,7 +2430,7 @@ class Narrowphase {
         si.getConvexTrianglePillar(i, j, true);
         Transform.pointToWorldFrame(xi, qi, si.pillarOffset, worldPillarOffset);
         if (
-          xj.distanceTo(worldPillarOffset) < si.pillarConvex.boundingSphereRadius
+          xj.distanceTo(worldPillarOffset) <= si.pillarConvex.boundingSphereRadius
         ) {
           intersecting = particleConvex(si.pillarConvex, sj, worldPillarOffset, xj, qi, qj, bi, bj, rsi, rsj, justTest);
         }
