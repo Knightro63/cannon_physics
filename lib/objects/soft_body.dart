@@ -1,5 +1,4 @@
 import 'package:cannon_physics/cannon_physics.dart';
-import 'package:cannon_physics/rigid_body_shapes/shape.dart';
 import 'package:vector_math/vector_math.dart';
 
 /// Simple vehicle helper class with spherical rigid body wheels.
@@ -23,14 +22,14 @@ class SoftBody {
     int numOfParticles = 18,
   });
 
-  void _connect(i1, j1, k1, i2, j2, k2, distance) {
-    final distanceConstraint = SpringConstraint(
-      particleBodies['$i1 $j1 $k1']!,
-      particleBodies['$i2 $j2 $k2']!,
-      stiffness :stiffness
-    );
-    constraints.add(distanceConstraint);
-  }
+  // void _connect(i1, j1, k1, i2, j2, k2, distance) {
+  //   final distanceConstraint = SpringConstraint(
+  //     particleBodies['$i1 $j1 $k1']!,
+  //     particleBodies['$i2 $j2 $k2']!,
+  //     stiffness :stiffness
+  //   );
+  //   constraints.add(distanceConstraint);
+  // }
 
   /// Add the vehicle including its constraints to the world.
   void addToWorld(World world) {

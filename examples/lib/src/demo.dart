@@ -33,6 +33,9 @@ class DemoSettings{
     this.aabbs= false,
     this.profiling= false,
     this.maxSubSteps = 20,
+    this.x = 0,
+    this.y = 20,
+    this.z = 40,
   });
   int stepFrequency;
   int quatNormalizeSkip;
@@ -56,6 +59,9 @@ class DemoSettings{
   bool aabbs;
   bool profiling;
   int maxSubSteps;
+  double x;
+  double y;
+  double z;
 }
 
 /**
@@ -283,7 +289,7 @@ class Demo{
     threeJs.scene.fog = three.Fog(0x222222, 1000, 2000);
 
     threeJs.camera = three.PerspectiveCamera(24, threeJs.width/threeJs.height, 5, 2000);
-    threeJs.camera.position.setValues(0,20,40);
+    threeJs.camera.position.setValues(settings.x, settings.y, settings.z);
     threeJs.camera.lookAt(three.Vector3(0, 0, 0));
 
     controls = three.OrbitControls(threeJs.camera, threeJs.globalKey);
@@ -295,10 +301,10 @@ class Demo{
     controls.minDistance = 10;
     controls.maxDistance = 500;
 
-    _ambientLight = three.AmbientLight(0xffffff, 0.1);
+    _ambientLight = three.AmbientLight(0xffffff, 0.4);
     threeJs.scene.add(_ambientLight);
 
-    three.DirectionalLight directionalLight = three.DirectionalLight( 0xffffff , 0.15);
+    three.DirectionalLight directionalLight = three.DirectionalLight( 0xffffff , 0.9);
     directionalLight.position.setValues(-30, 40, 30);
     directionalLight.target!.position.setValues( 0, 0, 0 );
     threeJs.scene.add(directionalLight);

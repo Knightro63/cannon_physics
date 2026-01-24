@@ -1,6 +1,6 @@
 {
-    "name": "examples",
-    "short_name": "examples",
+    "name": "cannon_physics_example",
+    "short_name": "cannon_physics_example",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

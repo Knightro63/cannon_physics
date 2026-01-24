@@ -280,19 +280,19 @@ class _BasicPhysicsPageState extends State<BasicPhysics> {
         meshs.add(three.Mesh( geos['cone'], mat));
         meshs[i].scale.setValues( w*0.5, h, w*0.5 );
       }
-      // else if(t==5){
-      //   three.Material mat = mats['plane']!;
-      //   mat.color = randColor;
-      //   cannon.Body sbody = cannon.Body(
-      //     shape: cannon.SizedPlane(w*0.5,h*0.5),
-      //     position:vmath.Vector3(x,y,z),
-      //     mass: 1
-      //   )..quaternion.setFromEuler(0, 0, Math.PI / 2);
-      //   bodys.add(sbody);
-      //   world.addBody(sbody);
-      //   meshs.add(three.Mesh( geos['plane'], mat));
-      //   meshs[i].scale.set( w*0.5, h, w*0.5 );
-      // }
+      else if(t==5){
+        three.Material mat = mats['plane']!;
+        mat.color = randColor;
+        cannon.Body sbody = cannon.Body(
+          shape: cannon.SizedPlane(w*0.5,h*0.5),
+          position:vmath.Vector3(x,y,z),
+          mass: 1
+        )..quaternion.setFromEuler(0, 0, math.pi / 2);
+        bodys.add(sbody);
+        world.addBody(sbody);
+        meshs.add(three.Mesh( geos['plane'], mat));
+        meshs[i].scale.setValues( w*0.5, h, w*0.5 );
+      }
       else if(t==5){
         three.Material mat = mats['capsule']!;
         mat.color = randColor;

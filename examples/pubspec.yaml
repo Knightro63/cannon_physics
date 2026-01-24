@@ -12,8 +12,8 @@ dependencies:
   cannon_physics:
     path: ../
   vector_math: ^2.1.4
-  three_js: ^0.0.5
-  three_js_geometry: ^0.0.2
+  three_js: ^0.2.7
+  three_js_geometry: ^0.2.1
   css:
     git:
       url: https://github.com/Knightro63/css.git

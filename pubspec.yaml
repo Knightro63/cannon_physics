@@ -1,7 +1,14 @@
 name: cannon_physics
 description: A 3D physics engine for dart (based on cannon.js) that allows users to add physics support to their 3D projects.
-version: 0.0.2
+version: 0.0.3
 homepage: https://github.com/Knightro63/cannon_physics
+
+topics:
+  - physics
+  - games
+  - 3d
+  - flutter3d
+  - model3d
 
 environment:
   sdk: '>=2.18.1 <4.0.0'

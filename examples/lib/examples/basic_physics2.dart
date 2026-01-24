@@ -36,7 +36,10 @@ class _BasicPhysicsState extends State<BasicPhysics> {
         gy: -200,
         gz: 0,
         iterations: 20,
-        maxSubSteps: 1
+        maxSubSteps: 1,
+        x: 0,
+        y: 160,
+        z: 400,
       )
     );
     setupWorld();
@@ -50,7 +53,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
 
   void populate(n) {
     final world = demo.world;
-    int max = 200;
+    int max = 50;
     int type = n;
 
     cannon.Body b1 = cannon.Body(
@@ -77,7 +80,7 @@ class _BasicPhysicsState extends State<BasicPhysics> {
     int t;
     for(int i = 0; i < max;i++){
       if(type==4) {
-        t = (math.Random().nextDouble() *3).floor() +1;
+        t = (math.Random().nextDouble() * 5).floor() +1;
       }
       else {
         t = type;
@@ -117,6 +120,28 @@ class _BasicPhysicsState extends State<BasicPhysics> {
         mat.color = randColor;
         cannon.Body sbody = cannon.Body(
           shape: cannon.Cylinder(radiusTop:w*0.5,radiusBottom:w*0.5,height: h),
+          position:vmath.Vector3(x,y,z),
+          mass: 1
+        );
+        world.addBody(sbody);
+        demo.addVisual(sbody,material: mat);
+      }
+      else if(t==4){
+        three.Material mat = mats['cone']!;
+        mat.color = randColor;
+        cannon.Body sbody = cannon.Body(
+          shape: cannon.Cone(radius:w*0.5,height: h),
+          position:vmath.Vector3(x,y,z),
+          mass: 1
+        );
+        world.addBody(sbody);
+        demo.addVisual(sbody,material: mat);
+      }
+      else if(t==5){
+        three.Material mat = mats['capsule']!;
+        mat.color = randColor;
+        cannon.Body sbody = cannon.Body(
+          shape: cannon.Capsule(radiusTop:w*0.5,radiusBottom:w*0.5,height: h),
           position:vmath.Vector3(x,y,z),
           mass: 1
         );
@@ -166,13 +191,17 @@ class _BasicPhysicsState extends State<BasicPhysics> {
     final world = demo.world;
     world.broadphase = cannon.NaiveBroadphase();
 
-    mats['sph']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sph'});
-    mats['box']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'box'});
-    mats['cyl']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'cyl'});
-    mats['ssph']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'ssph'});
-    mats['sbox']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sbox'});
-    mats['scyl']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'scyl'});
-    mats['ground'] = three.MeshPhongMaterial.fromMap({'shininess': 10, 'color':0x3D4143, 'transparent':true, 'opacity':0.5});
+    mats['sph']     = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sph'});
+    mats['box']     = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'box'});
+    mats['cyl']     = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'cyl'});
+    mats['cone']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'cone'});
+    mats['capsule'] = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'capsule'});
+    mats['ssph']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'ssph'});
+    mats['sbox']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'sbox'});
+    mats['scyl']    = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'scyl'});
+    mats['scone']   = three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'scone'});
+    mats['scapsule']= three.MeshPhongMaterial.fromMap({'shininess': 10, 'name':'scapsule'});
+    mats['ground']  = three.MeshPhongMaterial.fromMap({'shininess': 10, 'color':0x3D4143, 'transparent':true, 'opacity':0.5});
 
     populate(4);
   }

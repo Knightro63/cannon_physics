@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cannon_physics_example/examples/basic_physics.dart';
+import 'package:cannon_physics_example/examples/basic_physics2.dart';
 import 'package:cannon_physics_example/examples/body_types.dart';
 import 'package:cannon_physics_example/examples/bounce.dart';
 import 'package:cannon_physics_example/examples/bunny.dart';

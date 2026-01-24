@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Updated readme
+
 ## 0.0.2
 
 * Converted math to googles vector_math

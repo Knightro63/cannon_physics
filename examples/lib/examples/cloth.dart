@@ -88,7 +88,7 @@ class _ClothPageState extends State<Cloth> {
     clothTexture?.wrapS = three.RepeatWrapping;
     clothTexture?.wrapT = three.RepeatWrapping;
     clothTexture?.anisotropy = 16;
-    clothTexture?.encoding = three.sRGBEncoding;
+    //clothTexture?.encoding = three.sRGBEncoding;
 
     three.MeshPhongMaterial clothMaterial = three.MeshPhongMaterial.fromMap({
       'map': clothTexture,

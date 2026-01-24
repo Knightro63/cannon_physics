@@ -1193,8 +1193,8 @@ class Narrowphase {
             edge.unit(edgeUnit);
 
             // p is xi projected onto the edge
-            final p = v3pool.get() as Vector3;
-            final v1ToXi = v3pool.get() as Vector3;
+            final p = v3pool.get();
+            final v1ToXi = v3pool.get();
             xi.sub2(v1, v1ToXi);
             final dot = v1ToXi.dot(edgeUnit);
             edgeUnit.scale2(dot, p);
